@@ -1,0 +1,1252 @@
+{
+  "experiment": "Run 8 \u2014 Evolution Only, no forced {tool_schemas}",
+  "model": "gpt-4.1 (Azure OpenAI)",
+  "dataset": "holistic-ai/entity-classification-agentic-ai",
+  "entity_types": [
+    "Agent",
+    "Task",
+    "Tool",
+    "Input",
+    "Output",
+    "Human"
+  ],
+  "tool_schemas_forced": false,
+  "sample_sizes": {
+    "evolution": 40,
+    "validation_eval": 200,
+    "test_eval": 200
+  },
+  "config": {
+    "iterations": 5,
+    "population_size": 8,
+    "num_islands": 2,
+    "elite_size": 4,
+    "mutation_rate": 0.5,
+    "crossover_rate": 0.3,
+    "migration_interval": 2
+  },
+  "evolution": {
+    "seed_prompts": [
+      "Classify this text as Agent, Task, Tool, Input, Output, or Human.",
+      "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.",
+      "Think about what role this text plays in an agentic AI system, then classify it as Agent, Task, Tool, Input, Output, or Human.",
+      "You are an expert in agentic AI systems. Determine the entity type: Agent, Task, Tool, Input, Output, or Human.",
+      "An Agent acts autonomously, a Task is work to perform, a Tool is a capability, Input is incoming data, Output is produced data, Human is a person. Classify this text.",
+      "Entity type?",
+      "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.",
+      "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+    ],
+    "best_prompt": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nPay close attention to parameter extraction from the query.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context.",
+    "best_score_evo_subset": 87.5,
+    "best_temperature": 0.5626,
+    "best_top_p": 0.8954,
+    "validation_accuracy": 74.0,
+    "test_accuracy": 68.5,
+    "per_class_validation": {
+      "Agent": 81.81818181818183,
+      "Task": 37.142857142857146,
+      "Tool": 89.47368421052632,
+      "Input": 86.04651162790698,
+      "Output": 92.6829268292683,
+      "Human": 0.0
+    },
+    "per_class_test": {
+      "Agent": 78.26086956521739,
+      "Task": 23.076923076923077,
+      "Tool": 86.95652173913044,
+      "Input": 88.09523809523809,
+      "Output": 86.48648648648648,
+      "Human": 7.6923076923076925
+    },
+    "search_time_s": 2945.2,
+    "eval_time_s": 279.9,
+    "total_candidates": 88,
+    "history": [
+      [
+        1,
+        77.5
+      ],
+      [
+        2,
+        80.0
+      ],
+      [
+        3,
+        82.5
+      ],
+      [
+        4,
+        87.5
+      ],
+      [
+        5,
+        87.5
+      ]
+    ],
+    "all_candidates": [
+      {
+        "hash": "9219c4ecccd5db35",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "73ceaca31d11e1fd"
+        ],
+        "score": 87.5,
+        "temperature": 0.5626,
+        "top_p": 0.8954,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nPay close attention to parameter extraction from the query.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "30d65a120362baa4",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "73ceaca31d11e1fd"
+        ],
+        "score": 85.0,
+        "temperature": 0.6302,
+        "top_p": 0.9007,
+        "template": "Pay close attention to parameter extraction from the query.\nReturn exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "30d65a120362baa4",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "30d65a120362baa4"
+        ],
+        "score": 85.0,
+        "temperature": 0.5031,
+        "top_p": 0.8142,
+        "template": "Pay close attention to parameter extraction from the query.\nReturn exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "9219c4ecccd5db35",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "9219c4ecccd5db35"
+        ],
+        "score": 85.0,
+        "temperature": 0.594,
+        "top_p": 0.8831,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nPay close attention to parameter extraction from the query.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "73ceaca31d11e1fd"
+        ],
+        "score": 82.5,
+        "temperature": 0.8923,
+        "top_p": 0.8704,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "73ceaca31d11e1fd"
+        ],
+        "score": 82.5,
+        "temperature": 0.7817,
+        "top_p": 0.8135,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "73ceaca31d11e1fd"
+        ],
+        "score": 82.5,
+        "temperature": 0.6588,
+        "top_p": 0.878,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "73ceaca31d11e1fd"
+        ],
+        "score": 82.5,
+        "temperature": 0.6929,
+        "top_p": 0.8803,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "73ceaca31d11e1fd"
+        ],
+        "score": 82.5,
+        "temperature": 0.5042,
+        "top_p": 0.8572,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "9219c4ecccd5db35",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "9219c4ecccd5db35"
+        ],
+        "score": 82.5,
+        "temperature": 0.6167,
+        "top_p": 0.9335,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nPay close attention to parameter extraction from the query.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "c3cc3200223985cf",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "9219c4ecccd5db35",
+          "9219c4ecccd5db35"
+        ],
+        "score": 82.5,
+        "temperature": 0.4344,
+        "top_p": 0.9311,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nPay close attention to parameter extraction from the query.\nMatch the user's intent to the tool purpose, not the tool name.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "9219c4ecccd5db35",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "9219c4ecccd5db35"
+        ],
+        "score": 82.5,
+        "temperature": 0.5191,
+        "top_p": 0.8714,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nPay close attention to parameter extraction from the query.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "770405eae22e8f21",
+          "d65604988b29971a"
+        ],
+        "score": 80.0,
+        "temperature": 0.718,
+        "top_p": 0.8484,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "73ceaca31d11e1fd"
+        ],
+        "score": 80.0,
+        "temperature": 0.7412,
+        "top_p": 0.8602,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "73e3381bfb0ea2d9",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "73ceaca31d11e1fd"
+        ],
+        "score": 80.0,
+        "temperature": 0.8784,
+        "top_p": 0.8256,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nIf a required parameter is unclear, infer it from context.\nMatch the user's intent to the tool purpose, not the tool name."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "73ceaca31d11e1fd",
+          "73ceaca31d11e1fd"
+        ],
+        "score": 80.0,
+        "temperature": 0.5349,
+        "top_p": 0.8949,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "73ceaca31d11e1fd",
+          "73ceaca31d11e1fd"
+        ],
+        "score": 80.0,
+        "temperature": 0.6045,
+        "top_p": 0.999,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "73ceaca31d11e1fd"
+        ],
+        "score": 80.0,
+        "temperature": 0.8162,
+        "top_p": 0.8469,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "4d9739ed2cc75739",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "73ceaca31d11e1fd",
+          "73ceaca31d11e1fd"
+        ],
+        "score": 80.0,
+        "temperature": 0.5552,
+        "top_p": 0.8444,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "73ceaca31d11e1fd"
+        ],
+        "score": 80.0,
+        "temperature": 0.5281,
+        "top_p": 0.908,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "9219c4ecccd5db35",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "9219c4ecccd5db35"
+        ],
+        "score": 80.0,
+        "temperature": 0.5658,
+        "top_p": 0.9088,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nPay close attention to parameter extraction from the query.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "9219c4ecccd5db35",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "9219c4ecccd5db35"
+        ],
+        "score": 80.0,
+        "temperature": 0.4586,
+        "top_p": 0.7747,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nPay close attention to parameter extraction from the query.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "c3cc3200223985cf",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "9219c4ecccd5db35",
+          "73ceaca31d11e1fd"
+        ],
+        "score": 80.0,
+        "temperature": 0.6739,
+        "top_p": 0.8831,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nPay close attention to parameter extraction from the query.\nMatch the user's intent to the tool purpose, not the tool name.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "9219c4ecccd5db35",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "9219c4ecccd5db35"
+        ],
+        "score": 80.0,
+        "temperature": 0.6754,
+        "top_p": 0.7813,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nPay close attention to parameter extraction from the query.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "73ceaca31d11e1fd"
+        ],
+        "score": 78.28,
+        "temperature": 0.8881,
+        "top_p": 0.7564,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 77.5,
+        "temperature": 0.7875,
+        "top_p": 0.8596,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "d65604988b29971a",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "770405eae22e8f21",
+          "770405eae22e8f21"
+        ],
+        "score": 77.5,
+        "temperature": 0.7908,
+        "top_p": 0.8095,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "d65604988b29971a",
+          "770405eae22e8f21"
+        ],
+        "score": 77.5,
+        "temperature": 0.8081,
+        "top_p": 0.8885,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "770405eae22e8f21",
+          "770405eae22e8f21"
+        ],
+        "score": 77.5,
+        "temperature": 0.7712,
+        "top_p": 0.8765,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "73ceaca31d11e1fd"
+        ],
+        "score": 77.5,
+        "temperature": 0.6989,
+        "top_p": 0.907,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "73ceaca31d11e1fd"
+        ],
+        "score": 77.5,
+        "temperature": 0.7788,
+        "top_p": 0.7339,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "4d9739ed2cc75739",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "73ceaca31d11e1fd",
+          "73ceaca31d11e1fd"
+        ],
+        "score": 77.5,
+        "temperature": 0.7382,
+        "top_p": 0.8907,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "73ceaca31d11e1fd",
+          "73ceaca31d11e1fd"
+        ],
+        "score": 77.5,
+        "temperature": 0.7456,
+        "top_p": 0.7778,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "54c13ea70cdda0da",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "73ceaca31d11e1fd",
+          "73ceaca31d11e1fd"
+        ],
+        "score": 77.5,
+        "temperature": 0.5697,
+        "top_p": 0.7318,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nDo not include any explanation outside the JSON object.\nMatch the user's intent to the tool purpose, not the tool name.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "73ceaca31d11e1fd"
+        ],
+        "score": 77.5,
+        "temperature": 0.8269,
+        "top_p": 0.9148,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "73ceaca31d11e1fd"
+        ],
+        "score": 77.5,
+        "temperature": 0.8398,
+        "top_p": 0.8107,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "73ceaca31d11e1fd"
+        ],
+        "score": 77.5,
+        "temperature": 0.6023,
+        "top_p": 0.8338,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "73ceaca31d11e1fd"
+        ],
+        "score": 77.5,
+        "temperature": 0.4126,
+        "top_p": 0.9073,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "4d9739ed2cc75739",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "73ceaca31d11e1fd",
+          "73ceaca31d11e1fd"
+        ],
+        "score": 77.5,
+        "temperature": 0.559,
+        "top_p": 0.8061,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "70946dc387504f52",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "9219c4ecccd5db35",
+          "9219c4ecccd5db35"
+        ],
+        "score": 77.5,
+        "temperature": 0.3934,
+        "top_p": 0.8945,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nPay close attention to parameter extraction from the query.\nPay close attention to parameter extraction from the query.\nThe parameters object must contain string values only.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 0,
+        "island_id": 0,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 75.0,
+        "temperature": 0.8228,
+        "top_p": 0.833,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 75.0,
+        "temperature": 0.8807,
+        "top_p": 0.8789,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "d65604988b29971a",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "d65604988b29971a"
+        ],
+        "score": 75.0,
+        "temperature": 0.7497,
+        "top_p": 0.8648,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "bc1a35aca4212e3c",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "bc1a35aca4212e3c"
+        ],
+        "score": 75.0,
+        "temperature": 0.1757,
+        "top_p": 0.7876,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\nIf multiple tools could apply, choose the most specific one.\nPay close attention to parameter extraction from the query."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "73ceaca31d11e1fd",
+          "73ceaca31d11e1fd"
+        ],
+        "score": 75.0,
+        "temperature": 0.481,
+        "top_p": 0.9523,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "b6208c4556c96b5e",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "9219c4ecccd5db35",
+          "9219c4ecccd5db35"
+        ],
+        "score": 75.0,
+        "temperature": 0.7679,
+        "top_p": 0.904,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nBe precise \u2014 ambiguous queries should still resolve to one tool.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "9219c4ecccd5db35",
+          "30d65a120362baa4"
+        ],
+        "score": 75.0,
+        "temperature": 0.6411,
+        "top_p": 0.909,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "9219c4ecccd5db35",
+          "9219c4ecccd5db35"
+        ],
+        "score": 75.0,
+        "temperature": 0.5459,
+        "top_p": 0.9362,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "73ceaca31d11e1fd",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "73ceaca31d11e1fd",
+          "9219c4ecccd5db35"
+        ],
+        "score": 75.0,
+        "temperature": 0.7238,
+        "top_p": 0.8759,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "d65604988b29971a",
+          "770405eae22e8f21"
+        ],
+        "score": 72.5,
+        "temperature": 0.7728,
+        "top_p": 0.7903,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 72.5,
+        "temperature": 0.6997,
+        "top_p": 0.8429,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "d65604988b29971a",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "73ceaca31d11e1fd",
+          "73ceaca31d11e1fd"
+        ],
+        "score": 72.5,
+        "temperature": 0.6563,
+        "top_p": 0.8937,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "d65604988b29971a",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "73ceaca31d11e1fd",
+          "9219c4ecccd5db35"
+        ],
+        "score": 72.5,
+        "temperature": 0.5141,
+        "top_p": 0.9037,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "7186b3822390f88d",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "73ceaca31d11e1fd"
+        ],
+        "score": 70.03,
+        "temperature": 0.808,
+        "top_p": 0.8854,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nThink about what the user actually needs, not just keywords.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "39b921f0de343414",
+        "generation": 0,
+        "island_id": 0,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 70.0,
+        "temperature": 0.774,
+        "top_p": 0.8317,
+        "template": "Classify this text as Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "770405eae22e8f21",
+          "770405eae22e8f21"
+        ],
+        "score": 70.0,
+        "temperature": 0.839,
+        "top_p": 0.8623,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "d65604988b29971a",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "d65604988b29971a",
+          "d65604988b29971a"
+        ],
+        "score": 70.0,
+        "temperature": 0.7055,
+        "top_p": 0.7951,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "bc1a35aca4212e3c",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "aca916f43e43411d",
+          "f99114e9dc23628a"
+        ],
+        "score": 70.0,
+        "temperature": 0.0997,
+        "top_p": 0.7761,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\nIf multiple tools could apply, choose the most specific one.\nPay close attention to parameter extraction from the query."
+      },
+      {
+        "hash": "bc1a35aca4212e3c",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "bc1a35aca4212e3c"
+        ],
+        "score": 70.0,
+        "temperature": 0.1089,
+        "top_p": 0.7342,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\nIf multiple tools could apply, choose the most specific one.\nPay close attention to parameter extraction from the query."
+      },
+      {
+        "hash": "bc1a35aca4212e3c",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "bc1a35aca4212e3c"
+        ],
+        "score": 70.0,
+        "temperature": 0.1359,
+        "top_p": 0.8421,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\nIf multiple tools could apply, choose the most specific one.\nPay close attention to parameter extraction from the query."
+      },
+      {
+        "hash": "39b921f0de343414",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "39b921f0de343414"
+        ],
+        "score": 67.5,
+        "temperature": 0.7333,
+        "top_p": 0.8061,
+        "template": "Classify this text as Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "39b921f0de343414",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "39b921f0de343414",
+          "39b921f0de343414"
+        ],
+        "score": 67.5,
+        "temperature": 0.8483,
+        "top_p": 0.8588,
+        "template": "Classify this text as Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "39b921f0de343414",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "39b921f0de343414",
+          "770405eae22e8f21"
+        ],
+        "score": 67.5,
+        "temperature": 0.6606,
+        "top_p": 0.7857,
+        "template": "Classify this text as Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "f99114e9dc23628a",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 67.5,
+        "temperature": 0.1894,
+        "top_p": 0.9313,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\nPay close attention to parameter extraction from the query."
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 67.5,
+        "temperature": 0.205,
+        "top_p": 0.7928,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "f99114e9dc23628a",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "aca916f43e43411d",
+          "f99114e9dc23628a"
+        ],
+        "score": 67.5,
+        "temperature": 0.4261,
+        "top_p": 0.7664,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\nPay close attention to parameter extraction from the query."
+      },
+      {
+        "hash": "e66fd8726d8f906e",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "770405eae22e8f21",
+          "770405eae22e8f21"
+        ],
+        "score": 65.0,
+        "temperature": 0.8893,
+        "top_p": 0.8281,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nBe precise \u2014 ambiguous queries should still resolve to one tool."
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "aca916f43e43411d",
+          "af0d4cc397bce306"
+        ],
+        "score": 65.0,
+        "temperature": 0.014,
+        "top_p": 0.8798,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "39b921f0de343414",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "39b921f0de343414"
+        ],
+        "score": 62.5,
+        "temperature": 0.7898,
+        "top_p": 0.8629,
+        "template": "Classify this text as Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "f99114e9dc23628a",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "f99114e9dc23628a"
+        ],
+        "score": 62.5,
+        "temperature": 0.0,
+        "top_p": 0.9195,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\nPay close attention to parameter extraction from the query."
+      },
+      {
+        "hash": "f99114e9dc23628a",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "aca916f43e43411d",
+          "f99114e9dc23628a"
+        ],
+        "score": 60.47,
+        "temperature": 0.2436,
+        "top_p": 0.7547,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\nPay close attention to parameter extraction from the query."
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 0,
+        "island_id": 1,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 60.0,
+        "temperature": 0.2272,
+        "top_p": 0.8664,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 60.0,
+        "temperature": 0.1237,
+        "top_p": 0.7826,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "af0d4cc397bce306",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "af0d4cc397bce306"
+        ],
+        "score": 60.0,
+        "temperature": 0.8843,
+        "top_p": 0.7135,
+        "template": "You are an expert in agentic AI systems. Determine the entity type: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "f99114e9dc23628a",
+          "aca916f43e43411d"
+        ],
+        "score": 60.0,
+        "temperature": 0.2672,
+        "top_p": 0.9531,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "aca916f43e43411d",
+          "aca916f43e43411d"
+        ],
+        "score": 60.0,
+        "temperature": 0.2505,
+        "top_p": 0.7373,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "5bd4406c63562cd2",
+        "generation": 0,
+        "island_id": 0,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 57.5,
+        "temperature": 0.9756,
+        "top_p": 0.9283,
+        "template": "Think about what role this text plays in an agentic AI system, then classify it as Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "f99114e9dc23628a",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "f99114e9dc23628a",
+          "f99114e9dc23628a"
+        ],
+        "score": 57.5,
+        "temperature": 0.2246,
+        "top_p": 0.934,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\nPay close attention to parameter extraction from the query."
+      },
+      {
+        "hash": "af0d4cc397bce306",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "af0d4cc397bce306"
+        ],
+        "score": 55.0,
+        "temperature": 0.8093,
+        "top_p": 0.7395,
+        "template": "You are an expert in agentic AI systems. Determine the entity type: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "f99114e9dc23628a",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "f99114e9dc23628a"
+        ],
+        "score": 55.0,
+        "temperature": 0.2278,
+        "top_p": 0.9248,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\nPay close attention to parameter extraction from the query."
+      },
+      {
+        "hash": "af0d4cc397bce306",
+        "generation": 0,
+        "island_id": 1,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 52.5,
+        "temperature": 0.7861,
+        "top_p": 0.7384,
+        "template": "You are an expert in agentic AI systems. Determine the entity type: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "ae9183b8b0ff7c3b",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 52.5,
+        "temperature": 0.3736,
+        "top_p": 0.8069,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\nYou MUST pick exactly one tool. Do not refuse."
+      },
+      {
+        "hash": "f99114e9dc23628a",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "f99114e9dc23628a"
+        ],
+        "score": 52.5,
+        "temperature": 0.0427,
+        "top_p": 1.0,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\nPay close attention to parameter extraction from the query."
+      },
+      {
+        "hash": "d1c98eb7b9c640eb",
+        "generation": 0,
+        "island_id": 1,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 47.62,
+        "temperature": 0.8586,
+        "top_p": 0.9092,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "d2d2daf61be0b264",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "73ceaca31d11e1fd"
+        ],
+        "score": 47.5,
+        "temperature": 0.5743,
+        "top_p": 0.8054,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\nRespond concisely in JSON format only.\nIf a required parameter is unclear, infer it from context."
+      },
+      {
+        "hash": "1dca0ae347abda9c",
+        "generation": 0,
+        "island_id": 0,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 40.0,
+        "temperature": 0.4504,
+        "top_p": 0.8112,
+        "template": "An Agent acts autonomously, a Task is work to perform, a Tool is a capability, Input is incoming data, Output is produced data, Human is a person. Classify this text."
+      },
+      {
+        "hash": "fe90e62075e1c3c2",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 35.0,
+        "temperature": 0.2707,
+        "top_p": 0.8783,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\nThink about what the user actually needs, not just keywords."
+      },
+      {
+        "hash": "b83c9075cfa5ac61",
+        "generation": 0,
+        "island_id": 1,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 27.5,
+        "temperature": 0.9268,
+        "top_p": 0.8932,
+        "template": "Entity type?"
+      }
+    ],
+    "tool_schemas_in_best": false
+  }
+}

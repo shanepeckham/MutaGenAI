@@ -1,0 +1,181 @@
+{
+  "timestamp": "2026-04-01T12:06:44",
+  "default_baseline": 55.01,
+  "no_eval_results": [
+    {
+      "strategy": "LLM-as-Judge",
+      "noeval_fitness": 90.0,
+      "gt_score": 57.88,
+      "api_name_accuracy": 50.0,
+      "param_accuracy": 44.69,
+      "wall_time": 1474.0,
+      "best_temperature": 0.0942,
+      "best_top_p": 0.9927,
+      "history": [
+        [
+          1,
+          90.0
+        ],
+        [
+          2,
+          90.0
+        ],
+        [
+          3,
+          90.0
+        ]
+      ],
+      "best_prompt_preview": "You are an expert API orchestration agent.\n\n## Task\nYou are an API-calling assistant. Given a conversation and API\ndescriptions, generate the correct API request in the format\n[ApiName(key1='value1', "
+    },
+    {
+      "strategy": "Tool-Use Success",
+      "noeval_fitness": 55.0,
+      "gt_score": 68.23,
+      "api_name_accuracy": 66.67,
+      "param_accuracy": 57.25,
+      "wall_time": 469.4,
+      "best_temperature": 0.8586,
+      "best_top_p": 0.9092,
+      "history": [
+        [
+          1,
+          55.00000000000001
+        ],
+        [
+          2,
+          55.00000000000001
+        ],
+        [
+          3,
+          55.00000000000001
+        ]
+      ],
+      "best_prompt_preview": "# Role\nAPI-calling assistant.\n\n# Rules\nYou are an API-calling assistant. Given a conversation and API\ndescriptions, generate the correct API request in the format\n[ApiName(key1='value1', key2='value2'"
+    },
+    {
+      "strategy": "Self-Consistency",
+      "noeval_fitness": 78.13,
+      "gt_score": 81.8,
+      "api_name_accuracy": 83.33,
+      "param_accuracy": 71.17,
+      "wall_time": 980.1,
+      "best_temperature": 0.8937,
+      "best_top_p": 0.9248,
+      "history": [
+        [
+          1,
+          63.85998796525112
+        ],
+        [
+          2,
+          78.12709512709513
+        ],
+        [
+          3,
+          78.12709512709513
+        ]
+      ],
+      "best_prompt_preview": "System: You are an API-calling assistant. Given a conversation and API\nIf a required parameter is unclear, infer it from context.\ndescriptions, generate the correct API request in the format\n\nRules:\n-"
+    },
+    {
+      "strategy": "Proxy Metrics (API-Bank)",
+      "noeval_fitness": 100.0,
+      "gt_score": 63.42,
+      "api_name_accuracy": 63.33,
+      "param_accuracy": 56.89,
+      "wall_time": 471.3,
+      "best_temperature": 0.7059,
+      "best_top_p": 0.8928,
+      "history": [
+        [
+          1,
+          100.0
+        ],
+        [
+          2,
+          100.0
+        ],
+        [
+          3,
+          100.0
+        ]
+      ],
+      "best_prompt_preview": "You are an API-calling assistant. Given a conversation and API\ndescriptions, generate the correct API request in the format\n[ApiName(key1='value1', key2='value2', ...)].\n\n- Include ALL required parame"
+    },
+    {
+      "strategy": "Preference Scoring",
+      "noeval_fitness": 69.0,
+      "gt_score": 59.96,
+      "api_name_accuracy": 50.0,
+      "param_accuracy": 49.89,
+      "wall_time": 958.7,
+      "best_temperature": 0.1841,
+      "best_top_p": 0.978,
+      "history": [
+        [
+          1,
+          68.0
+        ],
+        [
+          2,
+          68.0
+        ],
+        [
+          3,
+          69.0
+        ]
+      ],
+      "best_prompt_preview": "You are an expert API orchestration agent.\nThink about what the user actually needs, not just keywords.\n\n## Task\nYou are an API-calling assistant. Given a conversation and API\ndescriptions, generate t"
+    },
+    {
+      "strategy": "Composite (recommended)",
+      "noeval_fitness": 81.34,
+      "gt_score": 82.32,
+      "api_name_accuracy": 83.33,
+      "param_accuracy": 74.14,
+      "wall_time": 2029.4,
+      "best_temperature": 0.7786,
+      "best_top_p": 0.8214,
+      "history": [
+        [
+          1,
+          75.48089320788844
+        ],
+        [
+          2,
+          77.05735572296601
+        ],
+        [
+          3,
+          81.3378767728932
+        ]
+      ],
+      "best_prompt_preview": "You are an API-calling assistant. Given a conversation and API\nYou MUST pick exactly one tool. Do not refuse.\ndescriptions, generate the correct API request in the format\n[ApiName(key1='value1', key2="
+    }
+  ],
+  "ground_truth_result": {
+    "evolved_score": 100.0,
+    "api_name_accuracy": 100.0,
+    "param_accuracy": 100.0,
+    "wall_time": 470.3,
+    "baseline_score": 96.0,
+    "history": [
+      [
+        0,
+        96.0
+      ],
+      [
+        1,
+        100.0
+      ],
+      [
+        2,
+        100.0
+      ],
+      [
+        3,
+        100.0
+      ]
+    ]
+  }
+}

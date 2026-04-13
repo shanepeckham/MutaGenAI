@@ -1,0 +1,116 @@
+{
+  "timestamp": "2026-04-12T18:36:47",
+  "experiment": "apibank_gpt41_foundry_run3",
+  "level": "level_1",
+  "backend": "azure_openai",
+  "azure_deployment": "gpt-4.1",
+  "auth": "managed_identity_rbac",
+  "config": {
+    "iterations": 6,
+    "population_size": 4,
+    "num_islands": 2,
+    "elite_size": 3,
+    "mutation_rate": 0.5,
+    "crossover_rate": 0.3,
+    "adaptive_mutations": true,
+    "llm_mutation_rate": 0.3,
+    "warmup_adaptive": true,
+    "error_decay": 0.5,
+    "problem_type": "tool_routing"
+  },
+  "scorer_weights": {
+    "LLMJudge": 0.45,
+    "ToolSuccess": 0.3,
+    "ProxyMetrics": 0.25
+  },
+  "default_baseline": 93.46,
+  "results": {
+    "noeval_fitness": 85.6,
+    "gt_score": 96.79,
+    "api_name_accuracy": 96.67,
+    "param_accuracy": 95.31,
+    "best_temperature": 0.9697,
+    "best_top_p": 0.9243,
+    "wall_time": 1653.8,
+    "history": [
+      [
+        1,
+        85.15
+      ],
+      [
+        2,
+        85.15
+      ],
+      [
+        3,
+        85.15
+      ],
+      [
+        4,
+        85.6
+      ],
+      [
+        5,
+        85.6
+      ],
+      [
+        6,
+        85.6
+      ]
+    ]
+  },
+  "prior_runs": {
+    "run1": {
+      "strategy": "Run 1: llama3.2 Adaptive (pop=8, 3 gens)",
+      "noeval_fitness": 79.69,
+      "gt_score": 79.9,
+      "api_name_accuracy": 80.0,
+      "param_accuracy": 71.4,
+      "wall_time": 4055.4
+    },
+    "run2": {
+      "strategy": "Run 2: llama3.2 Adaptive Improved (pop=4, 6 gens)",
+      "noeval_fitness": 81.1,
+      "gt_score": 81.6,
+      "api_name_accuracy": 83.3,
+      "param_accuracy": 70.6,
+      "wall_time": 2282.0
+    },
+    "vanilla": {
+      "strategy": "Vanilla llama3.2 (pop=4, no adaptive)",
+      "noeval_fitness": 81.34,
+      "gt_score": 82.32,
+      "api_name_accuracy": 83.33,
+      "param_accuracy": 74.14,
+      "wall_time": 2029.4
+    }
+  },
+  "leaderboard": {
+    "GPT-4": {
+      "call": 83.8,
+      "retrieval": 41.2,
+      "plan": 38.8
+    },
+    "GPT-3.5": {
+      "call": 82.6,
+      "retrieval": 35.3,
+      "plan": 13.1
+    },
+    "Lynx-7B": {
+      "call": 78.4,
+      "retrieval": 22.5,
+      "plan": 11.9
+    }
+  },
+  "deltas": {
+    "vs_run2_gt": 15.19,
+    "vs_run2_api_name": 13.37,
+    "vs_run2_param": 24.71,
+    "vs_vanilla_gt": 14.47,
+    "vs_vanilla_api_name": 13.34,
+    "vs_vanilla_param": 21.17,
+    "vs_gpt4_leaderboard": 12.99
+  },
+  "best_prompt": "You are an expert API orchestration agent.\n\n## Task\nYou are an API-calling assistant. Given a conversation and API\ndescriptions, generate the correct API request in the format\n[ApiName(key1='value1', key2='value2', ...)].\n\nRules:\n- Output EXACTLY ONE API call in the bracket format shown above.\n- Match API names exactly as described.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters.\n- Use single quotes around parameter values.\n- Output ONLY the API call, nothing else.\n\n## Instructions\nThink step by step: 1) identify API, 2) extract params, 3) output call.",
+  "best_prompt_preview": "You are an expert API orchestration agent.\n\n## Task\nYou are an API-calling assistant. Given a conversation and API\ndescriptions, generate the correct API request in the format\n[ApiName(key1='value1', key2='value2', ...)].\n\nRules:\n- Output EXACTLY ONE API call in the bracket format shown above.\n- Mat"
+}

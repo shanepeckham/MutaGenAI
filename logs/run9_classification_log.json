@@ -1,0 +1,1246 @@
+{
+  "experiment": "Run 9 \u2014 Classification Mutations, GPT-4.1, pop=8",
+  "model": "gpt-4.1 (Azure OpenAI)",
+  "dataset": "holistic-ai/entity-classification-agentic-ai",
+  "entity_types": [
+    "Agent",
+    "Task",
+    "Tool",
+    "Input",
+    "Output",
+    "Human"
+  ],
+  "problem_type": "classification",
+  "tool_schemas_forced": false,
+  "sample_sizes": {
+    "evolution": 40,
+    "validation_eval": 200,
+    "test_eval": 200
+  },
+  "config": {
+    "iterations": 5,
+    "population_size": 8,
+    "num_islands": 2,
+    "elite_size": 4,
+    "mutation_rate": 0.5,
+    "crossover_rate": 0.3,
+    "migration_interval": 2,
+    "problem_type": "classification"
+  },
+  "evolution": {
+    "seed_prompts": [
+      "Classify this text as Agent, Task, Tool, Input, Output, or Human.",
+      "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.",
+      "Think about what role this text plays in an agentic AI system, then classify it as Agent, Task, Tool, Input, Output, or Human.",
+      "You are an expert in agentic AI systems. Determine the entity type: Agent, Task, Tool, Input, Output, or Human.",
+      "An Agent acts autonomously, a Task is work to perform, a Tool is a capability, Input is incoming data, Output is produced data, Human is a person. Classify this text.",
+      "Entity type?",
+      "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.",
+      "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+    ],
+    "best_prompt": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider the semantic meaning of the input, not just keywords.\nChoose the single most specific category that fits.\nReturn exactly one category label \u2014 no extra text.",
+    "best_score_evo_subset": 87.5,
+    "best_temperature": 0.7037,
+    "best_top_p": 0.927,
+    "validation_accuracy": 89.0,
+    "test_accuracy": 86.5,
+    "per_class_validation": {
+      "Agent": 90.9090909090909,
+      "Task": 85.71428571428571,
+      "Tool": 96.49122807017544,
+      "Input": 88.37209302325581,
+      "Output": 95.1219512195122,
+      "Human": 46.15384615384615
+    },
+    "per_class_test": {
+      "Agent": 86.95652173913044,
+      "Task": 82.05128205128204,
+      "Tool": 91.30434782608695,
+      "Input": 100.0,
+      "Output": 91.8918918918919,
+      "Human": 23.076923076923077
+    },
+    "search_time_s": 3530.9,
+    "eval_time_s": 302.2,
+    "total_candidates": 88,
+    "history": [
+      [
+        1,
+        82.5
+      ],
+      [
+        2,
+        85.0
+      ],
+      [
+        3,
+        87.5
+      ],
+      [
+        4,
+        87.5
+      ],
+      [
+        5,
+        87.5
+      ]
+    ],
+    "all_candidates": [
+      {
+        "hash": "0db6eeffe8a2ae02",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "3d9b38ff3f5327e4"
+        ],
+        "score": 87.5,
+        "temperature": 0.7037,
+        "top_p": 0.927,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider the semantic meaning of the input, not just keywords.\nChoose the single most specific category that fits.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "0db6eeffe8a2ae02",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "0db6eeffe8a2ae02"
+        ],
+        "score": 87.5,
+        "temperature": 0.7467,
+        "top_p": 0.8845,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider the semantic meaning of the input, not just keywords.\nChoose the single most specific category that fits.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "0db6eeffe8a2ae02",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "0db6eeffe8a2ae02"
+        ],
+        "score": 87.5,
+        "temperature": 0.5206,
+        "top_p": 0.9103,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider the semantic meaning of the input, not just keywords.\nChoose the single most specific category that fits.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "0db6eeffe8a2ae02",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "0db6eeffe8a2ae02",
+          "0db6eeffe8a2ae02"
+        ],
+        "score": 87.5,
+        "temperature": 0.9457,
+        "top_p": 0.9488,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider the semantic meaning of the input, not just keywords.\nChoose the single most specific category that fits.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "0db6eeffe8a2ae02",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "0db6eeffe8a2ae02"
+        ],
+        "score": 87.5,
+        "temperature": 0.4133,
+        "top_p": 0.946,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider the semantic meaning of the input, not just keywords.\nChoose the single most specific category that fits.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "0db6eeffe8a2ae02",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "0db6eeffe8a2ae02"
+        ],
+        "score": 87.5,
+        "temperature": 0.6245,
+        "top_p": 0.8969,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider the semantic meaning of the input, not just keywords.\nChoose the single most specific category that fits.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "44186e4b437de878",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "0db6eeffe8a2ae02",
+          "0db6eeffe8a2ae02"
+        ],
+        "score": 87.5,
+        "temperature": 0.8175,
+        "top_p": 0.9845,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider the semantic meaning of the input, not just keywords.\nChoose the single most specific category that fits.\nChoose the single most specific category that fits.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "0db6eeffe8a2ae02",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "0db6eeffe8a2ae02"
+        ],
+        "score": 87.5,
+        "temperature": 0.7425,
+        "top_p": 0.9187,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider the semantic meaning of the input, not just keywords.\nChoose the single most specific category that fits.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "a1cd8e3ea9073dd3",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 85.0,
+        "temperature": 0.8113,
+        "top_p": 0.9932,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "3d9b38ff3f5327e4",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "b84d01e1ba67f876"
+        ],
+        "score": 85.0,
+        "temperature": 0.7098,
+        "top_p": 0.9797,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nChoose the single most specific category that fits.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "a1cd8e3ea9073dd3",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3",
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 85.0,
+        "temperature": 0.8844,
+        "top_p": 0.9146,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "3d9b38ff3f5327e4",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "3d9b38ff3f5327e4"
+        ],
+        "score": 85.0,
+        "temperature": 0.6507,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nChoose the single most specific category that fits.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "a1cd8e3ea9073dd3",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 85.0,
+        "temperature": 0.8927,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "75c92df2631bb79e",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "0db6eeffe8a2ae02"
+        ],
+        "score": 85.0,
+        "temperature": 0.7465,
+        "top_p": 0.9176,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider the semantic meaning of the input, not just keywords.\nChoose the single most specific category that fits.\nBe consistent \u2014 similar inputs should always get the same label.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "02fe3caaeeb24e2e",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 85.0,
+        "temperature": 0.8662,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nChoose the single most specific category that fits.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "a1cd8e3ea9073dd3",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3",
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 85.0,
+        "temperature": 0.9361,
+        "top_p": 0.9806,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "0db6eeffe8a2ae02",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "0db6eeffe8a2ae02"
+        ],
+        "score": 85.0,
+        "temperature": 0.7578,
+        "top_p": 0.9652,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider the semantic meaning of the input, not just keywords.\nChoose the single most specific category that fits.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "0db6eeffe8a2ae02",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "0db6eeffe8a2ae02"
+        ],
+        "score": 85.0,
+        "temperature": 0.7499,
+        "top_p": 0.8979,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider the semantic meaning of the input, not just keywords.\nChoose the single most specific category that fits.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "0db6eeffe8a2ae02",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "0db6eeffe8a2ae02"
+        ],
+        "score": 85.0,
+        "temperature": 0.5996,
+        "top_p": 0.8064,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider the semantic meaning of the input, not just keywords.\nChoose the single most specific category that fits.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "fe24d46f400a4e0f",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "0db6eeffe8a2ae02",
+          "0db6eeffe8a2ae02"
+        ],
+        "score": 85.0,
+        "temperature": 0.6941,
+        "top_p": 0.9834,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nIf the input is ambiguous, pick the category with strongest evidence.\nChoose the single most specific category that fits.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "b84d01e1ba67f876",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 82.5,
+        "temperature": 0.5519,
+        "top_p": 0.9717,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "a1cd8e3ea9073dd3",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 82.5,
+        "temperature": 0.7312,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "7177658c44ce31f3",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "b84d01e1ba67f876"
+        ],
+        "score": 82.5,
+        "temperature": 0.5136,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider every possible category before deciding.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "b84d01e1ba67f876",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "b84d01e1ba67f876",
+          "b84d01e1ba67f876"
+        ],
+        "score": 82.5,
+        "temperature": 0.43,
+        "top_p": 0.9278,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "5cdd8a6cdcd2b64b",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 82.5,
+        "temperature": 0.8185,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nDo not add explanations, reasoning, or confidence scores.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "a1cd8e3ea9073dd3",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 82.5,
+        "temperature": 0.5547,
+        "top_p": 0.9814,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "c42c32ddd5bd4d1f",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "3d9b38ff3f5327e4"
+        ],
+        "score": 82.5,
+        "temperature": 0.7926,
+        "top_p": 0.9649,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nChoose the single most specific category that fits.\nFocus on the distinguishing features between similar categories.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "a1cd8e3ea9073dd3",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3",
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 82.5,
+        "temperature": 0.5822,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "a1cd8e3ea9073dd3",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3",
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 82.5,
+        "temperature": 0.9595,
+        "top_p": 0.9561,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "a1cd8e3ea9073dd3",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 82.5,
+        "temperature": 0.9203,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "a1cd8e3ea9073dd3",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3",
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 82.5,
+        "temperature": 0.7519,
+        "top_p": 0.9192,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "a1cd8e3ea9073dd3",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 82.5,
+        "temperature": 0.6731,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "989b74e8b0ca1a60",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 82.5,
+        "temperature": 0.7706,
+        "top_p": 0.979,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nReturn exactly one category label \u2014 no extra text.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "3d9b38ff3f5327e4",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "3d9b38ff3f5327e4"
+        ],
+        "score": 82.5,
+        "temperature": 0.8532,
+        "top_p": 0.9843,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nChoose the single most specific category that fits.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "a1cd8e3ea9073dd3",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3",
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 82.5,
+        "temperature": 0.8855,
+        "top_p": 0.9096,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "a1cd8e3ea9073dd3",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3",
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 82.5,
+        "temperature": 0.7954,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "a1cd8e3ea9073dd3",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 82.5,
+        "temperature": 0.6275,
+        "top_p": 0.8748,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "a34ec39c88f05658",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "0db6eeffe8a2ae02"
+        ],
+        "score": 82.5,
+        "temperature": 0.7709,
+        "top_p": 0.7957,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider the semantic meaning of the input, not just keywords.\nChoose the single most specific category that fits.\nDo not add explanations, reasoning, or confidence scores.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "bd61da8efc3be452",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "0db6eeffe8a2ae02",
+          "0db6eeffe8a2ae02"
+        ],
+        "score": 82.5,
+        "temperature": 0.952,
+        "top_p": 0.8931,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nChoose the single most specific category that fits.\nBe consistent \u2014 similar inputs should always get the same label.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "a1cd8e3ea9073dd3",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 82.5,
+        "temperature": 0.8091,
+        "top_p": 0.8941,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "516f06e88cd75934",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "02fe3caaeeb24e2e",
+          "0db6eeffe8a2ae02"
+        ],
+        "score": 82.5,
+        "temperature": 0.697,
+        "top_p": 0.9991,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider the semantic meaning of the input, not just keywords.\nOutput must be a single word or short phrase matching a valid category.\nChoose the single most specific category that fits.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "a1cd8e3ea9073dd3",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "0db6eeffe8a2ae02",
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 82.5,
+        "temperature": 0.7822,
+        "top_p": 0.9407,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "0db6eeffe8a2ae02",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "0db6eeffe8a2ae02"
+        ],
+        "score": 82.5,
+        "temperature": 0.6536,
+        "top_p": 0.9053,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider the semantic meaning of the input, not just keywords.\nChoose the single most specific category that fits.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "a1cd8e3ea9073dd3",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "02fe3caaeeb24e2e",
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 82.5,
+        "temperature": 0.7751,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "a1cd8e3ea9073dd3",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 80.0,
+        "temperature": 0.7182,
+        "top_p": 0.974,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "b84d01e1ba67f876",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "b84d01e1ba67f876"
+        ],
+        "score": 80.0,
+        "temperature": 0.5108,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "b84d01e1ba67f876",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "b84d01e1ba67f876"
+        ],
+        "score": 80.0,
+        "temperature": 0.5514,
+        "top_p": 0.9635,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "a1cd8e3ea9073dd3",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 80.0,
+        "temperature": 0.7415,
+        "top_p": 0.9425,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "a1cd8e3ea9073dd3",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 80.0,
+        "temperature": 0.8668,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "0db6eeffe8a2ae02",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "0db6eeffe8a2ae02"
+        ],
+        "score": 80.0,
+        "temperature": 0.8152,
+        "top_p": 0.9462,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider the semantic meaning of the input, not just keywords.\nChoose the single most specific category that fits.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "0db6eeffe8a2ae02",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "0db6eeffe8a2ae02",
+          "0db6eeffe8a2ae02"
+        ],
+        "score": 80.0,
+        "temperature": 0.6204,
+        "top_p": 0.8476,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider the semantic meaning of the input, not just keywords.\nChoose the single most specific category that fits.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "a1cd8e3ea9073dd3",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 80.0,
+        "temperature": 0.8027,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "4690539c3217aef5",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3",
+          "0db6eeffe8a2ae02"
+        ],
+        "score": 80.0,
+        "temperature": 0.715,
+        "top_p": 0.9475,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nOutput must be a single word or short phrase matching a valid category.\nReturn exactly one category label \u2014 no extra text."
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "770405eae22e8f21",
+          "770405eae22e8f21"
+        ],
+        "score": 77.5,
+        "temperature": 0.858,
+        "top_p": 0.9265,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 77.5,
+        "temperature": 0.6506,
+        "top_p": 0.9613,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "a1cd8e3ea9073dd3",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 77.5,
+        "temperature": 1.0,
+        "top_p": 0.9709,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "bd63bfa296abfc13",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "a1cd8e3ea9073dd3",
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 73.23,
+        "temperature": 0.984,
+        "top_p": 0.9731,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRecall the definition of each category and match against it.\nFocus on the distinguishing features between similar categories."
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 0,
+        "island_id": 0,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 72.5,
+        "temperature": 0.6439,
+        "top_p": 0.9468,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 72.5,
+        "temperature": 0.5758,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 72.5,
+        "temperature": 0.6601,
+        "top_p": 0.9761,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 72.5,
+        "temperature": 0.6129,
+        "top_p": 0.9697,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 70.0,
+        "temperature": 0.6164,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "07b44cdb0bd992a3",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 70.0,
+        "temperature": 0.2833,
+        "top_p": 0.7285,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\nConsider the full context of the input before classifying."
+      },
+      {
+        "hash": "39b921f0de343414",
+        "generation": 0,
+        "island_id": 0,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 67.5,
+        "temperature": 0.774,
+        "top_p": 0.8317,
+        "template": "Classify this text as Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 0,
+        "island_id": 1,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 67.5,
+        "temperature": 0.4434,
+        "top_p": 0.7682,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 67.5,
+        "temperature": 0.3398,
+        "top_p": 0.7,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 65.0,
+        "temperature": 0.3489,
+        "top_p": 0.7114,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 65.0,
+        "temperature": 0.561,
+        "top_p": 0.7,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "aca916f43e43411d",
+          "aca916f43e43411d"
+        ],
+        "score": 65.0,
+        "temperature": 0.459,
+        "top_p": 0.7858,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 65.0,
+        "temperature": 0.3324,
+        "top_p": 0.7446,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "aca916f43e43411d",
+          "aca916f43e43411d"
+        ],
+        "score": 62.5,
+        "temperature": 0.4915,
+        "top_p": 0.7905,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "d0bb3bdeb43bb131",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 62.5,
+        "temperature": 0.4506,
+        "top_p": 0.7417,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\nWhen in doubt, re-read the input and look for decisive cues."
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 62.5,
+        "temperature": 0.3411,
+        "top_p": 0.7771,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "d1c98eb7b9c640eb",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "d1c98eb7b9c640eb",
+          "aca916f43e43411d"
+        ],
+        "score": 62.5,
+        "temperature": 0.7596,
+        "top_p": 0.8026,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "d1c98eb7b9c640eb",
+        "generation": 0,
+        "island_id": 1,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 60.0,
+        "temperature": 0.8586,
+        "top_p": 0.9092,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "aca916f43e43411d",
+          "aca916f43e43411d"
+        ],
+        "score": 60.0,
+        "temperature": 0.5069,
+        "top_p": 0.7571,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "af0d4cc397bce306",
+        "generation": 0,
+        "island_id": 1,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 57.5,
+        "temperature": 0.7611,
+        "top_p": 0.9358,
+        "template": "You are an expert in agentic AI systems. Determine the entity type: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 55.0,
+        "temperature": 0.2747,
+        "top_p": 0.7,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 55.0,
+        "temperature": 0.3705,
+        "top_p": 0.7355,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "aca916f43e43411d",
+          "aca916f43e43411d"
+        ],
+        "score": 55.0,
+        "temperature": 0.2286,
+        "top_p": 0.7596,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "d1c98eb7b9c640eb",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "d1c98eb7b9c640eb"
+        ],
+        "score": 52.5,
+        "temperature": 0.7652,
+        "top_p": 0.8989,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "5bd4406c63562cd2",
+        "generation": 0,
+        "island_id": 0,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 47.5,
+        "temperature": 0.0942,
+        "top_p": 0.9927,
+        "template": "Think about what role this text plays in an agentic AI system, then classify it as Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "1dca0ae347abda9c",
+        "generation": 0,
+        "island_id": 0,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 45.0,
+        "temperature": 0.1281,
+        "top_p": 0.8351,
+        "template": "An Agent acts autonomously, a Task is work to perform, a Tool is a capability, Input is incoming data, Output is produced data, Human is a person. Classify this text."
+      },
+      {
+        "hash": "b83c9075cfa5ac61",
+        "generation": 0,
+        "island_id": 1,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 27.5,
+        "temperature": 0.3708,
+        "top_p": 0.978,
+        "template": "Entity type?"
+      },
+      {
+        "hash": "627a39b800d38eae",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "aca916f43e43411d",
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 12.5,
+        "temperature": 0.3281,
+        "top_p": 0.7415,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "21276fcb33d8817e",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 10.0,
+        "temperature": 0.3022,
+        "top_p": 0.7,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\nThink step-by-step before choosing a category."
+      },
+      {
+        "hash": "627a39b800d38eae",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "aca916f43e43411d",
+          "a1cd8e3ea9073dd3"
+        ],
+        "score": 10.0,
+        "temperature": 0.3772,
+        "top_p": 0.7751,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\nRecall the definition of each category and match against it."
+      },
+      {
+        "hash": "627a39b800d38eae",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 7.5,
+        "temperature": 0.6271,
+        "top_p": 0.9134,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\nRecall the definition of each category and match against it."
+      }
+    ],
+    "tool_schemas_in_best": false
+  }
+}

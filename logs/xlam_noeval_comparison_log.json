@@ -1,0 +1,57 @@
+{
+  "benchmark": "xlam",
+  "approach": "wizard_no_eval",
+  "model": "llama3.2",
+  "config": {
+    "iterations": 3,
+    "population_size": 4,
+    "num_islands": 2
+  },
+  "default_baseline": {
+    "overall": 0.9538541666666667,
+    "name_accuracy": 1.0,
+    "param_accuracy": 0.7736111111111111,
+    "n_cases": 20
+  },
+  "strategies": [
+    {
+      "strategy": "Composite (wizard default)",
+      "noeval_fitness": 93.21915004748338,
+      "gt_overall": 0.9551041666666666,
+      "gt_name_acc": 1.0,
+      "gt_param_acc": 0.7777777777777778,
+      "wall_time": 2581.68577003479,
+      "best_prompt": "You are a function-calling assistant. Given a user query and a list of available functions, produce one or more function calls to fulfil the request.  Output ONLY function calls in the format: [func_n"
+    },
+    {
+      "strategy": "LLM-as-Judge",
+      "noeval_fitness": 86.5,
+      "gt_overall": 0.9463541666666666,
+      "gt_name_acc": 1.0,
+      "gt_param_acc": 0.7680555555555556,
+      "wall_time": 2235.5850110054016,
+      "best_prompt": "\nYou are a function-calling assistant. Given a user query and a list of available functions, produce one or more function calls to fulfil the request.  Output ONLY function calls in the format: [func_"
+    },
+    {
+      "strategy": "Self-Consistency",
+      "noeval_fitness": 91.57176967072019,
+      "gt_overall": 0.9538541666666667,
+      "gt_name_acc": 1.0,
+      "gt_param_acc": 0.7736111111111111,
+      "wall_time": 1449.2001531124115,
+      "best_prompt": "You are a function-calling assistant. Given a user query and a list of available functions, produce one or more function calls to fulfil the request.  Output ONLY function calls in the format: [func_n"
+    },
+    {
+      "strategy": "Proxy Metrics",
+      "noeval_fitness": 100.0,
+      "gt_overall": 0.9463541666666666,
+      "gt_name_acc": 1.0,
+      "gt_param_acc": 0.7680555555555556,
+      "wall_time": 578.0880000591278,
+      "best_prompt": "You are a function-calling assistant. Given a user query and a list of available functions, produce one or more function calls to fulfil the request.  Output ONLY function calls in the format: [func_n"
+    }
+  ],
+  "best_strategy": "Composite (wizard default)",
+  "best_gt_score": 0.9551041666666666,
+  "lift_over_default": 0.0012499999999999734
+}

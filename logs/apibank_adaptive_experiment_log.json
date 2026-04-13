@@ -1,0 +1,73 @@
+{
+  "timestamp": "2026-04-12T14:18:36",
+  "experiment": "apibank_adaptive_noeval",
+  "level": "level_1",
+  "ollama_model": "llama3.2",
+  "config": {
+    "iterations": 3,
+    "population_size": 8,
+    "num_islands": 2,
+    "elite_size": 4,
+    "mutation_rate": 0.5,
+    "crossover_rate": 0.3,
+    "adaptive_mutations": true,
+    "llm_mutation_rate": 0.3,
+    "problem_type": "tool_routing"
+  },
+  "default_baseline": 55.01,
+  "results": {
+    "noeval_fitness": 79.71,
+    "gt_score": 79.89,
+    "api_name_accuracy": 80.0,
+    "param_accuracy": 71.39,
+    "best_temperature": 0.7917,
+    "best_top_p": 0.8637,
+    "wall_time": 4055.4,
+    "history": [
+      [
+        1,
+        78.2012944905222
+      ],
+      [
+        2,
+        78.5748357851299
+      ],
+      [
+        3,
+        79.7122264922829
+      ]
+    ]
+  },
+  "prior_results": {
+    "strategy": "Composite (recommended)",
+    "noeval_fitness": 81.34,
+    "gt_score": 82.32,
+    "api_name_accuracy": 83.33,
+    "param_accuracy": 74.14,
+    "wall_time": 2029.4
+  },
+  "leaderboard": {
+    "GPT-4": {
+      "call": 83.8,
+      "retrieval": 41.2,
+      "plan": 38.8
+    },
+    "GPT-3.5": {
+      "call": 82.6,
+      "retrieval": 35.3,
+      "plan": 13.1
+    },
+    "Lynx-7B": {
+      "call": 78.4,
+      "retrieval": 22.5,
+      "plan": 11.9
+    }
+  },
+  "deltas": {
+    "vs_prior_gt": -2.43,
+    "vs_prior_api_name": -3.33,
+    "vs_prior_param": -2.75
+  },
+  "best_prompt": "You are an API-calling assistant. Given a conversation and API descriptions, generate the correct API request in the format [ApiName(key1='value1', key2='value2', ...)].\n\nRules:\n- Output exactly one API call in the bracket format shown above.\n- Match API names exactly as described.\n- Extract parameter values from the conversation \u2014 do not invent values.\n- Include all required parameters.\n- Use single quotes around parameter values.\n- Do not match on token or content related to previous requests.\n- Output only the API call, nothing else.\n\n# Output \nOnly the API call in [ApiName(key='val')] format.",
+  "best_prompt_preview": "You are an API-calling assistant. Given a conversation and API descriptions, generate the correct API request in the format [ApiName(key1='value1', key2='value2', ...)].\n\nRules:\n- Output exactly one API call in the bracket format shown above.\n- Match API names exactly as described.\n- Extract paramet"
+}

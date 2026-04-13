@@ -1,0 +1,1293 @@
+{
+  "experiment": "Run 10 \u2014 Adaptive Mutations + LLM Mutation, GPT-4.1, pop=8",
+  "model": "gpt-4.1 (Azure OpenAI)",
+  "dataset": "holistic-ai/entity-classification-agentic-ai",
+  "entity_types": [
+    "Agent",
+    "Task",
+    "Tool",
+    "Input",
+    "Output",
+    "Human"
+  ],
+  "problem_type": "classification",
+  "tool_schemas_forced": false,
+  "sample_sizes": {
+    "evolution": 40,
+    "validation_eval": 200,
+    "test_eval": 200
+  },
+  "config": {
+    "iterations": 5,
+    "population_size": 8,
+    "num_islands": 2,
+    "elite_size": 4,
+    "mutation_rate": 0.5,
+    "crossover_rate": 0.3,
+    "migration_interval": 2,
+    "problem_type": "classification",
+    "adaptive_mutations": true,
+    "llm_mutation_rate": 0.3
+  },
+  "evolution": {
+    "seed_prompts": [
+      "Classify this text as Agent, Task, Tool, Input, Output, or Human.",
+      "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.",
+      "Think about what role this text plays in an agentic AI system, then classify it as Agent, Task, Tool, Input, Output, or Human.",
+      "You are an expert in agentic AI systems. Determine the entity type: Agent, Task, Tool, Input, Output, or Human.",
+      "An Agent acts autonomously, a Task is work to perform, a Tool is a capability, Input is incoming data, Output is produced data, Human is a person. Classify this text.",
+      "Entity type?",
+      "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.",
+      "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+    ],
+    "best_prompt": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human.",
+    "best_score_evo_subset": 100.0,
+    "best_temperature": 0.5491,
+    "best_top_p": 0.7,
+    "validation_accuracy": 94.0,
+    "test_accuracy": 90.5,
+    "per_class_validation": {
+      "Agent": 81.81818181818183,
+      "Task": 91.42857142857143,
+      "Tool": 98.24561403508771,
+      "Input": 93.02325581395348,
+      "Output": 95.1219512195122,
+      "Human": 92.3076923076923
+    },
+    "per_class_test": {
+      "Agent": 65.21739130434783,
+      "Task": 92.3076923076923,
+      "Tool": 95.65217391304348,
+      "Input": 100.0,
+      "Output": 94.5945945945946,
+      "Human": 69.23076923076923
+    },
+    "search_time_s": 3623.4,
+    "eval_time_s": 372.8,
+    "total_candidates": 88,
+    "operation_counts": {
+      "crossover+llm_mutate": 9,
+      "crossover+mutate": 7,
+      "llm_mutate": 21,
+      "clone": 15,
+      "mutate": 21,
+      "crossover": 7,
+      "seed": 8
+    },
+    "error_profile_final_gen": {
+      "total": {
+        "Task": 127,
+        "Input": 174,
+        "Tool": 160,
+        "Output": 112,
+        "Human": 16,
+        "Agent": 48
+      },
+      "errors": {
+        "Task": 4,
+        "Output": 1,
+        "Human": 2,
+        "Agent": 1,
+        "Tool": 3
+      },
+      "worst_categories": [
+        {
+          "category": "Human",
+          "error_rate": 0.125
+        },
+        {
+          "category": "Task",
+          "error_rate": 0.0315
+        },
+        {
+          "category": "Agent",
+          "error_rate": 0.0208
+        },
+        {
+          "category": "Tool",
+          "error_rate": 0.0187
+        },
+        {
+          "category": "Output",
+          "error_rate": 0.0089
+        }
+      ]
+    },
+    "history": [
+      [
+        1,
+        92.5
+      ],
+      [
+        2,
+        100.0
+      ],
+      [
+        3,
+        100.0
+      ],
+      [
+        4,
+        100.0
+      ],
+      [
+        5,
+        100.0
+      ]
+    ],
+    "all_candidates": [
+      {
+        "hash": "7d2879839a9e1325",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "crossover+llm_mutate",
+        "parent_hashes": [
+          "4d456f08aae851dd",
+          "a6a50391ca2e94cb"
+        ],
+        "score": 100.0,
+        "temperature": 0.5491,
+        "top_p": 0.7,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "7fcb262036fca320",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325",
+          "7d2879839a9e1325"
+        ],
+        "score": 100.0,
+        "temperature": 0.5767,
+        "top_p": 0.7,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nConsider the full context of the input before classifying.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "a53f4ec0a7d3e4f9",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325",
+          "7d2879839a9e1325"
+        ],
+        "score": 100.0,
+        "temperature": 0.5311,
+        "top_p": 0.7098,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "9a4f31a0f48e81b7",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325",
+          "7d2879839a9e1325"
+        ],
+        "score": 100.0,
+        "temperature": 0.5688,
+        "top_p": 0.7545,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "9a4f31a0f48e81b7",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325",
+          "7d2879839a9e1325"
+        ],
+        "score": 100.0,
+        "temperature": 0.6294,
+        "top_p": 0.786,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "482af2777a14c158",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "crossover+llm_mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325",
+          "7d2879839a9e1325"
+        ],
+        "score": 100.0,
+        "temperature": 0.4421,
+        "top_p": 0.7,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently, without direct human commands.\nTool: A named system, program, service, or function that performs actions only when invoked; not autonomous or decision-making.\nTask: An explicit request, command, instruction, or action to be performed; often starts with an action verb or states a need.\nInput: Data, parameters, or raw content provided for processing by an agent or tool.\nOutput: The result, response, or information produced after completing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify by the main role in context. If describing what should be done, use Task. If naming a system, feature, or function (even with described capabilities), use Tool. Do not confuse tools with agents unless autonomy is explicit."
+      },
+      {
+        "hash": "27de3ff6eac9dc93",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "llm_mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325"
+        ],
+        "score": 100.0,
+        "temperature": 0.5084,
+        "top_p": 0.7,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: The name or reference to an autonomous entity, bot, or assistant that initiates actions or makes decisions independently.\nTool: The name or description of a system, program, service, or function that performs actions but is not autonomous; often described by its capabilities.\nTask: Any explicit request, command, instruction, or activity to be performed; usually starts with an action verb or describes a need, including requests from humans.\nInput: Raw data, parameters, or content provided for processing; information submitted to a system, agent, or tool.\nOutput: The result, response, or information produced after executing a task or processing input.\nHuman: Any content clearly authored or attributed to a person, including comments, feedback, or requests from a human.\n\nClassify by the input\u2019s main role in context. If it names a bot/assistant, use Agent. If it describes a human\u2019s words, use Human. If it describes a functionality or request, use Task. If it names a system or function, use Tool."
+      },
+      {
+        "hash": "7d2879839a9e1325",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "7d2879839a9e1325"
+        ],
+        "score": 100.0,
+        "temperature": 0.4711,
+        "top_p": 0.7215,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "7d2879839a9e1325",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325"
+        ],
+        "score": 100.0,
+        "temperature": 0.5129,
+        "top_p": 0.7,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "016a63aee32de192",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "crossover+llm_mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325",
+          "7d2879839a9e1325"
+        ],
+        "score": 100.0,
+        "temperature": 0.5331,
+        "top_p": 0.7102,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions when used, but does not initiate actions on its own. Ignore descriptions of capabilities; focus on whether it is a named entity.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with an action verb or describes a need or goal.\nInput: Data, parameters, values, categories, or records provided for processing; raw information or content submitted to a system, agent, or tool. This includes fields like \"Category: ...\" or \"Data source: ...\".\nOutput: The result or product generated after processing input.\nHuman: Any reference to a person, their comments, feedback, requests, or opinions; includes reviewer comments and statements clearly authored by a human.\n\nBase your choice on the primary role or purpose within the input's context, not just descriptive words."
+      },
+      {
+        "hash": "7d2879839a9e1325",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "7d2879839a9e1325"
+        ],
+        "score": 100.0,
+        "temperature": 0.7526,
+        "top_p": 0.7,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "7d2879839a9e1325",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "7d2879839a9e1325"
+        ],
+        "score": 100.0,
+        "temperature": 0.4268,
+        "top_p": 0.7125,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "16b53b479253bbe7",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "llm_mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325"
+        ],
+        "score": 100.0,
+        "temperature": 0.497,
+        "top_p": 0.7406,
+        "template": "Classify each input using one word: Agent, Task, Tool, Input, Output, Human.\n\nAgent: Autonomous entity/software making independent decisions or initiating actions.\nTool: Named system, program, service, or function that performs actions but is not autonomous; often described by capabilities.\nTask: Explicit request, instruction, or action to be performed; includes user requests for help or action, statements of need, and \"I need...\" sentences, even if tools or functions are mentioned.\nInput: Data or parameters provided for processing; raw information or content sent to a system, agent, or tool.\nOutput: Result, response, or information produced after processing input or executing a task.\nHuman: Comments, opinions, or statements clearly authored or attributed to a person, excluding explicit requests or instructions.\n\nClassify by the main intent: If the input is a request for help, action, or describes something to be done, use Task\u2014even if it references tools or functions. If it only names or describes a system's capabilities, use Tool."
+      },
+      {
+        "hash": "9a4f31a0f48e81b7",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "7d2879839a9e1325",
+          "7d2879839a9e1325"
+        ],
+        "score": 100.0,
+        "temperature": 0.6204,
+        "top_p": 0.7121,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "78ff9a24cf077eb5",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "llm_mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325"
+        ],
+        "score": 100.0,
+        "temperature": 0.5655,
+        "top_p": 0.7,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity, system, or bot that initiates actions or makes decisions independently (e.g., \"KatherineBot\").\nTool: A named system, program, service, or function that performs actions but does not act autonomously; described by its capabilities (e.g., \"data_analyzer: Analyzes content\").\nTask: An explicit request, command, instruction, or activity to be performed; includes functionality requests, \"I need...\" statements, or action-oriented needs.\nInput: Data, parameters, or information provided for processing; content submitted to a system, agent, or tool.\nOutput: The result, response, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human, including reviewer comments.\n\nClassify by primary role in context. For requests for help or to perform actions, use Task. For a system's name with described capabilities, use Tool. For autonomous systems, use Agent. For personal comments or feedback, use Human."
+      },
+      {
+        "hash": "f329beca93bff8d7",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "llm_mutate",
+        "parent_hashes": [
+          "27de3ff6eac9dc93"
+        ],
+        "score": 100.0,
+        "temperature": 0.437,
+        "top_p": 0.7,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: The name or reference to an autonomous entity, bot, or assistant that initiates actions independently (e.g., \u201cKatherineBot\u201d).\nTool: The name or description of a non-autonomous system, program, service, or function (e.g., \u201cdata_analyzer: Analyzes content thoroughly.\u201d).\nTask: Any explicit request, command, instruction, or activity to be performed, including requests for help or actions, even if written as a human statement.\nInput: Raw data, parameters, or content provided for processing; information submitted for use by a tool or agent.\nOutput: The result, response, or information produced after executing a task or processing input.\nHuman: Any content clearly authored by a person (e.g., comments, feedback, or human-written requests), except when the main role is a Task.\n\nClassify by the input\u2019s primary role: If naming a bot/assistant, use Agent. If naming a non-autonomous system or function, use Tool. If describing a request or instruction, use Task. If providing data, use Input. If giving a result, use Output. If only human comments/feedback, use Human"
+      },
+      {
+        "hash": "a53f4ec0a7d3e4f9",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "a53f4ec0a7d3e4f9"
+        ],
+        "score": 100.0,
+        "temperature": 0.6439,
+        "top_p": 0.7,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "7d2879839a9e1325",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "7d2879839a9e1325"
+        ],
+        "score": 100.0,
+        "temperature": 0.559,
+        "top_p": 0.7465,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "a53f4ec0a7d3e4f9",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "a53f4ec0a7d3e4f9"
+        ],
+        "score": 100.0,
+        "temperature": 0.7096,
+        "top_p": 0.7666,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "eec6f55ce0e5001f",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "crossover+llm_mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325",
+          "7fcb262036fca320"
+        ],
+        "score": 100.0,
+        "temperature": 0.4407,
+        "top_p": 0.7172,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently; includes those with \"Agent\" in the name.\nTool: A named system, program, service, or function that performs actions but does not act autonomously.\nTask: An explicit request, command, or instruction to perform an action; often starts with action verbs or includes \"I need assistance with...\".\nInput: Data, parameters, or information provided for processing; raw content or categories submitted.\nOutput: Any response, result, message, or system feedback produced after processing.\nHuman: A person's original comment, feedback, or request not phrased as a direct action or task; typically natural language remarks or reviews.\nClassify based on the input\u2019s primary role or purpose in context."
+      },
+      {
+        "hash": "4ed329a014a9f13c",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325"
+        ],
+        "score": 100.0,
+        "temperature": 0.4964,
+        "top_p": 0.7,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "7d2879839a9e1325",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "7d2879839a9e1325"
+        ],
+        "score": 100.0,
+        "temperature": 0.5107,
+        "top_p": 0.7996,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "27de3ff6eac9dc93",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "27de3ff6eac9dc93"
+        ],
+        "score": 100.0,
+        "temperature": 0.5992,
+        "top_p": 0.7016,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: The name or reference to an autonomous entity, bot, or assistant that initiates actions or makes decisions independently.\nTool: The name or description of a system, program, service, or function that performs actions but is not autonomous; often described by its capabilities.\nTask: Any explicit request, command, instruction, or activity to be performed; usually starts with an action verb or describes a need, including requests from humans.\nInput: Raw data, parameters, or content provided for processing; information submitted to a system, agent, or tool.\nOutput: The result, response, or information produced after executing a task or processing input.\nHuman: Any content clearly authored or attributed to a person, including comments, feedback, or requests from a human.\n\nClassify by the input\u2019s main role in context. If it names a bot/assistant, use Agent. If it describes a human\u2019s words, use Human. If it describes a functionality or request, use Task. If it names a system or function, use Tool."
+      },
+      {
+        "hash": "7d2879839a9e1325",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "7d2879839a9e1325"
+        ],
+        "score": 100.0,
+        "temperature": 0.4147,
+        "top_p": 0.7,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "7fcb262036fca320",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "7fcb262036fca320"
+        ],
+        "score": 98.58,
+        "temperature": 0.4611,
+        "top_p": 0.7,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nConsider the full context of the input before classifying.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "169378f17b772536",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325"
+        ],
+        "score": 98.18,
+        "temperature": 0.3425,
+        "top_p": 0.7,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nDo not confuse Human with Agent; Agents are not necessarily people but can be automated systems.\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "b18653e0e0335943",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "llm_mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325"
+        ],
+        "score": 97.5,
+        "temperature": 0.5079,
+        "top_p": 0.7681,
+        "template": "Classify each input using exactly one of: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or bot that independently initiates actions or makes decisions (e.g., \"KatherineBot\").\nTool: A named system, program, service, or function that performs actions when directed but does not act autonomously.\nTask: An explicit request, instruction, or action to be performed; often stated as a need, command, or desired function, including requests for assistance or actions using tools.\nInput: Data, parameters, or content submitted for processing; raw information to be acted on.\nOutput: The result, response, or information produced after executing a task or processing input.\nHuman: Any comment, request, feedback, or opinion clearly authored or attributed to a person (e.g., reviewer comments).\n\nClassify by the primary role or intent. If the input is a request for action or assistance, label as Task\u2014even if it mentions tools. Use Human only for clear human-authored comments, feedback, or opinions."
+      },
+      {
+        "hash": "ee6f80c7ac77f058",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "llm_mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325"
+        ],
+        "score": 97.5,
+        "temperature": 0.607,
+        "top_p": 0.7262,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous software, bot, or entity that independently initiates actions or makes decisions. Includes anything named as a \"Bot\" or with clear autonomy.\nTool: A named system, program, service, or function that performs actions only when invoked; described by its capabilities, not autonomy.\nTask: An explicit request, command, instruction, or action to be performed; often starts with action verbs or expresses a need, including requests for help or to use tools.\nInput: Raw data, parameters, or categories given for processing; information submitted to systems, agents, or tools.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Content clearly authored by a person, including comments, feedback, or opinions; not instructions or requests.\n\nClassify based on the primary role in context. For requests or instructions\u2014even when mentioning tools\u2014use Task. If it is human feedback or comments, use Human. If it describes a system\u2019s capabilities without autonomy, use Tool; if autonomous, use Agent."
+      },
+      {
+        "hash": "933fad1c1679de6e",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "llm_mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325"
+        ],
+        "score": 97.5,
+        "temperature": 0.3437,
+        "top_p": 0.7,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently; includes names ending with \"Bot\" or similar.\nTool: A named system, program, service, or function used to perform actions, but not autonomous agents; includes code-like function calls.\nTask: An explicit request, instruction, or activity to be performed; often starts with action verbs or contains phrases like \"I need,\" \"Please,\" or requests for assistance.\nInput: Data, parameters, or raw content provided for processing; not requests or comments, but information to be acted upon.\nOutput: The result or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; includes \"Reviewer comments\" or clearly authored by a human.\n\nClassify based on the primary role or context. If the input is a request or describes an action needed, use Task\u2014even if written as a human statement. If code or function call, use Tool. If a person\u2019s comment, use Human."
+      },
+      {
+        "hash": "084ea7b03b1df7d8",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "crossover+llm_mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325",
+          "7d2879839a9e1325"
+        ],
+        "score": 97.5,
+        "temperature": 0.4575,
+        "top_p": 0.7,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nDefinitions:\n- Agent: An autonomous entity or software that initiates actions or makes decisions independently.\n- Tool: The NAME of a system, program, service, or function (not a person), whether described by capability or shown as a function call.\n- Task: A request, command, or instruction to be performed, including requests for assistance or actions, often phrased as needs, to-dos, or starting with action verbs.\n- Input: Data, parameters, or options provided for processing; not a request or tool name.\n- Output: The result or response produced from processing input or performing a task.\n- Human: Any direct statement, comment, or request written by a person that is not a task or tool name.\n\nClassify based on the primary role or purpose in context. If unsure, prefer Tool for named functions/systems, Task for explicit requests, and Human for unstructured human language."
+      },
+      {
+        "hash": "b9ba46436f648789",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "7d2879839a9e1325",
+          "7fcb262036fca320"
+        ],
+        "score": 97.5,
+        "temperature": 0.5503,
+        "top_p": 0.7101,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "e121229149f4a17e",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "7fcb262036fca320"
+        ],
+        "score": 97.5,
+        "temperature": 0.5811,
+        "top_p": 0.7,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nConsider the full context of the input before classifying.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nOutput: The response, result, or information produced after executing a task or processing input.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nRecall the definition of each category and match against it.\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "3130c39af3cc6325",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "27de3ff6eac9dc93"
+        ],
+        "score": 97.5,
+        "temperature": 0.6837,
+        "top_p": 0.7,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nTool: The name or description of a system, program, service, or function that performs actions but is not autonomous; often described by its capabilities.\nTask: Any explicit request, command, instruction, or activity to be performed; usually starts with an action verb or describes a need, including requests from humans.\nInput: Raw data, parameters, or content provided for processing; information submitted to a system, agent, or tool.\nOutput: The result, response, or information produced after executing a task or processing input.\nDo not add explanations, reasoning, or confidence scores.\nHuman: Any content clearly authored or attributed to a person, including comments, feedback, or requests from a human.\n\nClassify by the input\u2019s main role in context. If it names a bot/assistant, use Agent. If it describes a human\u2019s words, use Human. If it describes a functionality or request, use Task. If it names a system or function, use Tool."
+      },
+      {
+        "hash": "8a16d35ef4d66202",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "crossover+llm_mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325",
+          "7d2879839a9e1325"
+        ],
+        "score": 96.32,
+        "temperature": 0.3532,
+        "top_p": 0.7,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions, makes decisions, or manages tasks independently. Phrases like \"Agent\" or \"Chain-of-Thought Agent\" indicate this category.\nTool: A named system, program, function, or service that performs actions when used, but does not act autonomously. Descriptions of what a tool does or its features belong here.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs, expresses a need, or describes a functionality to be accomplished. Requests for help with a system's feature are Tasks.\nInput: Data, parameters, or content provided for processing; raw information or categories submitted to a system, agent, or tool.\nOutput: The result, response, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, or their opinions; content clearly authored or attributed to a human, but not a request or task.\n\nClassify based on the primary role in context. If the input describes what is to be done or requested, use Task\u2014even if it includes a system or functionality. If it names a function"
+      },
+      {
+        "hash": "579d0b992557dda7",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "a53f4ec0a7d3e4f9"
+        ],
+        "score": 95.42,
+        "temperature": 0.5362,
+        "top_p": 0.7,
+        "template": "\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "1560ce187ea109c0",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "4d456f08aae851dd"
+        ],
+        "score": 95.0,
+        "temperature": 0.6781,
+        "top_p": 0.7519,
+        "template": "Classify the input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n- Agent: An autonomous entity that acts or makes decisions.\n- Tool: A system, program, or function used to perform actions, but does not act autonomously.\n- Task: An activity or objective to complete.\n- Input: Data, parameters, or categories provided for processing.\n- Output: Results or responses produced by a system.\nMap the input to categories based on purpose and function, not surface words.\n- Human: Text that is clearly written by or attributed to a person."
+      },
+      {
+        "hash": "fe00a2055e4fed3a",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "4d456f08aae851dd"
+        ],
+        "score": 95.0,
+        "temperature": 0.8683,
+        "top_p": 0.7,
+        "template": "Classify the input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n- Agent: An autonomous entity that acts or makes decisions.\nChoose the single most specific category that fits.\n- Tool: A system, program, or function used to perform actions, but does not act autonomously.\n- Task: An activity or objective to complete.\n- Input: Data, parameters, or categories provided for processing.\n- Output: Results or responses produced by a system.\n- Human: Text that is clearly written by or attributed to a person."
+      },
+      {
+        "hash": "fe00a2055e4fed3a",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "fe00a2055e4fed3a"
+        ],
+        "score": 95.0,
+        "temperature": 0.9525,
+        "top_p": 0.7277,
+        "template": "Classify the input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n- Agent: An autonomous entity that acts or makes decisions.\nChoose the single most specific category that fits.\n- Tool: A system, program, or function used to perform actions, but does not act autonomously.\n- Task: An activity or objective to complete.\n- Input: Data, parameters, or categories provided for processing.\n- Output: Results or responses produced by a system.\n- Human: Text that is clearly written by or attributed to a person."
+      },
+      {
+        "hash": "d3203544923871e4",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "7fcb262036fca320"
+        ],
+        "score": 95.0,
+        "temperature": 0.5957,
+        "top_p": 0.7,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nConsider the full context of the input before classifying.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "ba0f6315469cc62b",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "llm_mutate",
+        "parent_hashes": [
+          "7fcb262036fca320"
+        ],
+        "score": 95.0,
+        "temperature": 0.6308,
+        "top_p": 0.7381,
+        "template": "Classify each input with one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: Autonomous entity/software that initiates actions or decisions on its own.\nTool: Named system, program, service, or function; performs actions but does not act autonomously.\nTask: An explicit request, command, instruction, or activity to be performed; includes requests for assistance or for an action, even if they mention tools or functions.\nInput: Data, parameters, or categories provided for processing; raw information submitted.\nOutput: Result or information produced by executing a task or processing input.\nHuman: Reference to a person, their comments, opinions, or attributions.\n\nConsider the full context and intent. If the input is a request for help, action, or information\u2014even if it mentions a tool\u2014classify as Task. If it only names or describes a system or function without a request, use Tool."
+      },
+      {
+        "hash": "f025e520c89aac18",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "llm_mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325"
+        ],
+        "score": 95.0,
+        "temperature": 0.4969,
+        "top_p": 0.7,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous system, bot, or software capable of independent decision-making or initiating actions without direct human commands.\nTool: A named system, program, service, or function that performs actions only when used or invoked; not autonomous or person-like.\nTask: An explicit request, command, instruction, or action to be performed; often starts with action verbs, describes a user need, or includes requests for help or information.\nInput: Data, parameters, or raw content provided for processing; typically values, examples, or content submitted to a system, agent, or tool.\nOutput: The result, response, or information produced after executing a task or processing input.\nHuman: Any content clearly authored, requested, or commented on by a person.\n\nIf the input describes what should be done or requests assistance, use Task. If it refers to a system or function by name, use Tool unless it acts autonomously (then use Agent). If it's a bot or agent name, use Agent. Classify by the main purpose or role in context."
+      },
+      {
+        "hash": "608458cab18c5959",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "llm_mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325"
+        ],
+        "score": 95.0,
+        "temperature": 0.5115,
+        "top_p": 0.7351,
+        "template": "Classify each input with exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: A named autonomous entity (often ending in 'Bot', 'Assistant', or similar) that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities, usage, or parameterized calls.\nTask: An explicit request, command, instruction, or activity to be performed; usually describes an action or need, even if phrased as a personal request.\nInput: Data, parameters, or content provided for processing; raw information supplied to a system, agent, or tool.\nOutput: The response, result, or information produced by executing a task or processing input.\nHuman: Any content clearly authored or attributed to a person, their comments, opinions, or conversational statements.\n\nClassify by the input\u2019s primary role. If the input is a named function call or capability description, use Tool. If it is a person\u2019s request or describes an action needed, use Task. If it\u2019s a named autonomous bot or agent, use Agent."
+      },
+      {
+        "hash": "61a632d687a58623",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "llm_mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325"
+        ],
+        "score": 95.0,
+        "temperature": 0.6128,
+        "top_p": 0.717,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: Autonomous entity or software that initiates actions or makes decisions independently.\nTool: Named system, program, service, or function performing actions but not autonomously; typically described by capabilities.\nTask: Explicit request, command, instruction, or activity to be performed; includes requests for assistance or actions needed, even if phrased as personal needs.\nInput: Data, parameters, or categories provided for processing; raw information submitted to a system, agent, or tool.\nOutput: Response, result, or information produced after executing a task or processing input; includes explanations of issues or outcomes.\nHuman: Comments, opinions, or requests clearly authored or attributed to a person; only use if content is primarily a personal statement, not a request for action.\n\nClassify based on the main purpose in context. If in doubt between Task and Human, choose Task for requests or needs, Human only for personal comments."
+      },
+      {
+        "hash": "4d456f08aae851dd",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "crossover+llm_mutate",
+        "parent_hashes": [
+          "770405eae22e8f21",
+          "770405eae22e8f21"
+        ],
+        "score": 92.5,
+        "temperature": 0.5778,
+        "top_p": 0.725,
+        "template": "Classify the input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n- Agent: An autonomous entity that acts or makes decisions.\n- Tool: A system, program, or function used to perform actions, but does not act autonomously.\n- Task: An activity or objective to complete.\n- Input: Data, parameters, or categories provided for processing.\n- Output: Results or responses produced by a system.\n- Human: Text that is clearly written by or attributed to a person."
+      },
+      {
+        "hash": "4d456f08aae851dd",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "4d456f08aae851dd"
+        ],
+        "score": 92.5,
+        "temperature": 0.4935,
+        "top_p": 0.7,
+        "template": "Classify the input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n- Agent: An autonomous entity that acts or makes decisions.\n- Tool: A system, program, or function used to perform actions, but does not act autonomously.\n- Task: An activity or objective to complete.\n- Input: Data, parameters, or categories provided for processing.\n- Output: Results or responses produced by a system.\n- Human: Text that is clearly written by or attributed to a person."
+      },
+      {
+        "hash": "07766c2f5d7f756a",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "llm_mutate",
+        "parent_hashes": [
+          "4d456f08aae851dd"
+        ],
+        "score": 92.5,
+        "temperature": 0.554,
+        "top_p": 0.7117,
+        "template": "Classify the input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n- Agent: An autonomous entity that makes decisions or initiates actions without direct human control.\n- Tool: A system, program, or function used by humans or agents to perform actions, but does not act autonomously.\n- Task: An activity, objective, or goal to complete.\n- Input: Data, parameters, categories, or instructions provided for processing; includes labeled categories or descriptors.\n- Output: Results, responses, or products generated by a system, tool, or agent.\n- Human: Text clearly written by, attributed to, or representing human communication (e.g., comments, feedback, reviews)."
+      },
+      {
+        "hash": "4d456f08aae851dd",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "4d456f08aae851dd"
+        ],
+        "score": 92.5,
+        "temperature": 0.6095,
+        "top_p": 0.7201,
+        "template": "Classify the input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n- Agent: An autonomous entity that acts or makes decisions.\n- Tool: A system, program, or function used to perform actions, but does not act autonomously.\n- Task: An activity or objective to complete.\n- Input: Data, parameters, or categories provided for processing.\n- Output: Results or responses produced by a system.\n- Human: Text that is clearly written by or attributed to a person."
+      },
+      {
+        "hash": "e6e7fdca524d2307",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "llm_mutate",
+        "parent_hashes": [
+          "daead7ae867de9e5"
+        ],
+        "score": 92.5,
+        "temperature": 0.1084,
+        "top_p": 0.9848,
+        "template": "Classify each item as one of: Agent, Task, Tool, Input, Output, or Human.\n\n- Agent: An autonomous system or assistant that acts independently to perform actions or make decisions.\n- Task: A request or goal to accomplish, often phrased as an action or need (e.g., \"I need...\", \"Please do...\").\n- Tool: A named utility, API, function, or software component used by Agents to complete Tasks; Tools do not act autonomously.\n- Input: Information or parameters provided to start or guide a Task; often user submissions or data for processing.\n- Output: Results, responses, or error messages produced after performing a Task; includes system-generated feedback.\n- Human: Text clearly written by a person, such as comments, feedback, or questions, not requests or parameters.\n\nChoose only one category. Focus on definitions, context, and intent."
+      },
+      {
+        "hash": "1bac9c7b802eec76",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "7d2879839a9e1325",
+          "7d2879839a9e1325"
+        ],
+        "score": 92.5,
+        "temperature": 0.6605,
+        "top_p": 0.7192,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "7b4058764094aeda",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325",
+          "7d2879839a9e1325"
+        ],
+        "score": 92.5,
+        "temperature": 0.6854,
+        "top_p": 0.7448,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\nConsider the semantic meaning of the input, not just keywords.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "cfc1d7cceac2ed25",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "llm_mutate",
+        "parent_hashes": [
+          "e6e7fdca524d2307"
+        ],
+        "score": 92.5,
+        "temperature": 0.2713,
+        "top_p": 0.9363,
+        "template": "Classify each item as one of: Agent, Task, Tool, Input, Output, or Human.\n\n- Agent: An autonomous system, model, or assistant that acts independently to perform actions or make decisions. Named as an \"Agent\" or described as acting on its own.\n- Task: A request, instruction, or goal to accomplish, often phrased as an action or need (e.g., \"I need...\", \"Please do...\"). Includes explicit requests for actions, even if referencing tools or APIs.\n- Tool: A named utility, API, function, or software component used by Agents or Humans to complete Tasks. Tools do not act autonomously or make decisions; they require activation or input.\n- Input: Information, data, or parameters provided to start, guide, or configure a Task or Tool; includes data sources, user submissions, or configuration details.\n- Output: Results, responses, or error messages produced after performing a Task; includes any system- or tool-generated feedback or results.\n- Human: Text clearly written as personal comments, feedback, questions, or narrative from a person, not requests, data, or tool descriptions.\n\nAssign only one category per item. Carefully consider the role, intent, and phrasing in context."
+      },
+      {
+        "hash": "44d4655554b1e387",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325",
+          "7d2879839a9e1325"
+        ],
+        "score": 92.5,
+        "temperature": 0.6268,
+        "top_p": 0.7404,
+        "template": "Input: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nClassify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider the full context of the input before classifying.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "b33458aa713fd0bc",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "llm_mutate",
+        "parent_hashes": [
+          "7d2879839a9e1325"
+        ],
+        "score": 92.5,
+        "temperature": 0.3549,
+        "top_p": 0.7,
+        "template": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently; includes any name or phrase explicitly labeled as an agent.\nTool: A named system, program, service, or function that performs actions when invoked; not autonomous.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with an action verb or describes a need, even if expressed by a human.\nInput: Data, parameters, or content provided for processing; raw information or details submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after a task or processing input; includes error messages, explanations, or confirmations generated by a system or agent.\nHuman: Any reference to a person, their comments, opinions, or feedback; includes 'Reviewer comments' or clearly authored human statements.\n\nClassify by the primary role or purpose in context. If unsure, prefer Task for requests and Human for reviewer or personal comments."
+      },
+      {
+        "hash": "a9644bf429e1a729",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "llm_mutate",
+        "parent_hashes": [
+          "4d456f08aae851dd"
+        ],
+        "score": 90.0,
+        "temperature": 0.4033,
+        "top_p": 0.7714,
+        "template": "Classify the input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\n- Agent: An autonomous entity capable of making decisions or taking actions independently.\n- Tool: A system, program, or function that performs actions or tasks when used, but does not act autonomously. Descriptions of features, functions, or capabilities belong here.\n- Task: A request, goal, or activity to be completed, often expressed as a user need or objective.\n- Input: Data, parameters, or categories provided for processing; NOT requests or human-written text.\n- Output: Results or responses produced by a system.\n- Human: Text written by, attributed to, or clearly originating from a person (e.g., reviewer comments, user requests)."
+      },
+      {
+        "hash": "f57789fd76249c5f",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "1560ce187ea109c0",
+          "7d2879839a9e1325"
+        ],
+        "score": 90.0,
+        "temperature": 0.6755,
+        "top_p": 0.7676,
+        "template": "Classify the input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human."
+      },
+      {
+        "hash": "e6e7fdca524d2307",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "e6e7fdca524d2307"
+        ],
+        "score": 90.0,
+        "temperature": 0.1519,
+        "top_p": 0.9569,
+        "template": "Classify each item as one of: Agent, Task, Tool, Input, Output, or Human.\n\n- Agent: An autonomous system or assistant that acts independently to perform actions or make decisions.\n- Task: A request or goal to accomplish, often phrased as an action or need (e.g., \"I need...\", \"Please do...\").\n- Tool: A named utility, API, function, or software component used by Agents to complete Tasks; Tools do not act autonomously.\n- Input: Information or parameters provided to start or guide a Task; often user submissions or data for processing.\n- Output: Results, responses, or error messages produced after performing a Task; includes system-generated feedback.\n- Human: Text clearly written by a person, such as comments, feedback, or questions, not requests or parameters.\n\nChoose only one category. Focus on definitions, context, and intent."
+      },
+      {
+        "hash": "a6a50391ca2e94cb",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "llm_mutate",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 87.5,
+        "temperature": 0.6236,
+        "top_p": 0.7,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nDefinitions:\n- Agent: An autonomous entity or software that performs actions or manages tasks.\n- Task: A specific action, request, or job to be completed, often described as a command, instruction, or workflow.\n- Tool: A resource, service, or application used by an agent or human to accomplish tasks, typically named or described as a utility or function.\n- Input: Data or parameters provided to a tool, agent, or task for processing.\n- Output: The response, result, or information produced after executing a task or processing input.\n- Human: A person involved in the interaction or workflow.\n\nClassify each input based on its main purpose or role in the context."
+      },
+      {
+        "hash": "daead7ae867de9e5",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "daead7ae867de9e5"
+        ],
+        "score": 87.5,
+        "temperature": 0.0,
+        "top_p": 0.968,
+        "template": "Classify the following as one of: Agent, Task, Tool, Input, Output, or Human.\n\n- Agent: An autonomous system or assistant that performs actions or makes decisions.\n- Task: A specific action or goal to be accomplished (e.g., requests to do something).\n- Tool: A utility, API, or function used to assist Agents in completing Tasks.\n- Input: Information or parameters provided by a user or system to initiate a Task.\n- Output: Results, responses, or errors produced after a Task is performed.\n- Human: A person interacting with or using the system.\n\nChoose only one category. Be precise and consider the intent and context."
+      },
+      {
+        "hash": "daead7ae867de9e5",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "daead7ae867de9e5"
+        ],
+        "score": 87.5,
+        "temperature": 0.0311,
+        "top_p": 0.9546,
+        "template": "Classify the following as one of: Agent, Task, Tool, Input, Output, or Human.\n\n- Agent: An autonomous system or assistant that performs actions or makes decisions.\n- Task: A specific action or goal to be accomplished (e.g., requests to do something).\n- Tool: A utility, API, or function used to assist Agents in completing Tasks.\n- Input: Information or parameters provided by a user or system to initiate a Task.\n- Output: Results, responses, or errors produced after a Task is performed.\n- Human: A person interacting with or using the system.\n\nChoose only one category. Be precise and consider the intent and context."
+      },
+      {
+        "hash": "daead7ae867de9e5",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "daead7ae867de9e5"
+        ],
+        "score": 87.5,
+        "temperature": 0.2909,
+        "top_p": 0.9658,
+        "template": "Classify the following as one of: Agent, Task, Tool, Input, Output, or Human.\n\n- Agent: An autonomous system or assistant that performs actions or makes decisions.\n- Task: A specific action or goal to be accomplished (e.g., requests to do something).\n- Tool: A utility, API, or function used to assist Agents in completing Tasks.\n- Input: Information or parameters provided by a user or system to initiate a Task.\n- Output: Results, responses, or errors produced after a Task is performed.\n- Human: A person interacting with or using the system.\n\nChoose only one category. Be precise and consider the intent and context."
+      },
+      {
+        "hash": "a6a50391ca2e94cb",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "a6a50391ca2e94cb"
+        ],
+        "score": 85.0,
+        "temperature": 0.8447,
+        "top_p": 0.7,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nDefinitions:\n- Agent: An autonomous entity or software that performs actions or manages tasks.\n- Task: A specific action, request, or job to be completed, often described as a command, instruction, or workflow.\n- Tool: A resource, service, or application used by an agent or human to accomplish tasks, typically named or described as a utility or function.\n- Input: Data or parameters provided to a tool, agent, or task for processing.\n- Output: The response, result, or information produced after executing a task or processing input.\n- Human: A person involved in the interaction or workflow.\n\nClassify each input based on its main purpose or role in the context."
+      },
+      {
+        "hash": "7f798e05597927fc",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "llm_mutate",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 83.23,
+        "temperature": 0.8509,
+        "top_p": 0.8906,
+        "template": "Classify the component as one of: Agent, Task, Tool, Input, Output, or Human.\n\n- Agent: An autonomous system or entity that acts to achieve goals.\n- Task: An action or objective to be completed.\n- Tool: Software, module, or function used by Agents or Humans to perform Tasks.\n- Input: Data, categories, or information provided to the system (e.g., \"Education\").\n- Output: Results or responses produced by the system after processing Inputs.\n- Human: A person interacting with or providing information to the system.\n\nSelect the most specific and accurate category based on the definitions above."
+      },
+      {
+        "hash": "3669f7e91be81ffb",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 82.5,
+        "temperature": 0.5076,
+        "top_p": 0.7198,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider the semantic meaning of the input, not just keywords."
+      },
+      {
+        "hash": "daead7ae867de9e5",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "llm_mutate",
+        "parent_hashes": [
+          "d1c98eb7b9c640eb"
+        ],
+        "score": 82.5,
+        "temperature": 0.0015,
+        "top_p": 0.9732,
+        "template": "Classify the following as one of: Agent, Task, Tool, Input, Output, or Human.\n\n- Agent: An autonomous system or assistant that performs actions or makes decisions.\n- Task: A specific action or goal to be accomplished (e.g., requests to do something).\n- Tool: A utility, API, or function used to assist Agents in completing Tasks.\n- Input: Information or parameters provided by a user or system to initiate a Task.\n- Output: Results, responses, or errors produced after a Task is performed.\n- Human: A person interacting with or using the system.\n\nChoose only one category. Be precise and consider the intent and context."
+      },
+      {
+        "hash": "bf8b5a1f1c7ef6cd",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "daead7ae867de9e5"
+        ],
+        "score": 82.5,
+        "temperature": 0.1497,
+        "top_p": 0.936,
+        "template": "Classify the following as one of: Agent, Task, Tool, Input, Output, or Human.\n\n- Agent: An autonomous system or assistant that performs actions or makes decisions.\n- Task: A specific action or goal to be accomplished (e.g., requests to do something).\n- Tool: A utility, API, or function used to assist Agents in completing Tasks.\n- Input: Information or parameters provided by a user or system to initiate a Task.\n- Output: Results, responses, or errors produced after a Task is performed.\n- Human: A person interacting with or using the system.\n\nConsider the semantic meaning of the input, not just keywords.\nChoose only one category. Be precise and consider the intent and context."
+      },
+      {
+        "hash": "12d1a4d0826394f8",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 78.71,
+        "temperature": 0.5977,
+        "top_p": 0.8262,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nOutput must be a single word or short phrase matching a valid category."
+      },
+      {
+        "hash": "a340fc4e0211c87c",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "daead7ae867de9e5",
+          "7f798e05597927fc"
+        ],
+        "score": 77.5,
+        "temperature": 0.1193,
+        "top_p": 0.9952,
+        "template": "Classify the following as one of: Agent, Task, Tool, Input, Output, or Human.\n\n- Agent: An autonomous system or assistant that performs actions or makes decisions.\n- Tool: Software, module, or function used by Agents or Humans to perform Tasks.\n- Input: Data, categories, or information provided to the system (e.g., \"Education\").\n- Output: Results or responses produced by the system after processing Inputs.\n- Human: A person interacting with or providing information to the system.\n\nSelect the most specific and accurate category based on the definitions above."
+      },
+      {
+        "hash": "7f798e05597927fc",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "7f798e05597927fc"
+        ],
+        "score": 77.5,
+        "temperature": 0.7812,
+        "top_p": 0.9401,
+        "template": "Classify the component as one of: Agent, Task, Tool, Input, Output, or Human.\n\n- Agent: An autonomous system or entity that acts to achieve goals.\n- Task: An action or objective to be completed.\n- Tool: Software, module, or function used by Agents or Humans to perform Tasks.\n- Input: Data, categories, or information provided to the system (e.g., \"Education\").\n- Output: Results or responses produced by the system after processing Inputs.\n- Human: A person interacting with or providing information to the system.\n\nSelect the most specific and accurate category based on the definitions above."
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "770405eae22e8f21",
+          "770405eae22e8f21"
+        ],
+        "score": 75.0,
+        "temperature": 0.6132,
+        "top_p": 0.7547,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 75.0,
+        "temperature": 0.4223,
+        "top_p": 0.7,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "bc804444d03ad85a",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "7f798e05597927fc",
+          "7f798e05597927fc"
+        ],
+        "score": 75.0,
+        "temperature": 0.8581,
+        "top_p": 0.9113,
+        "template": "Classify the component as one of: Agent, Task, Tool, Input, Output, or Human.\n\n- Agent: An autonomous system or entity that acts to achieve goals.\n- Task: An action or objective to be completed.\n- Tool: Software, module, or function used by Agents or Humans to perform Tasks.\n- Input: Data, categories, or information provided to the system (e.g., \"Education\").\n\n- Agent: An autonomous system or entity that acts to achieve goals.\n- Task: An action or objective to be completed.\n- Tool: Software, module, or function used by Agents or Humans to perform Tasks.\n- Input: Data, categories, or information provided to the system (e.g., \"Education\").\n- Output: Results or responses produced by the system after processing Inputs.\n- Human: A person interacting with or providing information to the system.\n\nSelect the most specific and accurate category based on the definitions above."
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "770405eae22e8f21",
+          "770405eae22e8f21"
+        ],
+        "score": 72.5,
+        "temperature": 0.5226,
+        "top_p": 0.7,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 72.5,
+        "temperature": 0.8223,
+        "top_p": 0.9779,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 0,
+        "island_id": 0,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 70.0,
+        "temperature": 0.5546,
+        "top_p": 0.7191,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 70.0,
+        "temperature": 0.6908,
+        "top_p": 0.972,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "4a3ec95cca995541",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "crossover+llm_mutate",
+        "parent_hashes": [
+          "7f798e05597927fc",
+          "daead7ae867de9e5"
+        ],
+        "score": 67.5,
+        "temperature": 0.781,
+        "top_p": 0.8399,
+        "template": "Classify each component as exactly one of: Agent, Task, Tool, Input, Output, or Human.\n\n- Agent: An autonomous system or entity that initiates or directs actions to achieve goals.\n- Task: An action, instruction, or objective to be completed; often described as a user request or assignment.\n- Tool: Software, module, API, or function used by Agents or Humans to perform Tasks, but not autonomous itself.\n- Input: Data, categories, resources, or information provided to the system (e.g., databases, user data).\n- Output: Data or information produced by the system as a result of processing.\n- Human: A person interacting with, providing input to, or receiving output from the system (e.g., reviewers, users).\n\nConsider the context and intent carefully. If a description refers to a person, classify as Human. If it describes a resource or dataset, choose Input. If it describes software utilities, APIs, or functions (but not agents), choose Tool."
+      },
+      {
+        "hash": "39b921f0de343414",
+        "generation": 0,
+        "island_id": 0,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 66.94,
+        "temperature": 0.774,
+        "top_p": 0.8317,
+        "template": "Classify this text as Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 0,
+        "island_id": 1,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 65.0,
+        "temperature": 0.8276,
+        "top_p": 0.8895,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "39b921f0de343414",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "39b921f0de343414"
+        ],
+        "score": 65.0,
+        "temperature": 0.6806,
+        "top_p": 0.8214,
+        "template": "Classify this text as Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "0620fc16aac2b88d",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "llm_mutate",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 60.0,
+        "temperature": 0.9208,
+        "top_p": 0.9087,
+        "template": "Categorize each component strictly as one of: Agent, Task, Tool, Input, Output, or Human.\n\nGuidelines:\n- Tool: A system, API, or software used by agents to perform actions or provide solutions.\n- Agent: An autonomous system or entity that performs tasks or makes decisions.\n- Task: A specific action or job to be completed (not the entity or tool that does it).\n- Input: Data, parameters, or instructions provided to initiate or guide a process.\n- Output: Results or information produced by completing a task.\n- Human: Any person or human-generated text (e.g., feedback, instructions, comments).\n\nAssign only one category per component. Disambiguate tools from agents: tools are used by agents, agents act independently."
+      },
+      {
+        "hash": "35541044dfbbe7a6",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "crossover+llm_mutate",
+        "parent_hashes": [
+          "aca916f43e43411d",
+          "d1c98eb7b9c640eb"
+        ],
+        "score": 57.5,
+        "temperature": 0.8544,
+        "top_p": 0.8489,
+        "template": "Carefully assign one category to each component: Agent, Task, Tool, Input, Output, or Human.\n\n- Agent: An autonomous entity that performs actions or makes decisions.\n- Tool: A software or API used by Agents or Humans to perform actions; typically referenced by name and description, not a specific action.\n- Task: A specific action or request to be completed, often phrased as an instruction or question.\n- Input: Data or parameters supplied to Tools or Agents.\n- Output: Results produced by performing a Task or using a Tool.\n- Human: A person or user interacting with the system.\n\nIf describing a capability or function (not a specific action), choose Tool.\nIf the text is a specific instruction or request, choose Task."
+      },
+      {
+        "hash": "d1c98eb7b9c640eb",
+        "generation": 0,
+        "island_id": 1,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 55.0,
+        "temperature": 0.0942,
+        "top_p": 0.9927,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "af0d4cc397bce306",
+        "generation": 0,
+        "island_id": 1,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 52.5,
+        "temperature": 0.3708,
+        "top_p": 0.978,
+        "template": "You are an expert in agentic AI systems. Determine the entity type: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "1dca0ae347abda9c",
+        "generation": 0,
+        "island_id": 0,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 47.5,
+        "temperature": 0.6439,
+        "top_p": 0.9468,
+        "template": "An Agent acts autonomously, a Task is work to perform, a Tool is a capability, Input is incoming data, Output is produced data, Human is a person. Classify this text."
+      },
+      {
+        "hash": "09282d56273ce0d9",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "llm_mutate",
+        "parent_hashes": [
+          "d1c98eb7b9c640eb"
+        ],
+        "score": 47.5,
+        "temperature": 0.0823,
+        "top_p": 1.0,
+        "template": "Classify the entity as one of: Agent, Task, Tool, Input, Output, or Human.\n\n- \"Agent\": An autonomous system or program that performs actions or makes decisions.\n- \"Tool\": A function, module, or software used by agents or humans to perform specific operations.\n- \"Task\": A specific action or objective to be completed.\n- \"Input\": Data, information, or categories provided to a system, tool, or agent.\n- \"Output\": Results or data produced by a system, tool, or agent.\n- \"Human\": A person making requests or providing instructions.\n\nChoose the most precise type based on the description and context."
+      },
+      {
+        "hash": "5bd4406c63562cd2",
+        "generation": 0,
+        "island_id": 0,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 45.72,
+        "temperature": 0.7611,
+        "top_p": 0.9358,
+        "template": "Think about what role this text plays in an agentic AI system, then classify it as Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "b83c9075cfa5ac61",
+        "generation": 0,
+        "island_id": 1,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 32.5,
+        "temperature": 0.4434,
+        "top_p": 0.7682,
+        "template": "Entity type?"
+      },
+      {
+        "hash": "21276fcb33d8817e",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 7.5,
+        "temperature": 0.8271,
+        "top_p": 0.8813,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\nThink step-by-step before choosing a category."
+      }
+    ],
+    "tool_schemas_in_best": false
+  }
+}

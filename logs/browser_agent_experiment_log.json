@@ -1,0 +1,2049 @@
+{
+  "timestamp": "2026-03-31T12:53:27",
+  "default_baselines": {
+    "normal": 25.9,
+    "failure_recovery": 24.3,
+    "multi_tool": 22.3,
+    "normal_azure": 5.6,
+    "failure_recovery_azure": 5.6,
+    "multi_tool_azure": 5.6
+  },
+  "experiments": [
+    {
+      "category": "normal",
+      "algorithm": "standard",
+      "backend": "ollama",
+      "n_cases": 10,
+      "baseline_score": 26.33,
+      "evolved_score": 29.0,
+      "delta": 2.67,
+      "best_temperature": 0.6601,
+      "best_top_p": 0.9407,
+      "iterations": 3,
+      "wall_time": 820.8,
+      "history": [
+        [
+          0,
+          26.333333333333332
+        ],
+        [
+          1,
+          29.000000000000004
+        ],
+        [
+          2,
+          29.000000000000004
+        ],
+        [
+          3,
+          29.000000000000004
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 18.6,
+          "template_hash": "477c6fbfbbaf4151",
+          "template_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conv",
+          "full_template": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"arguments\" fields.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 26.3,
+          "template_hash": "4d00ba197a5af1bf",
+          "template_preview": "You are an expert tool-calling browser agent. Follow these steps: 1. Read the full conversation carefully. 2. Identify w",
+          "full_template": "You are an expert tool-calling browser agent. Follow these steps:\n1. Read the full conversation carefully.\n2. Identify what the user needs done next.\n3. Select the correct function to call.\n4. Extract all required parameter values from the conversation.\n5. Output a JSON tool call: {{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 18.0,
+          "template_hash": "c7bafb373aaac8d9",
+          "template_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": ",
+          "full_template": "You are a precise tool-calling agent. Rules:\n- Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}}\n- Match function names EXACTLY from the available tools.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters with correct types.\n- Output ONLY the JSON tool call, nothing else.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 23.6,
+          "template_hash": "9a2b9dbe3d204d95",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 1,
+          "score": 29.0,
+          "template_hash": "893035f16b4ee2c5",
+          "template_preview": "You are an expert tool-calling browser agent. Follow these steps: The arguments field must be a JSON object, not a strin",
+          "full_template": "You are an expert tool-calling browser agent. Follow these steps:\nThe arguments field must be a JSON object, not a string.\n1. Read the full conversation carefully.\n2. Identify what the user needs done next.\n3. Select the correct function to call.\n4. Extract all required parameter values from the conversation.\n5. Output a JSON tool call: {{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nConversation:\n{browser_conversation}"
+        },
+        {
+          "generation": 2,
+          "score": 29.0,
+          "template_hash": "893035f16b4ee2c5",
+          "template_preview": "You are an expert tool-calling browser agent. Follow these steps: The arguments field must be a JSON object, not a strin",
+          "full_template": "You are an expert tool-calling browser agent. Follow these steps:\nThe arguments field must be a JSON object, not a string.\n1. Read the full conversation carefully.\n2. Identify what the user needs done next.\n3. Select the correct function to call.\n4. Extract all required parameter values from the conversation.\n5. Output a JSON tool call: {{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nConversation:\n{browser_conversation}"
+        },
+        {
+          "generation": 3,
+          "score": 29.0,
+          "template_hash": "893035f16b4ee2c5",
+          "template_preview": "You are an expert tool-calling browser agent. Follow these steps: The arguments field must be a JSON object, not a strin",
+          "full_template": "You are an expert tool-calling browser agent. Follow these steps:\nThe arguments field must be a JSON object, not a string.\n1. Read the full conversation carefully.\n2. Identify what the user needs done next.\n3. Select the correct function to call.\n4. Extract all required parameter values from the conversation.\n5. Output a JSON tool call: {{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nConversation:\n{browser_conversation}"
+        }
+      ],
+      "prompt_mutations": [
+        {
+          "generation": 1,
+          "mutations": [
+            {
+              "type": "mutation",
+              "parent": "477c6fbf",
+              "diff_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"argum"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "477c6fbf",
+              "parent_b": "477c6fbf"
+            },
+            {
+              "type": "mutation",
+              "parent": "477c6fbf",
+              "diff_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"argum"
+            },
+            {
+              "type": "mutation",
+              "parent": "4d00ba19",
+              "diff_preview": "Read the ENTIRE conversation including tool responses before acting. You are an expert tool-calling browser agent. Follow these steps: 1. Read the full conversation carefully. 2. Identify what the use"
+            },
+            {
+              "type": "mutation",
+              "parent": "4d00ba19",
+              "diff_preview": "You are an expert tool-calling browser agent. Follow these steps: 1. Read the full conversation carefully. 2. Identify what the user needs done next. 3. Select the correct function to call. 4. Extract"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "4d00ba19",
+              "parent_b": "4d00ba19"
+            },
+            {
+              "type": "mutation",
+              "parent": "4d00ba19",
+              "diff_preview": "You are an expert tool-calling browser agent. Follow these steps: The arguments field must be a JSON object, not a string. 1. Read the full conversation carefully. 2. Identify what the user needs done"
+            }
+          ],
+          "best_score": 29.0,
+          "best_hash": "893035f1"
+        },
+        {
+          "generation": 2,
+          "mutations": [
+            {
+              "type": "crossover",
+              "parent_a": "477c6fbf",
+              "parent_b": "477c6fbf"
+            },
+            {
+              "type": "mutation",
+              "parent": "477c6fbf",
+              "diff_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"argum"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "477c6fbf",
+              "parent_b": "477c6fbf"
+            },
+            {
+              "type": "mutation",
+              "parent": "477c6fbf",
+              "diff_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"argum"
+            },
+            {
+              "type": "mutation",
+              "parent": "893035f1",
+              "diff_preview": "You are an expert tool-calling browser agent. Follow these steps: The arguments field must be a JSON object, not a string. 1. Read the full conversation carefully. 2. Identify what the user needs done"
+            },
+            {
+              "type": "mutation",
+              "parent": "893035f1",
+              "diff_preview": "You are an expert tool-calling browser agent. Follow these steps: The arguments field must be a JSON object, not a string. 1. Read the full conversation carefully. 2. Identify what the user needs done"
+            }
+          ],
+          "best_score": 29.0,
+          "best_hash": "893035f1"
+        },
+        {
+          "generation": 3,
+          "mutations": [
+            {
+              "type": "mutation",
+              "parent": "477c6fbf",
+              "diff_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"argum"
+            },
+            {
+              "type": "mutation",
+              "parent": "477c6fbf",
+              "diff_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"argum"
+            },
+            {
+              "type": "mutation",
+              "parent": "477c6fbf",
+              "diff_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"argum"
+            },
+            {
+              "type": "mutation",
+              "parent": "477c6fbf",
+              "diff_preview": "Think step by step about which function to call and with what parameters. You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversati"
+            },
+            {
+              "type": "mutation",
+              "parent": "893035f1",
+              "diff_preview": "You are an expert tool-calling browser agent. Follow these steps: The arguments field must be a JSON object, not a string. 1. Read the full conversation carefully. 2. Identify what the user needs done"
+            },
+            {
+              "type": "mutation",
+              "parent": "893035f1",
+              "diff_preview": "You are an expert tool-calling browser agent. Follow these steps: The arguments field must be a JSON object, not a string. 1. Read the full conversation carefully. 2. Identify what the user needs done"
+            },
+            {
+              "type": "mutation",
+              "parent": "893035f1",
+              "diff_preview": "You are an expert tool-calling browser agent. Follow these steps: The arguments field must be a JSON object, not a string. 1. Read the full conversation carefully. 2. Identify what the user needs done"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "893035f1",
+              "parent_b": "893035f1"
+            }
+          ],
+          "best_score": 29.0,
+          "best_hash": "893035f1"
+        }
+      ],
+      "best_prompt_template": "You are an expert tool-calling browser agent. Follow these steps:\nThe arguments field must be a JSON object, not a string.\n1. Read the full conversation carefully.\n2. Identify what the user needs done next.\n3. Select the correct function to call.\n4. Extract all required parameter values from the conversation.\n5. Output a JSON tool call: {{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nConversation:\n{browser_conversation}",
+      "func_name_accuracy": 0.0,
+      "arg_accuracy": 22.5
+    },
+    {
+      "category": "failure_recovery",
+      "algorithm": "standard",
+      "backend": "ollama",
+      "n_cases": 10,
+      "baseline_score": 24.0,
+      "evolved_score": 28.0,
+      "delta": 4.0,
+      "best_temperature": 0.48,
+      "best_top_p": 0.6343,
+      "iterations": 3,
+      "wall_time": 594.0,
+      "history": [
+        [
+          0,
+          24.0
+        ],
+        [
+          1,
+          27.999999999999996
+        ],
+        [
+          2,
+          27.999999999999996
+        ],
+        [
+          3,
+          27.999999999999996
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 24.0,
+          "template_hash": "477c6fbfbbaf4151",
+          "template_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conv",
+          "full_template": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"arguments\" fields.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 22.0,
+          "template_hash": "4d00ba197a5af1bf",
+          "template_preview": "You are an expert tool-calling browser agent. Follow these steps: 1. Read the full conversation carefully. 2. Identify w",
+          "full_template": "You are an expert tool-calling browser agent. Follow these steps:\n1. Read the full conversation carefully.\n2. Identify what the user needs done next.\n3. Select the correct function to call.\n4. Extract all required parameter values from the conversation.\n5. Output a JSON tool call: {{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 24.0,
+          "template_hash": "c7bafb373aaac8d9",
+          "template_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": ",
+          "full_template": "You are a precise tool-calling agent. Rules:\n- Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}}\n- Match function names EXACTLY from the available tools.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters with correct types.\n- Output ONLY the JSON tool call, nothing else.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 21.3,
+          "template_hash": "9a2b9dbe3d204d95",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 1,
+          "score": 28.0,
+          "template_hash": "a327fde1762894fa",
+          "template_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": ",
+          "full_template": "You are a precise tool-calling agent. Rules:\n- Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}}\n- Match function names EXACTLY from the available tools.\nFirst identify the task, then the function, then gather parameters.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters with correct types.\n- Output ONLY the JSON tool call, nothing else.\n\nConversation:\n{browser_conversation}"
+        },
+        {
+          "generation": 2,
+          "score": 28.0,
+          "template_hash": "a327fde1762894fa",
+          "template_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": ",
+          "full_template": "You are a precise tool-calling agent. Rules:\n- Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}}\n- Match function names EXACTLY from the available tools.\nFirst identify the task, then the function, then gather parameters.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters with correct types.\n- Output ONLY the JSON tool call, nothing else.\n\nConversation:\n{browser_conversation}"
+        },
+        {
+          "generation": 3,
+          "score": 28.0,
+          "template_hash": "a327fde1762894fa",
+          "template_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": ",
+          "full_template": "You are a precise tool-calling agent. Rules:\n- Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}}\n- Match function names EXACTLY from the available tools.\nFirst identify the task, then the function, then gather parameters.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters with correct types.\n- Output ONLY the JSON tool call, nothing else.\n\nConversation:\n{browser_conversation}"
+        }
+      ],
+      "prompt_mutations": [
+        {
+          "generation": 1,
+          "mutations": [
+            {
+              "type": "mutation",
+              "parent": "c7bafb37",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. First identif"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "c7bafb37",
+              "parent_b": "c7bafb37"
+            },
+            {
+              "type": "mutation",
+              "parent": "c7bafb37",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}}  The arguments field must be a JSON object, not a string. Conversation"
+            },
+            {
+              "type": "mutation",
+              "parent": "4d00ba19",
+              "diff_preview": "You are an expert tool-calling browser agent. Follow these steps: 1. Read the full conversation carefully. 2. Identify what the user needs done next. 3. Select the correct function to call. 4. Extract"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "4d00ba19",
+              "parent_b": "4d00ba19"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "4d00ba19",
+              "parent_b": "4d00ba19"
+            },
+            {
+              "type": "mutation",
+              "parent": "4d00ba19",
+              "diff_preview": "You are an expert tool-calling browser agent. Follow these steps: 4. Extract all required parameter values from the conversation. 5. Output a JSON tool call: {{\"name\": \"function_name\", \"arguments\": {{"
+            },
+            {
+              "type": "mutation",
+              "parent": "4d00ba19",
+              "diff_preview": "You are an expert tool-calling browser agent. Follow these steps: 1. Read the full conversation carefully. 2. Identify what the user needs done next. 3. Select the correct function to call. 4. Extract"
+            }
+          ],
+          "best_score": 28.0,
+          "best_hash": "a327fde1"
+        },
+        {
+          "generation": 2,
+          "mutations": [
+            {
+              "type": "crossover",
+              "parent_a": "a327fde1",
+              "parent_b": "a327fde1"
+            },
+            {
+              "type": "mutation",
+              "parent": "a327fde1",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. First identif"
+            },
+            {
+              "type": "mutation",
+              "parent": "a327fde1",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. First identif"
+            },
+            {
+              "type": "mutation",
+              "parent": "a327fde1",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. First identif"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "054bc4c1",
+              "parent_b": "054bc4c1"
+            },
+            {
+              "type": "mutation",
+              "parent": "054bc4c1",
+              "diff_preview": "Read the ENTIRE conversation including tool responses before acting. You are an expert tool-calling browser agent. Follow these steps: 4. Extract all required parameter values from the conversation. T"
+            },
+            {
+              "type": "mutation",
+              "parent": "054bc4c1",
+              "diff_preview": "You are an expert tool-calling browser agent. Follow these steps: 4. Extract all required parameter values from the conversation. 5. Output a JSON tool call: {{\"name\": \"function_name\", \"arguments\": {{"
+            },
+            {
+              "type": "mutation",
+              "parent": "054bc4c1",
+              "diff_preview": "You are an expert tool-calling browser agent. Follow these steps: 4. Extract all required parameter values from the conversation. 5. Output a JSON tool call: {{\"name\": \"function_name\", \"arguments\": {{"
+            },
+            {
+              "type": "mutation",
+              "parent": "054bc4c1",
+              "diff_preview": "You are an expert tool-calling browser agent. Follow these steps: 4. Extract all required parameter values from the conversation. 5. Output a JSON tool call: {{\"name\": \"function_name\", \"arguments\": {{"
+            }
+          ],
+          "best_score": 28.0,
+          "best_hash": "a327fde1"
+        },
+        {
+          "generation": 3,
+          "mutations": [
+            {
+              "type": "mutation",
+              "parent": "a327fde1",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. For payment f"
+            },
+            {
+              "type": "mutation",
+              "parent": "a327fde1",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. First identif"
+            },
+            {
+              "type": "mutation",
+              "parent": "a327fde1",
+              "diff_preview": "Think step by step about which function to call and with what parameters. You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}"
+            },
+            {
+              "type": "mutation",
+              "parent": "a327fde1",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. First identif"
+            },
+            {
+              "type": "mutation",
+              "parent": "054bc4c1",
+              "diff_preview": "You are an expert tool-calling browser agent. Follow these steps: 4. Extract all required parameter values from the conversation. 5. Output a JSON tool call: {{\"name\": \"function_name\", \"arguments\": {{"
+            },
+            {
+              "type": "mutation",
+              "parent": "054bc4c1",
+              "diff_preview": "You are an expert tool-calling browser agent. Follow these steps: 4. Extract all required parameter values from the conversation. 5. Output a JSON tool call: {{\"name\": \"function_name\", \"arguments\": {{"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "054bc4c1",
+              "parent_b": "054bc4c1"
+            }
+          ],
+          "best_score": 28.0,
+          "best_hash": "a327fde1"
+        }
+      ],
+      "best_prompt_template": "You are a precise tool-calling agent. Rules:\n- Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}}\n- Match function names EXACTLY from the available tools.\nFirst identify the task, then the function, then gather parameters.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters with correct types.\n- Output ONLY the JSON tool call, nothing else.\n\nConversation:\n{browser_conversation}",
+      "func_name_accuracy": 0.0,
+      "arg_accuracy": 15.0
+    },
+    {
+      "category": "multi_tool",
+      "algorithm": "standard",
+      "backend": "ollama",
+      "n_cases": 10,
+      "baseline_score": 30.67,
+      "evolved_score": 30.87,
+      "delta": 0.2,
+      "best_temperature": 0.5075,
+      "best_top_p": 0.5,
+      "iterations": 3,
+      "wall_time": 352.2,
+      "history": [
+        [
+          0,
+          30.666666666666664
+        ],
+        [
+          1,
+          30.86666666666666
+        ],
+        [
+          2,
+          30.86666666666666
+        ],
+        [
+          3,
+          30.86666666666666
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 24.8,
+          "template_hash": "477c6fbfbbaf4151",
+          "template_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conv",
+          "full_template": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"arguments\" fields.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 27.6,
+          "template_hash": "4d00ba197a5af1bf",
+          "template_preview": "You are an expert tool-calling browser agent. Follow these steps: 1. Read the full conversation carefully. 2. Identify w",
+          "full_template": "You are an expert tool-calling browser agent. Follow these steps:\n1. Read the full conversation carefully.\n2. Identify what the user needs done next.\n3. Select the correct function to call.\n4. Extract all required parameter values from the conversation.\n5. Output a JSON tool call: {{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 23.8,
+          "template_hash": "c7bafb373aaac8d9",
+          "template_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": ",
+          "full_template": "You are a precise tool-calling agent. Rules:\n- Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}}\n- Match function names EXACTLY from the available tools.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters with correct types.\n- Output ONLY the JSON tool call, nothing else.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 30.7,
+          "template_hash": "9a2b9dbe3d204d95",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 1,
+          "score": 30.9,
+          "template_hash": "9a2b9dbe3d204d95",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 2,
+          "score": 30.9,
+          "template_hash": "9a2b9dbe3d204d95",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 3,
+          "score": 30.9,
+          "template_hash": "9a2b9dbe3d204d95",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}\n"
+        }
+      ],
+      "prompt_mutations": [
+        {
+          "generation": 1,
+          "mutations": [
+            {
+              "type": "mutation",
+              "parent": "477c6fbf",
+              "diff_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"argum"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "477c6fbf",
+              "parent_b": "477c6fbf"
+            },
+            {
+              "type": "mutation",
+              "parent": "477c6fbf",
+              "diff_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"argum"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "Read the ENTIRE conversation including tool responses before acting. You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "9a2b9dbe",
+              "parent_b": "9a2b9dbe"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            }
+          ],
+          "best_score": 30.9,
+          "best_hash": "9a2b9dbe"
+        },
+        {
+          "generation": 2,
+          "mutations": [
+            {
+              "type": "crossover",
+              "parent_a": "477c6fbf",
+              "parent_b": "477c6fbf"
+            },
+            {
+              "type": "mutation",
+              "parent": "e2e4ac52",
+              "diff_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"argum"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "477c6fbf",
+              "parent_b": "e2e4ac52"
+            },
+            {
+              "type": "mutation",
+              "parent": "477c6fbf",
+              "diff_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"argum"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            }
+          ],
+          "best_score": 30.9,
+          "best_hash": "9a2b9dbe"
+        },
+        {
+          "generation": 3,
+          "mutations": [
+            {
+              "type": "mutation",
+              "parent": "477c6fbf",
+              "diff_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"argum"
+            },
+            {
+              "type": "mutation",
+              "parent": "477c6fbf",
+              "diff_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"argum"
+            },
+            {
+              "type": "mutation",
+              "parent": "477c6fbf",
+              "diff_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"argum"
+            },
+            {
+              "type": "mutation",
+              "parent": "477c6fbf",
+              "diff_preview": "Think step by step about which function to call and with what parameters. You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversati"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "9a2b9dbe",
+              "parent_b": "9a2b9dbe"
+            }
+          ],
+          "best_score": 30.9,
+          "best_hash": "9a2b9dbe"
+        }
+      ],
+      "best_prompt_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}\n",
+      "func_name_accuracy": 0.0,
+      "arg_accuracy": 27.17
+    },
+    {
+      "category": "failure_recovery",
+      "algorithm": "deep",
+      "backend": "ollama",
+      "n_cases": 12,
+      "baseline_score": 26.67,
+      "evolved_score": 35.17,
+      "delta": 8.5,
+      "best_temperature": 0.5065,
+      "best_top_p": 0.5,
+      "iterations": 5,
+      "wall_time": 1061.2,
+      "history": [
+        [
+          0,
+          26.66666666666668
+        ],
+        [
+          1,
+          29.22222222222223
+        ],
+        [
+          2,
+          29.777777777777786
+        ],
+        [
+          3,
+          30.00000000000001
+        ],
+        [
+          4,
+          33.33333333333334
+        ],
+        [
+          5,
+          35.16666666666667
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 25.0,
+          "template_hash": "477c6fbfbbaf4151",
+          "template_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conv",
+          "full_template": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"arguments\" fields.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 23.7,
+          "template_hash": "4d00ba197a5af1bf",
+          "template_preview": "You are an expert tool-calling browser agent. Follow these steps: 1. Read the full conversation carefully. 2. Identify w",
+          "full_template": "You are an expert tool-calling browser agent. Follow these steps:\n1. Read the full conversation carefully.\n2. Identify what the user needs done next.\n3. Select the correct function to call.\n4. Extract all required parameter values from the conversation.\n5. Output a JSON tool call: {{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 26.7,
+          "template_hash": "c7bafb373aaac8d9",
+          "template_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": ",
+          "full_template": "You are a precise tool-calling agent. Rules:\n- Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}}\n- Match function names EXACTLY from the available tools.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters with correct types.\n- Output ONLY the JSON tool call, nothing else.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 25.0,
+          "template_hash": "9a2b9dbe3d204d95",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 1,
+          "score": 29.2,
+          "template_hash": "9a2b9dbe3d204d95",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 2,
+          "score": 29.8,
+          "template_hash": "a208fcd3e0b477c1",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\nDo not wrap the JSON in markdown code blocks or add explanatory text.\n{browser_conversation}"
+        },
+        {
+          "generation": 3,
+          "score": 30.0,
+          "template_hash": "3415fc5d4878df81",
+          "template_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": ",
+          "full_template": "You are a precise tool-calling agent. Rules:\n- Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}}\n- Match function names EXACTLY from the available tools.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters with correct types.\n- Output ONLY the JSON tool call, nothing else.\n\nConversation:\nMatch the function name exactly \u2014 check spelling carefully.\nUse information from earlier tool responses in subsequent calls.\n- Output ONLY the JSON tool call, nothing else.\n\nConversation:\nTrack the state across turns \u2014 booking first, then payment, then confirmation.\nUse information from earlier tool responses in subsequent calls.\n{browser_conversation}"
+        },
+        {
+          "generation": 4,
+          "score": 33.3,
+          "template_hash": "3415fc5d4878df81",
+          "template_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": ",
+          "full_template": "You are a precise tool-calling agent. Rules:\n- Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}}\n- Match function names EXACTLY from the available tools.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters with correct types.\n- Output ONLY the JSON tool call, nothing else.\n\nConversation:\nMatch the function name exactly \u2014 check spelling carefully.\nUse information from earlier tool responses in subsequent calls.\n- Output ONLY the JSON tool call, nothing else.\n\nConversation:\nTrack the state across turns \u2014 booking first, then payment, then confirmation.\nUse information from earlier tool responses in subsequent calls.\n{browser_conversation}"
+        },
+        {
+          "generation": 5,
+          "score": 35.2,
+          "template_hash": "2c0dc018515bbe1e",
+          "template_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": ",
+          "full_template": "You are a precise tool-calling agent. Rules:\n- Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}}\n- Match function names EXACTLY from the available tools.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters with correct types.\n- Output ONLY the JSON tool call, nothing else.\n\nConversation:\nMatch the function name exactly \u2014 check spelling carefully.\nUse information from earlier tool responses in subsequent calls.\n- Output ONLY the JSON tool call, nothing else.\n\nFor booking tasks use manage_booking; for payments use financial_services.\nConversation:\n{browser_conversation}"
+        }
+      ],
+      "prompt_mutations": [
+        {
+          "generation": 1,
+          "mutations": [
+            {
+              "type": "crossover",
+              "parent_a": "c7bafb37",
+              "parent_b": "c7bafb37"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "c7bafb37",
+              "parent_b": "c7bafb37"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "c7bafb37",
+              "parent_b": "c7bafb37"
+            },
+            {
+              "type": "mutation",
+              "parent": "c7bafb37",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}}  The arguments field must be a JSON object, not a string. Conversation"
+            },
+            {
+              "type": "mutation",
+              "parent": "c7bafb37",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "c7bafb37",
+              "parent_b": "c7bafb37"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "9a2b9dbe",
+              "parent_b": "9a2b9dbe"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "9a2b9dbe",
+              "parent_b": "9a2b9dbe"
+            }
+          ],
+          "best_score": 29.2,
+          "best_hash": "9a2b9dbe"
+        },
+        {
+          "generation": 2,
+          "mutations": [
+            {
+              "type": "mutation",
+              "parent": "d5064570",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} Use exact values the user provided \u2014 do not rephrase or abbreviate. - "
+            },
+            {
+              "type": "crossover",
+              "parent_a": "d5064570",
+              "parent_b": "d5064570"
+            },
+            {
+              "type": "mutation",
+              "parent": "d5064570",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "d5064570",
+              "parent_b": "d5064570"
+            },
+            {
+              "type": "mutation",
+              "parent": "d5064570",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "d5064570",
+              "parent_b": "d5064570"
+            },
+            {
+              "type": "mutation",
+              "parent": "d5064570",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} Use exact values the user provided \u2014 do not rephrase or abbreviate. - "
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "9a2b9dbe",
+              "parent_b": "9a2b9dbe"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "9a2b9dbe",
+              "parent_b": "9a2b9dbe"
+            }
+          ],
+          "best_score": 29.8,
+          "best_hash": "a208fcd3"
+        },
+        {
+          "generation": 3,
+          "mutations": [
+            {
+              "type": "crossover",
+              "parent_a": "f1230549",
+              "parent_b": "f1230549"
+            },
+            {
+              "type": "mutation",
+              "parent": "f1230549",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "mutation",
+              "parent": "f1230549",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "f1230549",
+              "parent_b": "f1230549"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "f1230549",
+              "parent_b": "f1230549"
+            },
+            {
+              "type": "mutation",
+              "parent": "f1230549",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "mutation",
+              "parent": "a208fcd3",
+              "diff_preview": "Read the ENTIRE conversation including tool responses before acting. You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing"
+            },
+            {
+              "type": "mutation",
+              "parent": "a208fcd3",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "a208fcd3",
+              "parent_b": "a208fcd3"
+            }
+          ],
+          "best_score": 30.0,
+          "best_hash": "3415fc5d"
+        },
+        {
+          "generation": 4,
+          "mutations": [
+            {
+              "type": "mutation",
+              "parent": "3415fc5d",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "3415fc5d",
+              "parent_b": "3415fc5d"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "a208fcd3",
+              "parent_b": "3415fc5d"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "a208fcd3",
+              "parent_b": "3415fc5d"
+            },
+            {
+              "type": "mutation",
+              "parent": "3415fc5d",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "mutation",
+              "parent": "a208fcd3",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "a208fcd3",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            }
+          ],
+          "best_score": 33.3,
+          "best_hash": "3415fc5d"
+        },
+        {
+          "generation": 5,
+          "mutations": [
+            {
+              "type": "crossover",
+              "parent_a": "a208fcd3",
+              "parent_b": "3415fc5d"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "a208fcd3",
+              "parent_b": "a208fcd3"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "a208fcd3",
+              "parent_b": "3415fc5d"
+            },
+            {
+              "type": "mutation",
+              "parent": "a208fcd3",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "3415fc5d",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "mutation",
+              "parent": "3415fc5d",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "3415fc5d",
+              "parent_b": "3415fc5d"
+            },
+            {
+              "type": "mutation",
+              "parent": "3415fc5d",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "3415fc5d",
+              "parent_b": "3415fc5d"
+            },
+            {
+              "type": "mutation",
+              "parent": "3415fc5d",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            }
+          ],
+          "best_score": 35.2,
+          "best_hash": "2c0dc018"
+        }
+      ],
+      "best_prompt_template": "You are a precise tool-calling agent. Rules:\n- Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}}\n- Match function names EXACTLY from the available tools.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters with correct types.\n- Output ONLY the JSON tool call, nothing else.\n\nConversation:\nMatch the function name exactly \u2014 check spelling carefully.\nUse information from earlier tool responses in subsequent calls.\n- Output ONLY the JSON tool call, nothing else.\n\nFor booking tasks use manage_booking; for payments use financial_services.\nConversation:\n{browser_conversation}",
+      "func_name_accuracy": 16.67,
+      "arg_accuracy": 21.25
+    },
+    {
+      "category": "normal",
+      "algorithm": "standard",
+      "backend": "azure_openai",
+      "n_cases": 10,
+      "baseline_score": 5.42,
+      "evolved_score": 6.41,
+      "delta": 0.98,
+      "best_temperature": 0.2925,
+      "best_top_p": 0.5096,
+      "iterations": 3,
+      "wall_time": 113.6,
+      "history": [
+        [
+          0,
+          5.421835792501262
+        ],
+        [
+          1,
+          6.1611099207194675
+        ],
+        [
+          2,
+          6.1611099207194675
+        ],
+        [
+          3,
+          6.40584783956201
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 5.3,
+          "template_hash": "477c6fbfbbaf4151",
+          "template_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conv",
+          "full_template": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"arguments\" fields.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 4.7,
+          "template_hash": "4d00ba197a5af1bf",
+          "template_preview": "You are an expert tool-calling browser agent. Follow these steps: 1. Read the full conversation carefully. 2. Identify w",
+          "full_template": "You are an expert tool-calling browser agent. Follow these steps:\n1. Read the full conversation carefully.\n2. Identify what the user needs done next.\n3. Select the correct function to call.\n4. Extract all required parameter values from the conversation.\n5. Output a JSON tool call: {{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 5.4,
+          "template_hash": "c7bafb373aaac8d9",
+          "template_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": ",
+          "full_template": "You are a precise tool-calling agent. Rules:\n- Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}}\n- Match function names EXACTLY from the available tools.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters with correct types.\n- Output ONLY the JSON tool call, nothing else.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 5.0,
+          "template_hash": "9a2b9dbe3d204d95",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 1,
+          "score": 6.2,
+          "template_hash": "300f6ba4840680be",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\nIf a previous tool result shows an error, adjust your next call accordingly.\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}"
+        },
+        {
+          "generation": 2,
+          "score": 6.2,
+          "template_hash": "300f6ba4840680be",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\nIf a previous tool result shows an error, adjust your next call accordingly.\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}"
+        },
+        {
+          "generation": 3,
+          "score": 6.4,
+          "template_hash": "3856d8c71fdd219c",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\nIf a previous tool result shows an error, adjust your next call accordingly.\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}"
+        }
+      ],
+      "prompt_mutations": [
+        {
+          "generation": 1,
+          "mutations": [
+            {
+              "type": "crossover",
+              "parent_a": "c7bafb37",
+              "parent_b": "c7bafb37"
+            },
+            {
+              "type": "mutation",
+              "parent": "c7bafb37",
+              "diff_preview": "You are a precise tool-calling agent. Rules: The arguments field must be a JSON object, not a string. - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match funct"
+            },
+            {
+              "type": "mutation",
+              "parent": "c7bafb37",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "mutation",
+              "parent": "c7bafb37",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "mutation",
+              "parent": "c7bafb37",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "9a2b9dbe",
+              "parent_b": "9a2b9dbe"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            }
+          ],
+          "best_score": 6.2,
+          "best_hash": "300f6ba4"
+        },
+        {
+          "generation": 2,
+          "mutations": [
+            {
+              "type": "mutation",
+              "parent": "952d2fb8",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "mutation",
+              "parent": "952d2fb8",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "952d2fb8",
+              "parent_b": "952d2fb8"
+            },
+            {
+              "type": "mutation",
+              "parent": "300f6ba4",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "300f6ba4",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "300f6ba4",
+              "parent_b": "300f6ba4"
+            },
+            {
+              "type": "mutation",
+              "parent": "300f6ba4",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            }
+          ],
+          "best_score": 6.2,
+          "best_hash": "300f6ba4"
+        },
+        {
+          "generation": 3,
+          "mutations": [
+            {
+              "type": "mutation",
+              "parent": "952d2fb8",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "300f6ba4",
+              "parent_b": "300f6ba4"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "300f6ba4",
+              "parent_b": "300f6ba4"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "300f6ba4",
+              "parent_b": "300f6ba4"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "300f6ba4",
+              "parent_b": "300f6ba4"
+            }
+          ],
+          "best_score": 6.4,
+          "best_hash": "3856d8c7"
+        }
+      ],
+      "best_prompt_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\nIf a previous tool result shows an error, adjust your next call accordingly.\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}",
+      "func_name_accuracy": 0.0,
+      "arg_accuracy": 0.0
+    },
+    {
+      "category": "failure_recovery",
+      "algorithm": "standard",
+      "backend": "azure_openai",
+      "n_cases": 10,
+      "baseline_score": 5.42,
+      "evolved_score": 6.41,
+      "delta": 0.98,
+      "best_temperature": 0.2925,
+      "best_top_p": 0.5096,
+      "iterations": 3,
+      "wall_time": 112.3,
+      "history": [
+        [
+          0,
+          5.421835792501262
+        ],
+        [
+          1,
+          6.1611099207194675
+        ],
+        [
+          2,
+          6.1611099207194675
+        ],
+        [
+          3,
+          6.40584783956201
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 5.3,
+          "template_hash": "477c6fbfbbaf4151",
+          "template_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conv",
+          "full_template": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"arguments\" fields.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 4.7,
+          "template_hash": "4d00ba197a5af1bf",
+          "template_preview": "You are an expert tool-calling browser agent. Follow these steps: 1. Read the full conversation carefully. 2. Identify w",
+          "full_template": "You are an expert tool-calling browser agent. Follow these steps:\n1. Read the full conversation carefully.\n2. Identify what the user needs done next.\n3. Select the correct function to call.\n4. Extract all required parameter values from the conversation.\n5. Output a JSON tool call: {{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 5.4,
+          "template_hash": "c7bafb373aaac8d9",
+          "template_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": ",
+          "full_template": "You are a precise tool-calling agent. Rules:\n- Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}}\n- Match function names EXACTLY from the available tools.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters with correct types.\n- Output ONLY the JSON tool call, nothing else.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 5.0,
+          "template_hash": "9a2b9dbe3d204d95",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 1,
+          "score": 6.2,
+          "template_hash": "300f6ba4840680be",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\nIf a previous tool result shows an error, adjust your next call accordingly.\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}"
+        },
+        {
+          "generation": 2,
+          "score": 6.2,
+          "template_hash": "300f6ba4840680be",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\nIf a previous tool result shows an error, adjust your next call accordingly.\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}"
+        },
+        {
+          "generation": 3,
+          "score": 6.4,
+          "template_hash": "3856d8c71fdd219c",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\nIf a previous tool result shows an error, adjust your next call accordingly.\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}"
+        }
+      ],
+      "prompt_mutations": [
+        {
+          "generation": 1,
+          "mutations": [
+            {
+              "type": "crossover",
+              "parent_a": "c7bafb37",
+              "parent_b": "c7bafb37"
+            },
+            {
+              "type": "mutation",
+              "parent": "c7bafb37",
+              "diff_preview": "You are a precise tool-calling agent. Rules: The arguments field must be a JSON object, not a string. - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match funct"
+            },
+            {
+              "type": "mutation",
+              "parent": "c7bafb37",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "mutation",
+              "parent": "c7bafb37",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "mutation",
+              "parent": "c7bafb37",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "9a2b9dbe",
+              "parent_b": "9a2b9dbe"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            }
+          ],
+          "best_score": 6.2,
+          "best_hash": "300f6ba4"
+        },
+        {
+          "generation": 2,
+          "mutations": [
+            {
+              "type": "mutation",
+              "parent": "952d2fb8",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "mutation",
+              "parent": "952d2fb8",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "952d2fb8",
+              "parent_b": "952d2fb8"
+            },
+            {
+              "type": "mutation",
+              "parent": "300f6ba4",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "300f6ba4",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "300f6ba4",
+              "parent_b": "300f6ba4"
+            },
+            {
+              "type": "mutation",
+              "parent": "300f6ba4",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            }
+          ],
+          "best_score": 6.2,
+          "best_hash": "300f6ba4"
+        },
+        {
+          "generation": 3,
+          "mutations": [
+            {
+              "type": "mutation",
+              "parent": "952d2fb8",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "300f6ba4",
+              "parent_b": "300f6ba4"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "300f6ba4",
+              "parent_b": "300f6ba4"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "300f6ba4",
+              "parent_b": "300f6ba4"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "300f6ba4",
+              "parent_b": "300f6ba4"
+            }
+          ],
+          "best_score": 6.4,
+          "best_hash": "3856d8c7"
+        }
+      ],
+      "best_prompt_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\nIf a previous tool result shows an error, adjust your next call accordingly.\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}",
+      "func_name_accuracy": 0.0,
+      "arg_accuracy": 0.0
+    },
+    {
+      "category": "multi_tool",
+      "algorithm": "standard",
+      "backend": "azure_openai",
+      "n_cases": 10,
+      "baseline_score": 5.42,
+      "evolved_score": 6.41,
+      "delta": 0.98,
+      "best_temperature": 0.2925,
+      "best_top_p": 0.5096,
+      "iterations": 3,
+      "wall_time": 153.3,
+      "history": [
+        [
+          0,
+          5.421835792501262
+        ],
+        [
+          1,
+          6.1611099207194675
+        ],
+        [
+          2,
+          6.1611099207194675
+        ],
+        [
+          3,
+          6.40584783956201
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 5.3,
+          "template_hash": "477c6fbfbbaf4151",
+          "template_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conv",
+          "full_template": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"arguments\" fields.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 4.7,
+          "template_hash": "4d00ba197a5af1bf",
+          "template_preview": "You are an expert tool-calling browser agent. Follow these steps: 1. Read the full conversation carefully. 2. Identify w",
+          "full_template": "You are an expert tool-calling browser agent. Follow these steps:\n1. Read the full conversation carefully.\n2. Identify what the user needs done next.\n3. Select the correct function to call.\n4. Extract all required parameter values from the conversation.\n5. Output a JSON tool call: {{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 5.4,
+          "template_hash": "c7bafb373aaac8d9",
+          "template_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": ",
+          "full_template": "You are a precise tool-calling agent. Rules:\n- Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}}\n- Match function names EXACTLY from the available tools.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters with correct types.\n- Output ONLY the JSON tool call, nothing else.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 5.0,
+          "template_hash": "9a2b9dbe3d204d95",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 1,
+          "score": 6.2,
+          "template_hash": "300f6ba4840680be",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\nIf a previous tool result shows an error, adjust your next call accordingly.\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}"
+        },
+        {
+          "generation": 2,
+          "score": 6.2,
+          "template_hash": "300f6ba4840680be",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\nIf a previous tool result shows an error, adjust your next call accordingly.\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}"
+        },
+        {
+          "generation": 3,
+          "score": 6.4,
+          "template_hash": "3856d8c71fdd219c",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\nIf a previous tool result shows an error, adjust your next call accordingly.\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}"
+        }
+      ],
+      "prompt_mutations": [
+        {
+          "generation": 1,
+          "mutations": [
+            {
+              "type": "crossover",
+              "parent_a": "c7bafb37",
+              "parent_b": "c7bafb37"
+            },
+            {
+              "type": "mutation",
+              "parent": "c7bafb37",
+              "diff_preview": "You are a precise tool-calling agent. Rules: The arguments field must be a JSON object, not a string. - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match funct"
+            },
+            {
+              "type": "mutation",
+              "parent": "c7bafb37",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "mutation",
+              "parent": "c7bafb37",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "mutation",
+              "parent": "c7bafb37",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "9a2b9dbe",
+              "parent_b": "9a2b9dbe"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            }
+          ],
+          "best_score": 6.2,
+          "best_hash": "300f6ba4"
+        },
+        {
+          "generation": 2,
+          "mutations": [
+            {
+              "type": "mutation",
+              "parent": "952d2fb8",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "mutation",
+              "parent": "952d2fb8",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "952d2fb8",
+              "parent_b": "952d2fb8"
+            },
+            {
+              "type": "mutation",
+              "parent": "300f6ba4",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "300f6ba4",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "300f6ba4",
+              "parent_b": "300f6ba4"
+            },
+            {
+              "type": "mutation",
+              "parent": "300f6ba4",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            }
+          ],
+          "best_score": 6.2,
+          "best_hash": "300f6ba4"
+        },
+        {
+          "generation": 3,
+          "mutations": [
+            {
+              "type": "mutation",
+              "parent": "952d2fb8",
+              "diff_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}} - Match function names EXACTLY from the available tools. - Extract par"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "300f6ba4",
+              "parent_b": "300f6ba4"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "300f6ba4",
+              "parent_b": "300f6ba4"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "300f6ba4",
+              "parent_b": "300f6ba4"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "300f6ba4",
+              "parent_b": "300f6ba4"
+            }
+          ],
+          "best_score": 6.4,
+          "best_hash": "3856d8c7"
+        }
+      ],
+      "best_prompt_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\nIf a previous tool result shows an error, adjust your next call accordingly.\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}",
+      "func_name_accuracy": 0.0,
+      "arg_accuracy": 0.0
+    },
+    {
+      "category": "failure_recovery",
+      "algorithm": "deep",
+      "backend": "azure_openai",
+      "n_cases": 12,
+      "baseline_score": 5.58,
+      "evolved_score": 7.05,
+      "delta": 1.47,
+      "best_temperature": 0.6909,
+      "best_top_p": 0.9735,
+      "iterations": 5,
+      "wall_time": 682.7,
+      "history": [
+        [
+          0,
+          5.581504661420697
+        ],
+        [
+          1,
+          5.581504661420697
+        ],
+        [
+          2,
+          6.889822547139344
+        ],
+        [
+          3,
+          7.0509181805999095
+        ],
+        [
+          4,
+          7.0509181805999095
+        ],
+        [
+          5,
+          7.0509181805999095
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 5.6,
+          "template_hash": "477c6fbfbbaf4151",
+          "template_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conv",
+          "full_template": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"arguments\" fields.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 4.5,
+          "template_hash": "4d00ba197a5af1bf",
+          "template_preview": "You are an expert tool-calling browser agent. Follow these steps: 1. Read the full conversation carefully. 2. Identify w",
+          "full_template": "You are an expert tool-calling browser agent. Follow these steps:\n1. Read the full conversation carefully.\n2. Identify what the user needs done next.\n3. Select the correct function to call.\n4. Extract all required parameter values from the conversation.\n5. Output a JSON tool call: {{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 4.8,
+          "template_hash": "c7bafb373aaac8d9",
+          "template_preview": "You are a precise tool-calling agent. Rules: - Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": ",
+          "full_template": "You are a precise tool-calling agent. Rules:\n- Output EXACTLY ONE function call as JSON: {{\"name\": \"func\", \"arguments\": {{...}}}}\n- Match function names EXACTLY from the available tools.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters with correct types.\n- Output ONLY the JSON tool call, nothing else.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 0,
+          "score": 4.8,
+          "template_hash": "9a2b9dbe3d204d95",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 1,
+          "score": 5.6,
+          "template_hash": "477c6fbfbbaf4151",
+          "template_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conv",
+          "full_template": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"arguments\" fields.\n\nConversation:\n{browser_conversation}\n"
+        },
+        {
+          "generation": 2,
+          "score": 6.9,
+          "template_hash": "133c267985af70b9",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\nIf a previous tool result shows an error, adjust your next call accordingly.\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}"
+        },
+        {
+          "generation": 3,
+          "score": 7.1,
+          "template_hash": "133c267985af70b9",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\nIf a previous tool result shows an error, adjust your next call accordingly.\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}"
+        },
+        {
+          "generation": 4,
+          "score": 7.1,
+          "template_hash": "133c267985af70b9",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\nIf a previous tool result shows an error, adjust your next call accordingly.\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}"
+        },
+        {
+          "generation": 5,
+          "score": 7.1,
+          "template_hash": "133c267985af70b9",
+          "template_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment",
+          "full_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\nIf a previous tool result shows an error, adjust your next call accordingly.\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}"
+        }
+      ],
+      "prompt_mutations": [
+        {
+          "generation": 1,
+          "mutations": [
+            {
+              "type": "mutation",
+              "parent": "477c6fbf",
+              "diff_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"argum"
+            },
+            {
+              "type": "mutation",
+              "parent": "477c6fbf",
+              "diff_preview": "Read the ENTIRE conversation including tool responses before acting. You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, g"
+            },
+            {
+              "type": "mutation",
+              "parent": "477c6fbf",
+              "diff_preview": "Read the ENTIRE conversation including tool responses before acting. You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, g"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "477c6fbf",
+              "parent_b": "477c6fbf"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "9a2b9dbe",
+              "parent_b": "9a2b9dbe"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "9a2b9dbe",
+              "parent_b": "9a2b9dbe"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "9a2b9dbe",
+              "parent_b": "9a2b9dbe"
+            }
+          ],
+          "best_score": 5.6,
+          "best_hash": "477c6fbf"
+        },
+        {
+          "generation": 2,
+          "mutations": [
+            {
+              "type": "crossover",
+              "parent_a": "477c6fbf",
+              "parent_b": "477c6fbf"
+            },
+            {
+              "type": "mutation",
+              "parent": "477c6fbf",
+              "diff_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"argum"
+            },
+            {
+              "type": "mutation",
+              "parent": "477c6fbf",
+              "diff_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"argum"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "477c6fbf",
+              "parent_b": "477c6fbf"
+            },
+            {
+              "type": "mutation",
+              "parent": "477c6fbf",
+              "diff_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"argum"
+            },
+            {
+              "type": "mutation",
+              "parent": "477c6fbf",
+              "diff_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"argum"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "9a2b9dbe",
+              "parent_b": "9a2b9dbe"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "9a2b9dbe",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            }
+          ],
+          "best_score": 6.9,
+          "best_hash": "133c2679"
+        },
+        {
+          "generation": 3,
+          "mutations": [
+            {
+              "type": "mutation",
+              "parent": "5541dac3",
+              "diff_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"argum"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "133c2679",
+              "parent_b": "133c2679"
+            },
+            {
+              "type": "mutation",
+              "parent": "133c2679",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            }
+          ],
+          "best_score": 7.1,
+          "best_hash": "133c2679"
+        },
+        {
+          "generation": 4,
+          "mutations": [
+            {
+              "type": "crossover",
+              "parent_a": "133c2679",
+              "parent_b": "133c2679"
+            },
+            {
+              "type": "mutation",
+              "parent": "5541dac3",
+              "diff_preview": "You are a browser-based AI assistant that helps users complete tasks by calling the right tool functions. Given the conversation, generate the correct tool call as a JSON object with \"name\" and \"argum"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "133c2679",
+              "parent_b": "133c2679"
+            },
+            {
+              "type": "mutation",
+              "parent": "133c2679",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "133c2679",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "133c2679",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "133c2679",
+              "parent_b": "133c2679"
+            },
+            {
+              "type": "mutation",
+              "parent": "133c2679",
+              "diff_preview": "Think step by step about which function to call and with what parameters. You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment proce"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "133c2679",
+              "parent_b": "133c2679"
+            },
+            {
+              "type": "mutation",
+              "parent": "133c2679",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "133c2679",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "133c2679",
+              "parent_b": "133c2679"
+            }
+          ],
+          "best_score": 7.1,
+          "best_hash": "133c2679"
+        },
+        {
+          "generation": 5,
+          "mutations": [
+            {
+              "type": "crossover",
+              "parent_a": "133c2679",
+              "parent_b": "133c2679"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "133c2679",
+              "parent_b": "133c2679"
+            },
+            {
+              "type": "mutation",
+              "parent": "133c2679",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "133c2679",
+              "parent_b": "133c2679"
+            },
+            {
+              "type": "mutation",
+              "parent": "133c2679",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "crossover",
+              "parent_a": "133c2679",
+              "parent_b": "133c2679"
+            },
+            {
+              "type": "mutation",
+              "parent": "133c2679",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            },
+            {
+              "type": "mutation",
+              "parent": "133c2679",
+              "diff_preview": "Read the ENTIRE conversation including tool responses before acting. You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing"
+            },
+            {
+              "type": "mutation",
+              "parent": "133c2679",
+              "diff_preview": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adj"
+            }
+          ],
+          "best_score": 7.1,
+          "best_hash": "133c2679"
+        }
+      ],
+      "best_prompt_template": "You are an agentic browser assistant specialised in multi-step workflows including ticket booking, form filling, payment processing, and app integration. You handle failures gracefully \u2014 retrying, adjusting parameters, or pivoting to alternatives when tools return errors.\n\nGiven the conversation so far, generate the NEXT tool call as JSON:\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n{{\"name\": \"function_name\", \"arguments\": {{...}}}}\nIf a previous tool result shows an error, adjust your next call accordingly.\n\nExtract all values from the conversation. If a previous call failed, adjust your approach based on the error message.\n\nConversation:\n{browser_conversation}",
+      "func_name_accuracy": 0.0,
+      "arg_accuracy": 0.0
+    }
+  ]
+}

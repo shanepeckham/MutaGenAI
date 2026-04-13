@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompture — How Adaptive Prompt Evolution Works</title>
+<style>
+/* ── Reset & Base ─────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--card:#222639;--border:#2e3348;
+  --text:#e2e4ed;--muted:#8b8fa3;--accent:#6c5ce7;--accent2:#00cec9;
+  --green:#00b894;--orange:#fdcb6e;--red:#e17055;--blue:#74b9ff;
+  --pink:#fd79a8;--font:'SF Mono',SFMono-Regular,Consolas,'Liberation Mono',Menlo,monospace;
+}
+html{font-size:15px}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,sans-serif;line-height:1.6;overflow-x:hidden}
+
+/* ── Layout ───────────────────────────────────────────── */
+.app{max-width:1100px;margin:0 auto;padding:1.5rem}
+header{text-align:center;padding:2rem 0 1rem}
+header h1{font-size:2rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+header p{color:var(--muted);margin-top:.4rem;font-size:.95rem}
+
+/* ── Progress bar ─────────────────────────────────────── */
+.progress-track{display:flex;gap:4px;margin:1.5rem 0;justify-content:center;flex-wrap:wrap}
+.progress-dot{width:38px;height:6px;border-radius:3px;background:var(--border);cursor:pointer;transition:background .3s,transform .2s}
+.progress-dot.active{background:var(--accent);transform:scaleY(1.4)}
+.progress-dot.done{background:var(--accent2)}
+
+/* ── Stage area ───────────────────────────────────────── */
+.stage{background:var(--surface);border:1px solid var(--border);border-radius:16px;min-height:520px;position:relative;overflow:hidden;padding:2rem}
+.stage-title{font-size:1.3rem;font-weight:700;margin-bottom:.2rem}
+.stage-subtitle{color:var(--muted);font-size:.88rem;margin-bottom:1.4rem}
+
+/* ── Controls ─────────────────────────────────────────── */
+.controls{display:flex;justify-content:center;gap:1rem;margin-top:1.5rem;align-items:center}
+.btn{border:none;border-radius:10px;padding:.7rem 1.6rem;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.btn-secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent)}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.step-label{color:var(--muted);font-size:.85rem;min-width:80px;text-align:center}
+
+/* ── Candidate cards ──────────────────────────────────── */
+.candidates{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1rem;margin-top:1rem}
+.candidate{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;position:relative;transition:all .5s;opacity:0;transform:translateY(20px)}
+.candidate.show{opacity:1;transform:translateY(0)}
+.candidate .label{font-size:.7rem;color:var(--accent);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:.4rem}
+.candidate .prompt-text{font-family:var(--font);font-size:.78rem;line-height:1.5;color:var(--text);max-height:80px;overflow:hidden}
+.candidate .fitness{margin-top:.6rem;display:flex;align-items:center;gap:.5rem}
+.fitness-bar{flex:1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden}
+.fitness-fill{height:100%;border-radius:4px;transition:width 1.2s ease-out;width:0}
+.fitness-score{font-family:var(--font);font-size:.85rem;font-weight:700;min-width:35px;text-align:right}
+.candidate.elite{border-color:var(--orange);box-shadow:0 0 12px rgba(253,203,110,.15)}
+.candidate.elite::after{content:'★ ELITE';position:absolute;top:8px;right:10px;font-size:.6rem;color:var(--orange);font-weight:700;letter-spacing:1px}
+.candidate.new-dna{border-color:var(--green);box-shadow:0 0 12px rgba(0,184,148,.15)}
+.candidate.new-dna::after{content:'★ NEW';position:absolute;top:8px;right:10px;font-size:.6rem;color:var(--green);font-weight:700;letter-spacing:1px}
+.candidate.adaptive{border-color:var(--pink);box-shadow:0 0 12px rgba(253,121,168,.15)}
+.candidate.adaptive::after{content:'🎯 ADAPTIVE';position:absolute;top:8px;right:10px;font-size:.6rem;color:var(--pink);font-weight:700;letter-spacing:1px}
+
+/* ── Islands ──────────────────────────────────────────── */
+.islands-container{display:grid;grid-template-columns:1fr 80px 1fr;gap:.5rem;align-items:start;margin-top:1rem}
+.island{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.2rem}
+.island-header{display:flex;align-items:center;gap:.5rem;margin-bottom:.8rem}
+.island-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#fff}
+.island-1 .island-icon{background:var(--accent)}
+.island-2 .island-icon{background:var(--accent2)}
+.island-name{font-weight:700;font-size:.95rem}
+.island-candidate{background:var(--bg);border-radius:8px;padding:.6rem .8rem;margin-bottom:.5rem;font-family:var(--font);font-size:.72rem;display:flex;justify-content:space-between;align-items:center;transition:all .4s;opacity:0;transform:scale(.95)}
+.island-candidate.show{opacity:1;transform:scale(1)}
+.island-candidate .ic-score{font-weight:700;min-width:40px;text-align:right}
+
+/* migration arrow */
+.migration-col{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4rem;padding-top:2rem}
+.migration-arrow{font-size:1.8rem;color:var(--border);transition:color .5s,transform .5s}
+.migration-arrow.active{color:var(--orange);transform:scale(1.3)}
+.migration-label{font-size:.65rem;color:var(--muted);text-align:center;line-height:1.3;max-width:70px}
+
+/* ── Mutation panel ───────────────────────────────────── */
+.mutation-demo{display:flex;gap:1.5rem;margin-top:1rem;flex-wrap:wrap}
+.mutation-box{flex:1;min-width:260px;background:var(--card);border-radius:12px;padding:1.2rem}
+.mutation-box h4{font-size:.85rem;color:var(--accent);margin-bottom:.6rem}
+.mutation-list{list-style:none;font-size:.8rem}
+.mutation-list li{padding:.35rem 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem;opacity:0;transition:opacity .3s}
+.mutation-list li.show{opacity:1}
+.mutation-list li::before{content:'⚡';font-size:.7rem}
+.mutation-list li.active{color:var(--orange);font-weight:600}
+.mutation-list li.active::before{content:'▶'}
+.mutation-list li.adaptive-mut{color:var(--pink)}
+.mutation-list li.adaptive-mut::before{content:'🎯'}
+
+/* ── Crossover visualisation ──────────────────────────── */
+.crossover-vis{margin-top:1rem}
+.cross-row{display:flex;gap:1rem;align-items:center;margin-bottom:.8rem;flex-wrap:wrap}
+.cross-segment{font-family:var(--font);font-size:.73rem;padding:.5rem .8rem;border-radius:8px;transition:all .6s;opacity:0}
+.cross-segment.show{opacity:1}
+.cross-parent-a{background:rgba(108,92,231,.2);border:1px solid var(--accent)}
+.cross-parent-b{background:rgba(0,206,201,.2);border:1px solid var(--accent2)}
+.cross-child{background:linear-gradient(90deg,rgba(108,92,231,.2),rgba(0,206,201,.2));border:1px solid var(--orange)}
+.cross-arrow{color:var(--muted);font-size:1.2rem}
+
+/* ── Generation timeline ──────────────────────────────── */
+.gen-timeline{display:flex;gap:4px;margin-top:1rem;align-items:flex-end;height:160px}
+.gen-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.gen-bar{width:100%;border-radius:6px 6px 0 0;transition:height 1s ease-out;min-height:4px}
+.gen-label{font-size:.65rem;color:var(--muted);font-family:var(--font)}
+.gen-score{font-size:.7rem;font-weight:700;font-family:var(--font)}
+
+/* ── Scorer panel ─────────────────────────────────────── */
+.scorer-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1rem}
+.scorer-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;text-align:center;opacity:0;transform:translateY(20px);transition:all .5s}
+.scorer-card.show{opacity:1;transform:translateY(0)}
+.scorer-card .scorer-icon{font-size:2rem;margin-bottom:.4rem}
+.scorer-card .scorer-name{font-weight:700;font-size:.9rem;margin-bottom:.3rem}
+.scorer-card .scorer-weight{font-family:var(--font);font-size:1.1rem;font-weight:700;margin:.3rem 0}
+.scorer-card .scorer-desc{color:var(--muted);font-size:.78rem;line-height:1.4}
+
+/* ── Flow diagram ─────────────────────────────────────── */
+.flow-step{display:inline-flex;align-items:center;gap:6px;padding:.45rem .9rem;border-radius:8px;font-size:.8rem;font-weight:600;background:var(--card);border:1px solid var(--border);transition:all .4s;opacity:0}
+.flow-step.show{opacity:1}
+.flow-arrow{color:var(--muted);font-size:.9rem;opacity:0;transition:opacity .3s}
+.flow-arrow.show{opacity:1}
+
+/* ── Leaderboard ──────────────────────────────────────── */
+.leaderboard{width:100%;border-collapse:collapse;margin-top:1rem;font-size:.85rem}
+.leaderboard th,.leaderboard td{padding:.5rem .8rem;text-align:left;border-bottom:1px solid var(--border)}
+.leaderboard th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px}
+.leaderboard tr.winner td{color:var(--green);font-weight:700}
+.leaderboard .delta{font-family:var(--font);font-size:.75rem;color:var(--green)}
+
+/* ── Annotations ──────────────────────────────────────── */
+.annotation{background:rgba(108,92,231,.08);border-left:3px solid var(--accent);padding:.8rem 1rem;border-radius:0 8px 8px 0;margin-top:1rem;font-size:.85rem;line-height:1.6;color:var(--muted)}
+.annotation strong{color:var(--text)}
+.annotation.green{border-color:var(--green);background:rgba(0,184,148,.08)}
+.annotation.orange{border-color:var(--orange);background:rgba(253,203,110,.08)}
+.annotation.pink{border-color:var(--pink);background:rgba(253,121,168,.08)}
+
+/* ── Keyframes ────────────────────────────────────────── */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes glow{0%,100%{box-shadow:0 0 5px rgba(108,92,231,.2)}50%{box-shadow:0 0 20px rgba(108,92,231,.4)}}
+.pulse{animation:pulse 1.5s ease-in-out infinite}
+.slide-up{animation:slideUp .6s ease-out forwards}
+
+/* ── Responsive ───────────────────────────────────────── */
+@media(max-width:700px){
+  .islands-container{grid-template-columns:1fr;gap:1rem}
+  .migration-col{flex-direction:row;padding:0}
+  .mutation-demo{flex-direction:column}
+  .scorer-cards{grid-template-columns:1fr}
+  .stage{padding:1.2rem}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>🧬 Prompture — Adaptive Prompt Evolution</h1>
+    <p>How evolutionary algorithms with adaptive mutation find the best system prompt for your AI agent</p>
+  </header>
+
+  <div class="progress-track" id="progressTrack"></div>
+
+  <div class="stage" id="stage"></div>
+
+  <div class="controls">
+    <button class="btn btn-secondary" id="btnPrev" onclick="prevStep()">← Back</button>
+    <span class="step-label" id="stepLabel">1 / 12</span>
+    <button class="btn btn-primary" id="btnNext" onclick="nextStep()">Next →</button>
+  </div>
+</div>
+
+<script>
+// ── Data ────────────────────────────────────────────────
+const SEEDS = [
+  { id: 'T1', style: 'Minimal', text: 'You are an API-calling assistant. Given a query, output the correct function call in bracket format.', color: 'var(--accent)' },
+  { id: 'T2', style: 'Structured', text: 'You are an API assistant. Step 1: Identify intent. Step 2: Select the API. Step 3: Extract parameters. Output [ApiName(param=value)] only.', color: 'var(--blue)' },
+  { id: 'T3', style: 'Chain-of-thought', text: 'You are an expert API planner. Think step-by-step. First analyse the user request. Then pick the best API. Finally format as: [ApiName(key=\'value\', ...)]', color: 'var(--green)' },
+  { id: 'T4', style: 'Strict format', text: 'ROLE: API router. TASK: Map queries to function calls. FORMAT: [ApiName(key1=\'value1\', key2=\'value2\')]. No commentary. Extract values from conversation.', color: 'var(--orange)' }
+];
+
+const STATIC_MUTATIONS = [
+  'Add chain-of-thought reasoning',
+  'Enforce strict bracket output format',
+  'Add error recovery instructions',
+  'Inject few-shot examples',
+  'Emphasise parameter extraction',
+  'Add role-play framing',
+  'Shorten to single paragraph',
+  'Add "think before answering" preamble',
+  'Specify forbidden patterns',
+  'Add confidence calibration',
+  'Rewrite in imperative voice',
+  'Add edge-case handling rules',
+  'Swap function→tool terminology',
+  'Add output validation step'
+];
+
+const ADAPTIVE_MUTATIONS = [
+  '🎯 Fix ToolSearcher confusion with SearchEngine',
+  '🎯 Add explicit date parameter extraction rule',
+  '🎯 Emphasise exact API name matching (case-sensitive)',
+  '🎯 Add disambiguation for similar-sounding APIs'
+];
+
+const ISLAND1_GEN = [
+  [
+    { hash: 'a1b2c3d4', text: 'Minimal + CoT reasoning', score: 42, elite: false },
+    { hash: 'e5f6a7b8', text: 'Structured + strict format', score: 67, elite: true },
+    { hash: 'c9d0e1f2', text: 'Verbose + error recovery', score: 55, elite: false },
+    { hash: 'a3b4c5d6', text: 'Strict + few-shot examples', score: 71, elite: true }
+  ],
+  [
+    { hash: 'a3b4c5d6', text: 'Strict + few-shot + adaptive', score: 76, elite: true },
+    { hash: 'e5f6a7b8', text: 'Structured + strict format', score: 67, elite: true },
+    { hash: 'f7a8b9c0', text: 'Crossover(Strict,Structured)', score: 74, elite: true, isNew: true },
+    { hash: 'd1e2f3a4', text: 'Minimal + 🎯 API-name fix', score: 62, elite: false, isAdaptive: true }
+  ],
+  [
+    { hash: 'f7a8b9c0', text: 'Crossover + adaptive dates', score: 81, elite: true },
+    { hash: 'a3b4c5d6', text: 'Strict + few-shot + adaptive', score: 76, elite: true },
+    { hash: 'b734e4e5', text: '★ Migrant + local adaptive', score: 88, elite: true, isNew: true },
+    { hash: 'e5f6a7b8', text: 'Structured + strict format', score: 67, elite: false }
+  ]
+];
+
+const ISLAND2_GEN = [
+  [
+    { hash: '11223344', text: 'Verbose + confidence score', score: 51, elite: false },
+    { hash: '55667788', text: 'Minimal + parameter extract', score: 63, elite: true },
+    { hash: '99aabbcc', text: 'Structured + role-play', score: 59, elite: false },
+    { hash: 'ddeeff00', text: 'Strict + disambiguation', score: 69, elite: true }
+  ],
+  [
+    { hash: 'ddeeff00', text: 'Strict + disambiguation', score: 69, elite: true },
+    { hash: '55667788', text: 'Minimal + 🎯 param fix', score: 68, elite: true, isAdaptive: true },
+    { hash: 'aabb1122', text: 'Crossover(Strict,Minimal)', score: 72, elite: true, isNew: true },
+    { hash: '33445566', text: 'Role-play + adaptive rules', score: 58, elite: false }
+  ],
+  [
+    { hash: 'aabb1122', text: 'Crossover + adaptive hints', score: 78, elite: true },
+    { hash: 'ddeeff00', text: 'Strict + disambiguation', score: 69, elite: true },
+    { hash: '2c0dc018', text: '★ Migrant + local CoT', score: 84, elite: true, isNew: true },
+    { hash: '55667788', text: 'Minimal + parameter extract', score: 63, elite: false }
+  ]
+];
+
+// ── Steps ───────────────────────────────────────────────
+const STEPS = [
+  { title: 'The Goal', render: renderGoal },
+  { title: 'Seed Population', render: renderSeed },
+  { title: 'Composite Scorer', render: renderCompositeScorer },
+  { title: 'Warmup & Error Profiling', render: renderWarmup },
+  { title: 'Tournament Selection', render: renderTournament },
+  { title: 'Adaptive Mutation', render: renderAdaptiveMutation },
+  { title: 'Crossover', render: renderCrossover },
+  { title: 'The Islands', render: renderIslands },
+  { title: 'Error Decay', render: renderErrorDecay },
+  { title: 'Elite Preservation', render: renderElite },
+  { title: 'Results — GPT-4.1', render: renderResults },
+  { title: 'Full Pipeline', render: renderPipeline }
+];
+
+let currentStep = 0;
+const stage = document.getElementById('stage');
+const track = document.getElementById('progressTrack');
+const stepLabel = document.getElementById('stepLabel');
+
+// Build progress dots
+STEPS.forEach((_, i) => {
+  const dot = document.createElement('div');
+  dot.className = 'progress-dot';
+  dot.onclick = () => goToStep(i);
+  track.appendChild(dot);
+});
+
+function updateUI() {
+  stepLabel.textContent = `${currentStep + 1} / ${STEPS.length}`;
+  document.getElementById('btnPrev').disabled = currentStep === 0;
+  document.getElementById('btnNext').textContent = currentStep === STEPS.length - 1 ? 'Restart ↻' : 'Next →';
+  track.querySelectorAll('.progress-dot').forEach((d, i) => {
+    d.className = 'progress-dot' + (i < currentStep ? ' done' : '') + (i === currentStep ? ' active' : '');
+  });
+  stage.innerHTML = '';
+  STEPS[currentStep].render();
+}
+
+function nextStep() {
+  if (currentStep >= STEPS.length - 1) { currentStep = 0; } else { currentStep++; }
+  updateUI();
+}
+function prevStep() { if (currentStep > 0) { currentStep--; updateUI(); } }
+function goToStep(i) { currentStep = i; updateUI(); }
+
+// ── Step 0: Goal ────────────────────────────────────────
+function renderGoal() {
+  stage.innerHTML = `
+    <div class="stage-title">The Goal</div>
+    <div class="stage-subtitle">Find the system prompt that maximises benchmark score — without changing the model</div>
+    <div style="display:flex;gap:2rem;margin-top:2rem;flex-wrap:wrap;justify-content:center">
+      <div class="slide-up" style="text-align:center;flex:1;min-width:180px">
+        <div style="font-size:3rem;margin-bottom:.5rem">🧠</div>
+        <div style="font-weight:700;margin-bottom:.3rem">Fixed Model</div>
+        <div style="color:var(--muted);font-size:.85rem">The LLM stays the same.<br>No fine-tuning, no retraining.</div>
+      </div>
+      <div class="slide-up" style="text-align:center;flex:1;min-width:180px;animation-delay:.15s">
+        <div style="font-size:3rem;margin-bottom:.5rem">📝</div>
+        <div style="font-weight:700;margin-bottom:.3rem">Evolving Prompt</div>
+        <div style="color:var(--muted);font-size:.85rem">The system prompt mutates,<br>crosses over, and competes.</div>
+      </div>
+      <div class="slide-up" style="text-align:center;flex:1;min-width:180px;animation-delay:.3s">
+        <div style="font-size:3rem;margin-bottom:.5rem">🎯</div>
+        <div style="font-weight:700;margin-bottom:.3rem">Adaptive Feedback</div>
+        <div style="color:var(--muted);font-size:.85rem">Error patterns drive targeted<br>mutations each generation.</div>
+      </div>
+      <div class="slide-up" style="text-align:center;flex:1;min-width:180px;animation-delay:.45s">
+        <div style="font-size:3rem;margin-bottom:.5rem">📊</div>
+        <div style="font-weight:700;margin-bottom:.3rem">Higher Scores</div>
+        <div style="color:var(--muted);font-size:.85rem">Composite scoring ensures<br>holistic quality improvement.</div>
+      </div>
+    </div>
+    <div class="annotation" style="margin-top:2rem">
+      <strong>Think of it like breeding racing dogs with a fitness trainer.</strong> You don't change the breed (the model) —
+      you select the fastest individuals (prompts), let them mate (crossover), introduce random
+      variation (mutation), <em>and the trainer analyses what's slowing them down to create targeted exercises</em> (adaptive mutation).
+      After several generations the pack is dramatically faster.
+    </div>
+    <div style="margin-top:1.5rem;display:flex;gap:6px;justify-content:center;flex-wrap:wrap" id="loopDiagram"></div>
+  `;
+  const labels = ['Seed','→','Warmup','→','Evaluate','→','Adapt','→','Select','→','Mutate / Cross','→','Next Gen','↻'];
+  const el = document.getElementById('loopDiagram');
+  labels.forEach((l, i) => {
+    const d = document.createElement('span');
+    d.className = 'slide-up';
+    const isArrow = l.includes('→') || l === '↻';
+    const isNew = l === 'Warmup' || l === 'Adapt';
+    d.style.cssText = `animation-delay:${.4 + i * .07}s;padding:.4rem .8rem;border-radius:8px;font-size:.8rem;font-weight:600;
+      ${isArrow ? 'color:var(--muted)' : `background:var(--card);border:1px solid ${isNew ? 'var(--pink)' : 'var(--border)'}`}`;
+    if (isNew) d.style.color = 'var(--pink)';
+    d.textContent = l;
+    el.appendChild(d);
+  });
+}
+
+// ── Step 1: Seed ────────────────────────────────────────
+function renderSeed() {
+  stage.innerHTML = `
+    <div class="stage-title">Step 1 — Seed Population</div>
+    <div class="stage-subtitle">4 hand-written prompt templates start the evolution (pop=4, 2 islands)</div>
+    <div class="candidates" id="seedCards"></div>
+    <div class="annotation" style="margin-top:1.5rem">
+      Each template targets a different prompting strategy — minimal, structured, chain-of-thought,
+      and strict format. The templates use bracket notation <code style="color:var(--accent);background:var(--bg);padding:2px 6px;border-radius:4px;font-size:.8rem">[ApiName(key='value')]</code>
+      matching the API-Bank evaluation format. Diversity in seeds is critical — it gives evolution
+      different starting points to explore the fitness landscape.
+    </div>
+  `;
+  const container = document.getElementById('seedCards');
+  SEEDS.forEach((s, i) => {
+    const card = document.createElement('div');
+    card.className = 'candidate';
+    card.innerHTML = `
+      <div class="label" style="color:${s.color}">Template ${s.id} — ${s.style}</div>
+      <div class="prompt-text">${escapeHtml(s.text)}</div>
+    `;
+    container.appendChild(card);
+    setTimeout(() => card.classList.add('show'), 150 + i * 200);
+  });
+}
+
+// ── Step 2: Composite Scorer ────────────────────────────
+function renderCompositeScorer() {
+  stage.innerHTML = `
+    <div class="stage-title">Step 2 — Composite Scoring</div>
+    <div class="stage-subtitle">Three complementary scorers evaluate each candidate — no single metric can game the system</div>
+    <div class="scorer-cards" id="scorerCards">
+      <div class="scorer-card" id="sc1">
+        <div class="scorer-icon">🧑‍⚖️</div>
+        <div class="scorer-name">LLM Judge</div>
+        <div class="scorer-weight" style="color:var(--accent)">45%</div>
+        <div class="scorer-desc">An LLM rates the output quality 0–10 against a rubric. Catches semantic issues that heuristics miss.</div>
+      </div>
+      <div class="scorer-card" id="sc2">
+        <div class="scorer-icon">🔧</div>
+        <div class="scorer-name">Tool Success</div>
+        <div class="scorer-weight" style="color:var(--green)">30%</div>
+        <div class="scorer-desc">Did the model call the right API with the right parameters? Binary ground-truth signal.</div>
+      </div>
+      <div class="scorer-card" id="sc3">
+        <div class="scorer-icon">📏</div>
+        <div class="scorer-name">Proxy Metrics</div>
+        <div class="scorer-weight" style="color:var(--orange)">25%</div>
+        <div class="scorer-desc">Fast heuristic checks: bracket format present? Parameter count correct? API name in output?</div>
+      </div>
+    </div>
+    <div style="margin-top:1.5rem;text-align:center">
+      <div style="display:inline-flex;align-items:center;gap:8px;padding:.6rem 1.2rem;background:var(--card);border-radius:12px;border:1px solid var(--border);opacity:0;transition:opacity .6s" id="compositeFormula">
+        <span style="font-family:var(--font);font-size:.85rem">
+          <span style="color:var(--accent)">0.45 × LLMJudge</span> +
+          <span style="color:var(--green)">0.30 × ToolSuccess</span> +
+          <span style="color:var(--orange)">0.25 × ProxyMetrics</span> =
+          <span style="color:var(--text);font-weight:700">Fitness</span>
+        </span>
+      </div>
+    </div>
+    <div class="annotation" style="margin-top:1.5rem">
+      <strong>Why three scorers?</strong> An LLM judge alone can be fooled by fluent-sounding but wrong answers.
+      Tool success alone only gives a binary pass/fail. Proxy metrics are fast but shallow. The composite
+      approach ensures prompts must actually <em>work correctly</em> across all dimensions to score high.
+    </div>
+  `;
+  ['sc1','sc2','sc3'].forEach((id, i) => {
+    setTimeout(() => document.getElementById(id).classList.add('show'), 200 + i * 250);
+  });
+  setTimeout(() => document.getElementById('compositeFormula').style.opacity = '1', 1000);
+}
+
+// ── Step 3: Warmup & Error Profiling ────────────────────
+function renderWarmup() {
+  stage.innerHTML = `
+    <div class="stage-title">Step 3 — Warmup & Error Profiling</div>
+    <div class="stage-subtitle">Before evolution begins, analyse seed evaluation errors to bootstrap adaptive mutations</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1rem">
+      <div>
+        <div style="font-weight:700;margin-bottom:.6rem;font-size:.9rem;color:var(--pink)">🔍 Error Profile from Seed Eval</div>
+        <div class="error-bars" id="errorBars"></div>
+      </div>
+      <div>
+        <div style="font-weight:700;margin-bottom:.6rem;font-size:.9rem;color:var(--pink)">🎯 Generated Adaptive Mutations</div>
+        <ul class="mutation-list" id="adaptiveList"></ul>
+      </div>
+    </div>
+    <div class="annotation pink" style="margin-top:1.5rem">
+      <strong>Warmup bootstrap is new.</strong> Previously, Gen 1 had no error data to guide its mutations.
+      Now the seed evaluation errors are analysed <em>before</em> evolution starts, generating 4 targeted
+      mutation hints that are immediately available for Gen 1. This gives the first generation a
+      head start on fixing the most common failure modes.
+    </div>
+  `;
+  const errors = [
+    { api: 'ToolSearcher', rate: 45, color: 'var(--red)' },
+    { api: 'GetUserToken', rate: 30, color: 'var(--orange)' },
+    { api: 'SearchEngine', rate: 20, color: 'var(--orange)' },
+    { api: 'ModifyMeeting', rate: 15, color: 'var(--blue)' },
+    { api: 'AddAlarm', rate: 8, color: 'var(--green)' },
+  ];
+  const container = document.getElementById('errorBars');
+  errors.forEach((e, i) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:6px;opacity:0;transition:opacity .4s';
+    row.innerHTML = `
+      <div style="font-family:var(--font);font-size:.75rem;color:var(--muted);min-width:120px;text-align:right">${e.api}</div>
+      <div style="flex:1;height:18px;background:var(--bg);border-radius:4px;overflow:hidden;position:relative">
+        <div id="ebar-${i}" style="height:100%;background:${e.color};border-radius:4px;width:0;transition:width 1.2s ease-out;position:absolute;left:0;top:0"></div>
+      </div>
+      <div style="font-family:var(--font);font-size:.75rem;font-weight:700;min-width:40px;color:${e.color}" id="epct-${i}">0%</div>
+    `;
+    container.appendChild(row);
+    setTimeout(() => {
+      row.style.opacity = '1';
+      document.getElementById(`ebar-${i}`).style.width = e.rate + '%';
+      animateNumber(`epct-${i}`, 0, e.rate, 800);
+    }, 200 + i * 150);
+  });
+
+  const adaptives = [
+    'When user mentions "search", strongly prefer ToolSearcher over SearchEngine',
+    'Extract authentication tokens from conversation context explicitly',
+    'Match API names case-sensitively — use exact spelling from the API list',
+    'For meeting modifications, extract all date/time params before calling'
+  ];
+  const list = document.getElementById('adaptiveList');
+  adaptives.forEach((m, i) => {
+    const li = document.createElement('li');
+    li.className = 'adaptive-mut';
+    li.textContent = m;
+    list.appendChild(li);
+    setTimeout(() => li.classList.add('show'), 800 + i * 200);
+  });
+}
+
+// ── Step 4: Tournament Selection ────────────────────────
+function renderTournament() {
+  stage.innerHTML = `
+    <div class="stage-title">Step 4 — Tournament Selection</div>
+    <div class="stage-subtitle">Pick two random candidates → the fitter one becomes a parent</div>
+    <div style="display:flex;gap:2rem;margin-top:1.5rem;justify-content:center;flex-wrap:wrap" id="tournamentArea">
+      <div class="candidate show" style="opacity:1;transform:none;min-width:200px;text-align:center" id="tA">
+        <div class="label" style="color:var(--accent)">Candidate A</div>
+        <div class="prompt-text" style="max-height:none">Template T1 — Minimal</div>
+        <div style="margin-top:.6rem;font-family:var(--font);font-size:1.1rem;font-weight:700;color:var(--red)">38%</div>
+      </div>
+      <div style="font-size:2rem;color:var(--muted);display:flex;align-items:center;font-weight:700" id="vsLabel">VS</div>
+      <div class="candidate show" style="opacity:1;transform:none;min-width:200px;text-align:center" id="tB">
+        <div class="label" style="color:var(--orange)">Candidate B</div>
+        <div class="prompt-text" style="max-height:none">Template T4 — Strict format</div>
+        <div style="margin-top:.6rem;font-family:var(--font);font-size:1.1rem;font-weight:700;color:var(--green)">71%</div>
+      </div>
+    </div>
+    <div id="tournResult" style="text-align:center;margin-top:1.5rem;opacity:0;transition:opacity .5s">
+      <div style="font-size:1.5rem">🏆</div>
+      <div style="font-weight:700;font-size:1.1rem;color:var(--green);margin-top:.3rem">Template T4 wins!</div>
+      <div style="color:var(--muted);font-size:.85rem;margin-top:.2rem">71% beats 38% — T4 becomes a parent for the next generation</div>
+    </div>
+    <div class="annotation" style="margin-top:1.5rem">
+      <strong>Tournament selection</strong> picks parents by random pairwise comparison.
+      This favours fitter candidates while still giving weaker ones a chance — maintaining
+      diversity in the gene pool. Multiple tournaments fill the parent pool for each island.
+    </div>
+  `;
+  setTimeout(() => {
+    document.getElementById('tA').style.border = '2px solid var(--red)';
+    document.getElementById('tB').style.border = '2px solid var(--green)';
+    document.getElementById('tB').style.animation = 'glow 1.5s ease-in-out infinite';
+  }, 800);
+  setTimeout(() => {
+    document.getElementById('tournResult').style.opacity = '1';
+  }, 1500);
+}
+
+// ── Step 5: Adaptive Mutation ───────────────────────────
+function renderAdaptiveMutation() {
+  stage.innerHTML = `
+    <div class="stage-title">Step 5 — Adaptive Mutation</div>
+    <div class="stage-subtitle">Three mutation sources: 14 static snippets + LLM-generated rewrites + error-driven adaptive hints</div>
+    <div class="mutation-demo">
+      <div class="mutation-box" style="flex:1.3">
+        <h4>⚡ Static Mutations (14)</h4>
+        <ul class="mutation-list" id="staticList" style="max-height:200px;overflow-y:auto"></ul>
+      </div>
+      <div class="mutation-box" style="flex:1.3;border-color:var(--pink)">
+        <h4 style="color:var(--pink)">🎯 Adaptive Mutations (dynamic)</h4>
+        <ul class="mutation-list" id="adaptList"></ul>
+        <div style="margin-top:.6rem;padding:.5rem;background:var(--bg);border-radius:8px;font-size:.75rem;color:var(--muted)">
+          Generated by LLM from error profile.<br>
+          Refreshed every generation. Decayed with factor <strong style="color:var(--text)">0.5×</strong>.
+        </div>
+      </div>
+      <div class="mutation-box" style="flex:1.4">
+        <h4>Before Mutation</h4>
+        <div style="font-family:var(--font);font-size:.78rem;background:var(--bg);padding:.8rem;border-radius:8px;line-height:1.6;margin-bottom:1rem" id="beforeMut">
+          ROLE: API router.<br>TASK: Map queries to function calls.<br>FORMAT: [ApiName(key='value')]
+        </div>
+        <h4 style="color:var(--pink)">After Adaptive Mutation</h4>
+        <div style="font-family:var(--font);font-size:.78rem;background:var(--bg);padding:.8rem;border-radius:8px;line-height:1.6;opacity:0;transition:opacity .6s" id="afterMut">
+          ROLE: API router.<br>TASK: Map queries to function calls.<br>
+          <span style="color:var(--pink);font-weight:700">CRITICAL: When the user says "search", use ToolSearcher not SearchEngine.</span><br>
+          <span style="color:var(--pink)">Always extract dates explicitly. Match API names exactly as listed.</span><br>
+          FORMAT: [ApiName(key='value')]
+        </div>
+      </div>
+    </div>
+    <div class="annotation pink" style="margin-top:1rem">
+      <strong>Mutation probability:</strong> 50% static, 30% LLM-driven rewrite, 20% adaptive hint injection.
+      <strong>LLM mutations</strong> receive the parent prompt plus recent failure examples and rewrite to fix those specific errors.
+      <strong>Temperature &amp; top_p</strong> co-evolve alongside the prompt text — each candidate carries its own sampling parameters.
+    </div>
+  `;
+  const staticList = document.getElementById('staticList');
+  STATIC_MUTATIONS.forEach((m, i) => {
+    const li = document.createElement('li');
+    li.textContent = m;
+    staticList.appendChild(li);
+    setTimeout(() => li.classList.add('show'), 60 + i * 50);
+  });
+
+  const adaptList = document.getElementById('adaptList');
+  ADAPTIVE_MUTATIONS.forEach((m, i) => {
+    const li = document.createElement('li');
+    li.className = 'adaptive-mut';
+    li.textContent = m.replace('🎯 ', '');
+    adaptList.appendChild(li);
+    setTimeout(() => li.classList.add('show'), STATIC_MUTATIONS.length * 50 + 200 + i * 150);
+  });
+
+  setTimeout(() => {
+    const items = adaptList.querySelectorAll('li');
+    if (items[0]) items[0].classList.add('active');
+    document.getElementById('afterMut').style.opacity = '1';
+  }, STATIC_MUTATIONS.length * 50 + 200 + ADAPTIVE_MUTATIONS.length * 150 + 200);
+}
+
+// ── Step 6: Crossover ───────────────────────────────────
+function renderCrossover() {
+  stage.innerHTML = `
+    <div class="stage-title">Step 6 — Crossover</div>
+    <div class="stage-subtitle">Probability ~30% — splice two parent prompts together</div>
+    <div class="crossover-vis" id="crossVis">
+      <div class="cross-row">
+        <span style="color:var(--muted);font-size:.8rem;min-width:70px;font-weight:600">Parent A</span>
+        <div class="cross-segment cross-parent-a" id="cx1">ROLE: API router. Map queries to function calls.</div>
+        <div class="cross-segment cross-parent-a" id="cx2">FORMAT: [ApiName(key='value')]. No commentary.</div>
+      </div>
+      <div class="cross-row">
+        <span style="color:var(--muted);font-size:.8rem;min-width:70px;font-weight:600">Parent B</span>
+        <div class="cross-segment cross-parent-b" id="cx3">You are an expert API planner. Think step-by-step.</div>
+        <div class="cross-segment cross-parent-b" id="cx4">Match API names exactly. Extract all params from conversation.</div>
+      </div>
+      <div style="text-align:center;margin:1rem 0">
+        <span class="cross-arrow" id="crossArrow" style="opacity:0;transition:opacity .5s">✂️ splice at midpoint ✂️</span>
+      </div>
+      <div class="cross-row">
+        <span style="color:var(--muted);font-size:.8rem;min-width:70px;font-weight:600">Child</span>
+        <div class="cross-segment cross-parent-a" id="cx5" style="border-color:var(--orange)">ROLE: API router. Map queries to function calls.</div>
+        <div class="cross-segment cross-parent-b" id="cx6" style="border-color:var(--orange)">Match API names exactly. Extract all params from conversation.</div>
+      </div>
+    </div>
+    <div class="annotation" style="margin-top:1.5rem">
+      <strong>The child takes the role definition from Parent A and the extraction rules from Parent B.</strong>
+      Crossover creates structural combinations that mutation alone cannot achieve.
+      The child's temperature and top_p are averaged from both parents with a small random perturbation.
+    </div>
+  `;
+  ['cx1','cx2'].forEach((id, i) => setTimeout(() => document.getElementById(id).classList.add('show'), 200 + i * 200));
+  ['cx3','cx4'].forEach((id, i) => setTimeout(() => document.getElementById(id).classList.add('show'), 700 + i * 200));
+  setTimeout(() => document.getElementById('crossArrow').style.opacity = '1', 1300);
+  ['cx5','cx6'].forEach((id, i) => setTimeout(() => document.getElementById(id).classList.add('show'), 1700 + i * 200));
+}
+
+// ── Step 7: Islands ─────────────────────────────────────
+function renderIslands() {
+  stage.innerHTML = `
+    <div class="stage-title">Step 7 — The Islands</div>
+    <div class="stage-subtitle">2 islands evolve independently — migration every 2 generations</div>
+    <div style="display:flex;gap:.5rem;margin-bottom:.8rem;justify-content:center" id="genButtons"></div>
+    <div class="islands-container">
+      <div class="island island-1">
+        <div class="island-header"><div class="island-icon">1</div><div class="island-name">Island 1</div></div>
+        <div id="island1Candidates"></div>
+      </div>
+      <div class="migration-col">
+        <div class="migration-arrow" id="migArrowR">→</div>
+        <div class="migration-label" id="migLabel">Evolving independently</div>
+        <div class="migration-arrow" id="migArrowL">←</div>
+      </div>
+      <div class="island island-2">
+        <div class="island-header"><div class="island-icon">2</div><div class="island-name">Island 2</div></div>
+        <div id="island2Candidates"></div>
+      </div>
+    </div>
+    <div class="annotation green" style="margin-top:1rem" id="islandAnnotation">
+      <strong>Generation 1:</strong> Each island starts with variants of the seed templates
+      plus warmup adaptive hints and evolves them independently.
+    </div>
+  `;
+  const btnContainer = document.getElementById('genButtons');
+  for (let g = 0; g < 3; g++) {
+    const b = document.createElement('button');
+    b.className = 'btn btn-secondary';
+    b.textContent = `Gen ${g + 1}`;
+    b.style.fontSize = '.8rem';
+    b.style.padding = '.4rem 1rem';
+    b.onclick = () => showIslandGen(g);
+    btnContainer.appendChild(b);
+  }
+  showIslandGen(0);
+}
+
+function showIslandGen(gen) {
+  const btns = document.querySelectorAll('#genButtons .btn');
+  btns.forEach((b, i) => b.style.background = i === gen ? 'var(--accent)' : 'var(--card)');
+  btns.forEach((b, i) => b.style.color = i === gen ? '#fff' : 'var(--text)');
+
+  const annots = [
+    '<strong>Generation 1:</strong> Seeds evaluated with composite scorer. Error profile built. Warmup adaptive hints already available from bootstrapping.',
+    '<strong>Generation 2:</strong> Adaptive mutations kick in — notice <span style="color:var(--pink)">🎯 targeted fixes</span> appearing. Crossover products (★ NEW) combine the best traits. Error weights decayed by 0.5× to avoid stale corrections.',
+    '<strong>Generation 3 — Migration!</strong> Best candidates cross islands. Adaptive mutations combined with migrant DNA produce the <strong>highest-scoring prompts</strong> that neither island found alone.'
+  ];
+  document.getElementById('islandAnnotation').innerHTML = annots[gen];
+
+  const isMigration = gen === 2;
+  document.getElementById('migArrowR').className = 'migration-arrow' + (isMigration ? ' active' : '');
+  document.getElementById('migArrowL').className = 'migration-arrow' + (isMigration ? ' active' : '');
+  document.getElementById('migLabel').textContent = isMigration ? '🔄 MIGRATION!' : 'Evolving independently';
+  document.getElementById('migLabel').style.color = isMigration ? 'var(--orange)' : 'var(--muted)';
+  document.getElementById('islandAnnotation').className = isMigration ? 'annotation orange' : 'annotation green';
+
+  renderIslandCandidates('island1Candidates', ISLAND1_GEN[gen]);
+  renderIslandCandidates('island2Candidates', ISLAND2_GEN[gen]);
+}
+
+function renderIslandCandidates(containerId, candidates) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  candidates.forEach((c, i) => {
+    const el = document.createElement('div');
+    el.className = 'island-candidate';
+    const scoreColor = c.score >= 75 ? 'var(--green)' : c.score >= 60 ? 'var(--blue)' : c.score >= 50 ? 'var(--orange)' : 'var(--red)';
+    let badges = '';
+    if (c.elite) badges += '<span style="color:var(--orange);font-size:.65rem;margin-right:4px">★</span>';
+    if (c.isNew) badges += '<span style="color:var(--green);font-size:.65rem;font-weight:700;margin-right:4px">NEW</span>';
+    if (c.isAdaptive) badges += '<span style="color:var(--pink);font-size:.65rem;font-weight:700">🎯</span>';
+    el.innerHTML = `
+      <span style="display:flex;align-items:center;gap:4px;overflow:hidden">
+        <span style="color:var(--muted);font-size:.65rem;min-width:60px">[${c.hash.slice(0,8)}]</span>
+        ${badges}
+        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(c.text)}</span>
+      </span>
+      <span class="ic-score" style="color:${scoreColor}">${c.score}%</span>
+    `;
+    container.appendChild(el);
+    setTimeout(() => el.classList.add('show'), 80 + i * 120);
+  });
+}
+
+// ── Step 8: Error Decay ────────────────────────────────
+function renderErrorDecay() {
+  stage.innerHTML = `
+    <div class="stage-title">Step 8 — Error Decay</div>
+    <div class="stage-subtitle">Error weights decay by 0.5× each generation — stale corrections fade, fresh errors drive new mutations</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-top:1.5rem" id="decayGrid"></div>
+    <div class="annotation orange" style="margin-top:1.5rem">
+      <strong>Why decay?</strong> Without it, a single bad error in Gen 1 dominates all future adaptive mutations
+      even after it's fixed. With <strong>0.5× decay</strong>, error weights halve each generation.
+      Gen 1 errors weigh 100% → Gen 2: 50% → Gen 3: 25%. Only persistent, still-happening errors
+      stay influential. Recent failure examples are also trimmed to the last 20 per generation.
+    </div>
+  `;
+  const gens = [
+    { label: 'Gen 1', errors: [{name:'ToolSearcher',w:45},{name:'GetUserToken',w:30},{name:'SearchEngine',w:20},{name:'ModifyMeeting',w:15}]},
+    { label: 'Gen 2 (×0.5)', errors: [{name:'ToolSearcher',w:22},{name:'GetUserToken',w:15},{name:'SearchEngine',w:10},{name:'ModifyMeeting',w:8}]},
+    { label: 'Gen 3 (×0.25)', errors: [{name:'ToolSearcher',w:11},{name:'GetUserToken',w:8},{name:'SearchEngine',w:5},{name:'ModifyMeeting',w:4}]}
+  ];
+  const grid = document.getElementById('decayGrid');
+  gens.forEach((gen, gi) => {
+    const col = document.createElement('div');
+    col.style.cssText = 'background:var(--card);border-radius:12px;padding:1rem;opacity:0;transition:opacity .5s';
+    let bars = '';
+    gen.errors.forEach(e => {
+      const color = e.w > 20 ? 'var(--red)' : e.w > 10 ? 'var(--orange)' : 'var(--green)';
+      bars += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:.72rem">
+        <span style="min-width:85px;color:var(--muted);text-align:right;font-family:var(--font)">${e.name}</span>
+        <div style="flex:1;height:12px;background:var(--bg);border-radius:3px;overflow:hidden">
+          <div style="width:${e.w}%;height:100%;background:${color};border-radius:3px;transition:width 1s"></div>
+        </div>
+        <span style="min-width:28px;font-family:var(--font);font-weight:700;color:${color}">${e.w}%</span>
+      </div>`;
+    });
+    col.innerHTML = `<div style="font-weight:700;font-size:.85rem;margin-bottom:.6rem;color:${gi===0?'var(--red)':gi===1?'var(--orange)':'var(--green)'}">${gen.label}</div>${bars}`;
+    grid.appendChild(col);
+    setTimeout(() => col.style.opacity = '1', 200 + gi * 350);
+  });
+}
+
+// ── Step 9: Elite Preservation ──────────────────────────
+function renderElite() {
+  stage.innerHTML = `
+    <div class="stage-title">Step 9 — Elite Preservation</div>
+    <div class="stage-subtitle">Top 3 candidates per island survive unchanged into the next generation</div>
+    <div class="candidates" id="eliteCards"></div>
+    <div class="annotation" style="margin-top:1.5rem">
+      <strong>Elitism guarantees the best-known prompt is never lost.</strong> The top 3 per island
+      carry forward untouched — no mutation, no crossover. This means the population can only
+      stay the same or improve. Meanwhile, the remaining slot is filled by mutated/crossed
+      offspring (potentially with adaptive hints), providing fresh exploration.
+    </div>
+  `;
+  const elites = [
+    { hash: 'b734e4e5', text: '★ Migrant + local adaptive — CoT with strict bracket format', score: 88, rank: 1 },
+    { hash: 'f7a8b9c0', text: 'Crossover(Strict, Structured) + adaptive date extraction', score: 81, rank: 2 },
+    { hash: 'a3b4c5d6', text: 'Strict format + few-shot + adaptive API-name matching', score: 76, rank: 3 },
+    { hash: 'd1e2f3a4', text: 'Minimal + basic CoT reasoning', score: 48, rank: 4 }
+  ];
+  const container = document.getElementById('eliteCards');
+  elites.forEach((e, i) => {
+    const card = document.createElement('div');
+    const isElite = i < 3;
+    card.className = 'candidate' + (isElite ? ' elite' : '');
+    const scoreColor = e.score >= 75 ? 'var(--green)' : e.score >= 60 ? 'var(--blue)' : e.score >= 50 ? 'var(--orange)' : 'var(--red)';
+    card.innerHTML = `
+      <div class="label" style="color:${isElite ? 'var(--orange)' : 'var(--muted)'}">#${e.rank} — [${e.hash}]</div>
+      <div class="prompt-text">${escapeHtml(e.text)}</div>
+      <div class="fitness">
+        <div class="fitness-bar"><div class="fitness-fill" id="ef-${i}" style="background:${scoreColor}"></div></div>
+        <div class="fitness-score" style="color:${scoreColor}" id="es-${i}">0%</div>
+      </div>
+      ${!isElite ? '<div style="position:absolute;top:8px;right:10px;font-size:.6rem;color:var(--red);font-weight:700;letter-spacing:1px">REPLACED</div>' : ''}
+    `;
+    if (!isElite) card.style.opacity = '.5';
+    container.appendChild(card);
+    setTimeout(() => card.classList.add('show'), 150 + i * 200);
+    setTimeout(() => {
+      document.getElementById(`ef-${i}`).style.width = e.score + '%';
+      animateNumber(`es-${i}`, 0, e.score, 900);
+    }, 400 + i * 250);
+  });
+}
+
+// ── Step 10: Results ────────────────────────────────────
+function renderResults() {
+  stage.innerHTML = `
+    <div class="stage-title">Results — GPT-4.1 via Azure AI Foundry</div>
+    <div class="stage-subtitle">API-Bank Level 1 benchmark: adaptive evolution + GPT-4.1 achieves 96.8% GT score</div>
+    <table class="leaderboard">
+      <thead><tr><th>Approach</th><th>GT Score</th><th>API Name</th><th>Params</th><th>Delta</th></tr></thead>
+      <tbody id="lbBody"></tbody>
+    </table>
+    <div style="margin-top:1.5rem">
+      <div style="font-weight:700;margin-bottom:.6rem;font-size:.9rem">No-eval fitness per generation (Run 3 — GPT-4.1)</div>
+      <div class="gen-timeline" id="genTimeline"></div>
+    </div>
+    <div class="annotation green" style="margin-top:1.5rem">
+      <strong>Key insight:</strong> Evolution adds <strong>+3.3 pp</strong> on top of GPT-4.1's already strong 93.5% baseline.
+      The same adaptive config on llama3.2 scored 81.6% — proving the evolutionary framework amplifies
+      any backbone model. The evolved prompt beats the published GPT-4 leaderboard by <strong>+13.0 pp</strong>.
+    </div>
+  `;
+  const rows = [
+    { name: 'Run 3: GPT-4.1 Adaptive (pop=4, 6g)', gt: '96.8%', api: '96.7%', param: '95.3%', delta: '—', winner: true },
+    { name: 'GPT-4.1 Default (no evolution)', gt: '93.5%', api: '—', param: '—', delta: '-3.3 pp', winner: false },
+    { name: 'Published GPT-4 (Li et al.)', gt: '83.8%', api: '—', param: '—', delta: '-13.0 pp', winner: false },
+    { name: 'Run 2: llama3.2 Adaptive Improved', gt: '81.6%', api: '83.3%', param: '70.6%', delta: '-15.2 pp', winner: false },
+    { name: 'Vanilla llama3.2 (no adaptive)', gt: '82.3%', api: '83.3%', param: '74.1%', delta: '-14.5 pp', winner: false },
+    { name: 'Published GPT-3.5 (Li et al.)', gt: '82.6%', api: '—', param: '—', delta: '-14.2 pp', winner: false },
+    { name: 'Run 1: llama3.2 Adaptive (no fixes)', gt: '79.9%', api: '80.0%', param: '71.4%', delta: '-16.9 pp', winner: false },
+    { name: 'Published Lynx-7B (Li et al.)', gt: '78.4%', api: '—', param: '—', delta: '-18.4 pp', winner: false },
+  ];
+  const body = document.getElementById('lbBody');
+  rows.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    if (r.winner) tr.className = 'winner';
+    tr.style.cssText = 'opacity:0;transition:opacity .4s';
+    tr.innerHTML = `<td>${r.name}</td><td>${r.gt}</td><td>${r.api}</td><td>${r.param}</td><td class="delta">${r.delta}</td>`;
+    body.appendChild(tr);
+    setTimeout(() => tr.style.opacity = '1', 100 + i * 100);
+  });
+
+  // Gen timeline for Run 3
+  const genScores = [85.2, 85.2, 85.2, 85.6, 85.6, 85.6];
+  const timeline = document.getElementById('genTimeline');
+  const maxH = 120;
+  genScores.forEach((s, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'gen-bar-wrap';
+    wrap.innerHTML = `
+      <div class="gen-score" id="rg-${i}" style="color:var(--green)">0</div>
+      <div class="gen-bar" id="rgb-${i}" style="background:var(--green);height:0"></div>
+      <div class="gen-label">G${i+1}</div>
+    `;
+    timeline.appendChild(wrap);
+    setTimeout(() => {
+      document.getElementById(`rgb-${i}`).style.height = ((s - 60) / 40 * maxH) + 'px';
+      animateNumber(`rg-${i}`, 0, s, 800, 1);
+    }, 300 + i * 150);
+  });
+}
+
+// ── Step 11: Full Pipeline ──────────────────────────────
+function renderPipeline() {
+  stage.innerHTML = `
+    <div class="stage-title">The Full Adaptive Pipeline</div>
+    <div class="stage-subtitle">Everything working together — from seed to champion prompt</div>
+    <div style="display:flex;flex-direction:column;gap:1rem;margin-top:1.5rem;align-items:center" id="pipelineFlow"></div>
+    <div class="annotation green" style="margin-top:1.5rem">
+      <strong>What made the difference:</strong><br>
+      ① <strong>Composite Scoring</strong> — LLMJudge + ToolSuccess + ProxyMetrics prevents gaming any single metric<br>
+      ② <strong>Warmup Bootstrap</strong> — Seed errors generate adaptive hints before Gen 1 even starts<br>
+      ③ <strong>Adaptive Mutations</strong> — Error-driven targeted fixes instead of random exploration<br>
+      ④ <strong>Error Decay (0.5×)</strong> — Stale corrections fade; only persistent errors drive mutations<br>
+      ⑤ <strong>LLM-driven Rewrites</strong> — 30% of mutations use the LLM to rewrite prompts based on failure examples<br>
+      ⑥ <strong>Island Migration</strong> — Cross-pollination every 2 generations prevents premature convergence
+    </div>
+  `;
+  const steps = [
+    { icon: '🌱', text: '4 Seed Templates', sub: 'Diverse starting points' },
+    { icon: '📊', text: 'Composite Scorer', sub: 'LLMJudge(45%) + ToolSuccess(30%) + Proxy(25%)' },
+    { icon: '🔍', text: 'Error Profiling', sub: 'Track failure categories per API' },
+    { icon: '🎯', text: 'Warmup Bootstrap', sub: 'Adaptive hints from seed errors' },
+    { icon: '🔄', text: '6 Generations × 2 Islands', sub: 'Tournament → Mutate/Cross → Evaluate' },
+    { icon: '🧬', text: 'Triple Mutation Sources', sub: 'Static + LLM rewrite + Adaptive hints' },
+    { icon: '📉', text: 'Error Decay (0.5×/gen)', sub: 'Keep mutations fresh and relevant' },
+    { icon: '🌊', text: 'Migration (every 2 gens)', sub: 'Cross-pollinate island winners' },
+    { icon: '⭐', text: 'Elite Preservation', sub: 'Top 3 per island always survive' },
+    { icon: '🏆', text: 'Champion Prompt', sub: '96.8% GT — beats GPT-4 leaderboard by +13pp' }
+  ];
+  const flow = document.getElementById('pipelineFlow');
+  steps.forEach((s, i) => {
+    if (i > 0) {
+      const arrow = document.createElement('div');
+      arrow.className = 'flow-arrow';
+      arrow.textContent = '↓';
+      arrow.style.fontSize = '1.2rem';
+      flow.appendChild(arrow);
+      setTimeout(() => arrow.classList.add('show'), 120 + i * 150);
+    }
+    const step = document.createElement('div');
+    step.className = 'flow-step';
+    step.innerHTML = `<span>${s.icon}</span><span><strong>${s.text}</strong><br><span style="color:var(--muted);font-size:.75rem">${s.sub}</span></span>`;
+    flow.appendChild(step);
+    setTimeout(() => step.classList.add('show'), 100 + i * 150);
+  });
+}
+
+// ── Helpers ─────────────────────────────────────────────
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function animateNumber(elId, from, to, duration, decimals = 0) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const start = performance.now();
+  function tick(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - t, 3);
+    const val = from + (to - from) * eased;
+    el.textContent = (decimals > 0 ? val.toFixed(decimals) : Math.round(val)) + '%';
+    if (t < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextStep(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); prevStep(); }
+});
+
+// Init
+updateUI();
+</script>
+</body>
+</html>

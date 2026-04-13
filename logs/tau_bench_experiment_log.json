@@ -1,0 +1,537 @@
+{
+  "timestamp": "2026-03-28T00:53:55",
+  "default_baselines": {
+    "airline": 30.024999999999995,
+    "retail": 52.014999999999986,
+    "airline_azure": 28.004999999999992,
+    "retail_azure": 50.11499999999999
+  },
+  "experiments": [
+    {
+      "domain": "airline",
+      "algorithm": "standard",
+      "backend": "ollama",
+      "n_tasks": 10,
+      "baseline_score": 31.24,
+      "evolved_score": 36.89,
+      "delta": 5.65,
+      "best_temperature": 0.6451,
+      "best_top_p": 0.6819,
+      "iterations": 3,
+      "wall_time": 745.9,
+      "history": [
+        [
+          0,
+          31.240000000000006
+        ],
+        [
+          1,
+          35.14000000000001
+        ],
+        [
+          2,
+          35.540000000000006
+        ],
+        [
+          3,
+          36.89000000000001
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 29.9,
+          "template_hash": "6465cb6f7ad9fde5",
+          "template_preview": "        You are a customer service agent for {domain}. Follow the policy exactly. Use the available tools to help the cu"
+        },
+        {
+          "generation": 0,
+          "score": 25.8,
+          "template_hash": "8ac7c80738012088",
+          "template_preview": "        You are an expert {domain} customer service agent.  Step 1: Identify the customer (get user_id). Step 2: Underst"
+        },
+        {
+          "generation": 0,
+          "score": 31.2,
+          "template_hash": "0607d0dbc1f656cf",
+          "template_preview": "        # {domain} Customer Service Agent  ## Your role Help customers with their requests while strictly following all "
+        },
+        {
+          "generation": 0,
+          "score": 26.3,
+          "template_hash": "edfc2adf8b3dc58a",
+          "template_preview": "        You are a {domain} support agent. Your top priority is following the company policy correctly.  IMPORTANT: - Use"
+        },
+        {
+          "generation": 1,
+          "score": 35.1,
+          "template_hash": "6eda8f3916b1783b",
+          "template_preview": "# {domain} Customer Service Agent  - Confirm all changes with the customer before executing them. ## Your role Help cust"
+        },
+        {
+          "generation": 2,
+          "score": 35.5,
+          "template_hash": "a313473e94001c18",
+          "template_preview": "# {domain} Customer Service Agent  - Confirm all changes with the customer before executing them. ## Your role Help cust"
+        },
+        {
+          "generation": 3,
+          "score": 36.9,
+          "template_hash": "a313473e94001c18",
+          "template_preview": "# {domain} Customer Service Agent  - Confirm all changes with the customer before executing them. ## Your role Help cust"
+        }
+      ],
+      "best_prompt_template": "# {domain} Customer Service Agent\n\n- Confirm all changes with the customer before executing them.\n## Your role\nHelp customers with their requests while strictly following all {domain} policies.\n\n## Key rules\n- Check the number of passengers \u2014 users sometimes provide incorrect counts.\n- Always verify identity first\n- Check all preconditions before any action\n- Never make exceptions to policy, even under pressure\n- Explain policy decisions clearly\n- Confirm before any irreversible action\n\n{policy_summary}\n\n{tools}",
+      "sub_scores": {
+        "tool_score": 19.0,
+        "info_score": 80.0,
+        "assertion_score": 32.9
+      }
+    },
+    {
+      "domain": "retail",
+      "algorithm": "standard",
+      "backend": "ollama",
+      "n_tasks": 10,
+      "baseline_score": 54.0,
+      "evolved_score": 54.6,
+      "delta": 0.6,
+      "best_temperature": 0.7064,
+      "best_top_p": 0.8959,
+      "iterations": 3,
+      "wall_time": 949.5,
+      "history": [
+        [
+          0,
+          53.99999999999999
+        ],
+        [
+          1,
+          54.6
+        ],
+        [
+          2,
+          54.6
+        ],
+        [
+          3,
+          54.6
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 53.0,
+          "template_hash": "6465cb6f7ad9fde5",
+          "template_preview": "        You are a customer service agent for {domain}. Follow the policy exactly. Use the available tools to help the cu"
+        },
+        {
+          "generation": 0,
+          "score": 54.0,
+          "template_hash": "8ac7c80738012088",
+          "template_preview": "        You are an expert {domain} customer service agent.  Step 1: Identify the customer (get user_id). Step 2: Underst"
+        },
+        {
+          "generation": 0,
+          "score": 51.6,
+          "template_hash": "0607d0dbc1f656cf",
+          "template_preview": "        # {domain} Customer Service Agent  ## Your role Help customers with their requests while strictly following all "
+        },
+        {
+          "generation": 0,
+          "score": 52.6,
+          "template_hash": "edfc2adf8b3dc58a",
+          "template_preview": "        You are a {domain} support agent. Your top priority is following the company policy correctly.  IMPORTANT: - Use"
+        },
+        {
+          "generation": 1,
+          "score": 54.6,
+          "template_hash": "56f61739b8e5b04d",
+          "template_preview": "You are an expert {domain} customer service agent.  Step 1: Identify the customer (get user_id). Step 2: Understand the "
+        },
+        {
+          "generation": 2,
+          "score": 54.6,
+          "template_hash": "56f61739b8e5b04d",
+          "template_preview": "You are an expert {domain} customer service agent.  Step 1: Identify the customer (get user_id). Step 2: Understand the "
+        },
+        {
+          "generation": 3,
+          "score": 54.6,
+          "template_hash": "56f61739b8e5b04d",
+          "template_preview": "You are an expert {domain} customer service agent.  Step 1: Identify the customer (get user_id). Step 2: Understand the "
+        }
+      ],
+      "best_prompt_template": "You are an expert {domain} customer service agent.\n\nStep 1: Identify the customer (get user_id).\nStep 2: Understand the request.\nStep 3: Look up relevant information using tools.\nStep 4: Check policy compliance.\nStep 5: Take action or explain why the action cannot be done.\nStep 6: Confirm with the customer before making changes.\n\nStep 1: Identify the customer (get user_id).\nStep 2: Understand the request.\nStep 3: Look up relevant information using tools.\nStep 4: Check policy compliance.\nStep 5: Take action or explain why the action cannot be done.\nStep 6: Confirm with the customer before making changes.\n\nCRITICAL: Never bypass policy rules. If a request violates policy, politely decline and explain why.\n\n{policy_summary}\n\n{tools}",
+      "sub_scores": {
+        "tool_score": 16.8,
+        "info_score": 80.0,
+        "assertion_score": 80.0
+      }
+    },
+    {
+      "domain": "airline",
+      "algorithm": "deep",
+      "backend": "ollama",
+      "n_tasks": 12,
+      "baseline_score": 43.48,
+      "evolved_score": 46.6,
+      "delta": 3.12,
+      "best_temperature": 1.0,
+      "best_top_p": 0.6563,
+      "iterations": 5,
+      "wall_time": 1670.8,
+      "history": [
+        [
+          0,
+          43.475000000000016
+        ],
+        [
+          1,
+          43.475000000000016
+        ],
+        [
+          2,
+          43.475000000000016
+        ],
+        [
+          3,
+          46.6
+        ],
+        [
+          4,
+          46.6
+        ],
+        [
+          5,
+          46.6
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 33.0,
+          "template_hash": "6465cb6f7ad9fde5",
+          "template_preview": "        You are a customer service agent for {domain}. Follow the policy exactly. Use the available tools to help the cu"
+        },
+        {
+          "generation": 0,
+          "score": 31.8,
+          "template_hash": "8ac7c80738012088",
+          "template_preview": "        You are an expert {domain} customer service agent.  Step 1: Identify the customer (get user_id). Step 2: Underst"
+        },
+        {
+          "generation": 0,
+          "score": 43.5,
+          "template_hash": "0607d0dbc1f656cf",
+          "template_preview": "        # {domain} Customer Service Agent  ## Your role Help customers with their requests while strictly following all "
+        },
+        {
+          "generation": 0,
+          "score": 39.6,
+          "template_hash": "edfc2adf8b3dc58a",
+          "template_preview": "        You are a {domain} support agent. Your top priority is following the company policy correctly.  IMPORTANT: - Use"
+        },
+        {
+          "generation": 1,
+          "score": 43.5,
+          "template_hash": "0607d0dbc1f656cf",
+          "template_preview": "        # {domain} Customer Service Agent  ## Your role Help customers with their requests while strictly following all "
+        },
+        {
+          "generation": 2,
+          "score": 43.5,
+          "template_hash": "0607d0dbc1f656cf",
+          "template_preview": "        # {domain} Customer Service Agent  ## Your role Help customers with their requests while strictly following all "
+        },
+        {
+          "generation": 3,
+          "score": 46.6,
+          "template_hash": "bdfdc0a8ca49d48b",
+          "template_preview": "# {domain} Customer Service Agent  ## Your role Help customers with their requests while strictly following all {domain}"
+        },
+        {
+          "generation": 4,
+          "score": 46.6,
+          "template_hash": "bdfdc0a8ca49d48b",
+          "template_preview": "# {domain} Customer Service Agent  ## Your role Help customers with their requests while strictly following all {domain}"
+        },
+        {
+          "generation": 5,
+          "score": 46.6,
+          "template_hash": "bdfdc0a8ca49d48b",
+          "template_preview": "# {domain} Customer Service Agent  ## Your role Help customers with their requests while strictly following all {domain}"
+        }
+      ],
+      "best_prompt_template": "# {domain} Customer Service Agent\n\n## Your role\nHelp customers with their requests while strictly following all {domain} policies.\n{tools}\n\n{policy_summary}",
+      "sub_scores": {
+        "tool_score": 22.1,
+        "info_score": 91.7,
+        "assertion_score": 51.3
+      }
+    },
+    {
+      "domain": "airline",
+      "algorithm": "standard",
+      "backend": "azure_openai",
+      "n_tasks": 10,
+      "baseline_score": 37.44,
+      "evolved_score": 39.5,
+      "delta": 2.06,
+      "best_temperature": 0.4404,
+      "best_top_p": 0.5762,
+      "iterations": 3,
+      "wall_time": 520.7,
+      "history": [
+        [
+          0,
+          37.440000000000005
+        ],
+        [
+          1,
+          38.040000000000006
+        ],
+        [
+          2,
+          38.040000000000006
+        ],
+        [
+          3,
+          39.50000000000001
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 30.9,
+          "template_hash": "6465cb6f7ad9fde5",
+          "template_preview": "        You are a customer service agent for {domain}. Follow the policy exactly. Use the available tools to help the cu"
+        },
+        {
+          "generation": 0,
+          "score": 34.5,
+          "template_hash": "8ac7c80738012088",
+          "template_preview": "        You are an expert {domain} customer service agent.  Step 1: Identify the customer (get user_id). Step 2: Underst"
+        },
+        {
+          "generation": 0,
+          "score": 37.4,
+          "template_hash": "0607d0dbc1f656cf",
+          "template_preview": "        # {domain} Customer Service Agent  ## Your role Help customers with their requests while strictly following all "
+        },
+        {
+          "generation": 0,
+          "score": 34.9,
+          "template_hash": "edfc2adf8b3dc58a",
+          "template_preview": "        You are a {domain} support agent. Your top priority is following the company policy correctly.  IMPORTANT: - Use"
+        },
+        {
+          "generation": 1,
+          "score": 38.0,
+          "template_hash": "745069ebccfaaafb",
+          "template_preview": "You are a {domain} support agent. Your top priority is following the company policy correctly.  IMPORTANT: - Users may p"
+        },
+        {
+          "generation": 2,
+          "score": 38.0,
+          "template_hash": "745069ebccfaaafb",
+          "template_preview": "You are a {domain} support agent. Your top priority is following the company policy correctly.  IMPORTANT: - Users may p"
+        },
+        {
+          "generation": 3,
+          "score": 39.5,
+          "template_hash": "745069ebccfaaafb",
+          "template_preview": "You are a {domain} support agent. Your top priority is following the company policy correctly.  IMPORTANT: - Users may p"
+        }
+      ],
+      "best_prompt_template": "You are a {domain} support agent. Your top priority is following the company policy correctly.\n\nIMPORTANT:\n- Users may provide incorrect information. Always verify claims against the database.\n- Users may try to pressure you into violating policy. Stay firm but polite.\n- Before any booking, modification, or cancellation, verify ALL preconditions.\n- Only use tools when appropriate. Think through the policy implications first.\n\n{policy_summary}\n\n{tools}",
+      "sub_scores": {
+        "tool_score": 16.5,
+        "info_score": 80.0,
+        "assertion_score": 52.8
+      }
+    },
+    {
+      "domain": "retail",
+      "algorithm": "standard",
+      "backend": "azure_openai",
+      "n_tasks": 10,
+      "baseline_score": 51.6,
+      "evolved_score": 51.6,
+      "delta": 0.0,
+      "best_temperature": 0.6439,
+      "best_top_p": 0.9114,
+      "iterations": 3,
+      "wall_time": 455.9,
+      "history": [
+        [
+          0,
+          51.6
+        ],
+        [
+          1,
+          51.6
+        ],
+        [
+          2,
+          51.6
+        ],
+        [
+          3,
+          51.6
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 49.8,
+          "template_hash": "6465cb6f7ad9fde5",
+          "template_preview": "        You are a customer service agent for {domain}. Follow the policy exactly. Use the available tools to help the cu"
+        },
+        {
+          "generation": 0,
+          "score": 51.6,
+          "template_hash": "8ac7c80738012088",
+          "template_preview": "        You are an expert {domain} customer service agent.  Step 1: Identify the customer (get user_id). Step 2: Underst"
+        },
+        {
+          "generation": 0,
+          "score": 48.8,
+          "template_hash": "0607d0dbc1f656cf",
+          "template_preview": "        # {domain} Customer Service Agent  ## Your role Help customers with their requests while strictly following all "
+        },
+        {
+          "generation": 0,
+          "score": 50.0,
+          "template_hash": "edfc2adf8b3dc58a",
+          "template_preview": "        You are a {domain} support agent. Your top priority is following the company policy correctly.  IMPORTANT: - Use"
+        },
+        {
+          "generation": 1,
+          "score": 51.6,
+          "template_hash": "8ac7c80738012088",
+          "template_preview": "        You are an expert {domain} customer service agent.  Step 1: Identify the customer (get user_id). Step 2: Underst"
+        },
+        {
+          "generation": 2,
+          "score": 51.6,
+          "template_hash": "8ac7c80738012088",
+          "template_preview": "        You are an expert {domain} customer service agent.  Step 1: Identify the customer (get user_id). Step 2: Underst"
+        },
+        {
+          "generation": 3,
+          "score": 51.6,
+          "template_hash": "8ac7c80738012088",
+          "template_preview": "        You are an expert {domain} customer service agent.  Step 1: Identify the customer (get user_id). Step 2: Underst"
+        }
+      ],
+      "best_prompt_template": "        You are an expert {domain} customer service agent.\n\nStep 1: Identify the customer (get user_id).\nStep 2: Understand the request.\nStep 3: Look up relevant information using tools.\nStep 4: Check policy compliance.\nStep 5: Take action or explain why the action cannot be done.\nStep 6: Confirm with the customer before making changes.\n\nCRITICAL: Never bypass policy rules. If a request violates policy, politely decline and explain why.\n\n{policy_summary}\n\n{tools}\n",
+      "sub_scores": {
+        "tool_score": 2.5,
+        "info_score": 80.0,
+        "assertion_score": 80.0
+      }
+    },
+    {
+      "domain": "airline",
+      "algorithm": "deep",
+      "backend": "azure_openai",
+      "n_tasks": 12,
+      "baseline_score": 38.21,
+      "evolved_score": 46.46,
+      "delta": 8.25,
+      "best_temperature": 0.7337,
+      "best_top_p": 0.7452,
+      "iterations": 5,
+      "wall_time": 940.5,
+      "history": [
+        [
+          0,
+          38.208333333333336
+        ],
+        [
+          1,
+          38.708333333333336
+        ],
+        [
+          2,
+          40.79166666666667
+        ],
+        [
+          3,
+          41.308333333333344
+        ],
+        [
+          4,
+          46.45833333333334
+        ],
+        [
+          5,
+          46.45833333333334
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 35.7,
+          "template_hash": "6465cb6f7ad9fde5",
+          "template_preview": "        You are a customer service agent for {domain}. Follow the policy exactly. Use the available tools to help the cu"
+        },
+        {
+          "generation": 0,
+          "score": 25.2,
+          "template_hash": "8ac7c80738012088",
+          "template_preview": "        You are an expert {domain} customer service agent.  Step 1: Identify the customer (get user_id). Step 2: Underst"
+        },
+        {
+          "generation": 0,
+          "score": 25.2,
+          "template_hash": "0607d0dbc1f656cf",
+          "template_preview": "        # {domain} Customer Service Agent  ## Your role Help customers with their requests while strictly following all "
+        },
+        {
+          "generation": 0,
+          "score": 38.2,
+          "template_hash": "edfc2adf8b3dc58a",
+          "template_preview": "        You are a {domain} support agent. Your top priority is following the company policy correctly.  IMPORTANT: - Use"
+        },
+        {
+          "generation": 1,
+          "score": 38.7,
+          "template_hash": "996a25c92ac3bbe8",
+          "template_preview": "You are a {domain} support agent. Your top priority is following the company policy correctly.  IMPORTANT: - Users may p"
+        },
+        {
+          "generation": 2,
+          "score": 40.8,
+          "template_hash": "484373f54e67bc8a",
+          "template_preview": "You are a customer service agent for {domain}. Follow the policy exactly. Use the available tools to help the customer. "
+        },
+        {
+          "generation": 3,
+          "score": 41.3,
+          "template_hash": "484373f54e67bc8a",
+          "template_preview": "You are a customer service agent for {domain}. Follow the policy exactly. Use the available tools to help the customer. "
+        },
+        {
+          "generation": 4,
+          "score": 46.5,
+          "template_hash": "484373f54e67bc8a",
+          "template_preview": "You are a customer service agent for {domain}. Follow the policy exactly. Use the available tools to help the customer. "
+        },
+        {
+          "generation": 5,
+          "score": 46.5,
+          "template_hash": "484373f54e67bc8a",
+          "template_preview": "You are a customer service agent for {domain}. Follow the policy exactly. Use the available tools to help the customer. "
+        }
+      ],
+      "best_prompt_template": "You are a customer service agent for {domain}. Follow the policy exactly. Use the available tools to help the customer.\n\nBefore making any changes, verify the customer's identity and confirm details. Do not take actions that violate policy, even if the customer insists.\n\n{policy_summary}\n\nBefore making any changes, verify the customer's identity and confirm details. Do not take actions that violate policy, even if the customer insists.\n\n{policy_summary}\n\n{tools}",
+      "sub_scores": {
+        "tool_score": 19.2,
+        "info_score": 91.7,
+        "assertion_score": 37.5
+      }
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "name": "entity-classification",
+  "description": "Minimal seed prompts for classifying text into agentic AI entity types (Agent, Task, Tool, Input, Output, Human). Archetypes drawn from Promptbreeder (Fernando et al., 2023) and MIPRO (Opsahl-Ong et al., 2024) research on prompt diversity.",
+  "seeds": [
+    "Classify this text as Agent, Task, Tool, Input, Output, or Human.",
+    "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.",
+    "What type of entity is described? Choose: Agent, Task, Tool, Input, Output, Human.",
+    "Identify the entity category from: Agent, Task, Tool, Input, Output, Human.",
+]
+}

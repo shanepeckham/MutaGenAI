@@ -1,0 +1,111 @@
+{
+  "timestamp": "2026-04-12T17:20:31",
+  "experiment": "apibank_adaptive_improved_run2",
+  "level": "level_1",
+  "ollama_model": "llama3.2",
+  "improvements": [
+    "custom_bracket_mutations",
+    "warmup_adaptive",
+    "iterations_6_pop_4",
+    "no_self_consistency",
+    "error_decay_0.5"
+  ],
+  "config": {
+    "iterations": 6,
+    "population_size": 4,
+    "num_islands": 2,
+    "elite_size": 3,
+    "mutation_rate": 0.5,
+    "crossover_rate": 0.3,
+    "adaptive_mutations": true,
+    "llm_mutation_rate": 0.3,
+    "warmup_adaptive": true,
+    "error_decay": 0.5,
+    "problem_type": "tool_routing"
+  },
+  "scorer_weights": {
+    "LLMJudge": 0.45,
+    "ToolSuccess": 0.3,
+    "ProxyMetrics": 0.25,
+    "SelfConsistency": "removed"
+  },
+  "default_baseline": 52.74,
+  "results": {
+    "noeval_fitness": 81.1,
+    "gt_score": 81.57,
+    "api_name_accuracy": 83.33,
+    "param_accuracy": 70.58,
+    "best_temperature": 0.6178,
+    "best_top_p": 0.8294,
+    "wall_time": 2282.4,
+    "history": [
+      [
+        1,
+        78.16506849315068
+      ],
+      [
+        2,
+        81.10000000000001
+      ],
+      [
+        3,
+        81.10000000000001
+      ],
+      [
+        4,
+        81.10000000000001
+      ],
+      [
+        5,
+        81.10000000000001
+      ],
+      [
+        6,
+        81.10000000000001
+      ]
+    ]
+  },
+  "run1_results": {
+    "strategy": "Composite+Adaptive (pop=8, 3 gens)",
+    "noeval_fitness": 79.69,
+    "gt_score": 79.9,
+    "api_name_accuracy": 80.0,
+    "param_accuracy": 71.4,
+    "wall_time": 4055.4
+  },
+  "vanilla_results": {
+    "strategy": "Composite (pop=4, vanilla)",
+    "noeval_fitness": 81.34,
+    "gt_score": 82.32,
+    "api_name_accuracy": 83.33,
+    "param_accuracy": 74.14,
+    "wall_time": 2029.4
+  },
+  "leaderboard": {
+    "GPT-4": {
+      "call": 83.8,
+      "retrieval": 41.2,
+      "plan": 38.8
+    },
+    "GPT-3.5": {
+      "call": 82.6,
+      "retrieval": 35.3,
+      "plan": 13.1
+    },
+    "Lynx-7B": {
+      "call": 78.4,
+      "retrieval": 22.5,
+      "plan": 11.9
+    }
+  },
+  "deltas": {
+    "vs_vanilla_gt": -0.75,
+    "vs_vanilla_api_name": 0.0,
+    "vs_vanilla_param": -3.56,
+    "vs_run1_gt": 1.67,
+    "vs_run1_api_name": 3.33,
+    "vs_run1_param": -0.82
+  },
+  "best_prompt": "You are an API-calling assistant. Given a conversation and API\ndescriptions, generate the correct API request in the format\n[ApiName(key1='value1', key2='value2', ...)].\n\ndescriptions, generate the correct API request in the format\n\nRules:\n- Output EXACTLY ONE API call in the bracket format shown above.\nConsider the user's full intent before choosing an API.\n- Match API names exactly as described.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters.\n- Use single quotes around parameter values.\n- Output ONLY the API call, nothing else.\n\nRespond accurately with the correct API call.",
+  "best_prompt_preview": "You are an API-calling assistant. Given a conversation and API\ndescriptions, generate the correct API request in the format\n[ApiName(key1='value1', key2='value2', ...)].\n\ndescriptions, generate the correct API request in the format\n\nRules:\n- Output EXACTLY ONE API call in the bracket format shown ab"
+}

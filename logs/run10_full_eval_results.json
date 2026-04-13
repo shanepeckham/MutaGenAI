@@ -1,0 +1,107 @@
+{
+  "experiment": "Run 10 full-scale evaluation (evolved only)",
+  "model": "gpt-4.1 (Azure OpenAI)",
+  "val_size": 679,
+  "test_size": 1000,
+  "evolved_prompt": "Classify each input using exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAgent: An autonomous entity or software that initiates actions or makes decisions independently.\nTool: A named system, program, service, or function that performs actions but does not act autonomously; often described by its capabilities.\nTask: An explicit request, command, instruction, or activity to be performed; often starts with action verbs or describes a need.\nInput: Data, parameters, or categories provided for processing; raw information or content submitted to a system, agent, or tool.\nOutput: The response, result, or information produced after executing a task or processing input.\nHuman: Any reference to a person, their comments, requests, or opinions; content clearly authored or attributed to a human.\n\nClassify based on the primary role or purpose in context. If the input describes a functionality, request, or action needed, use Task. If it refers to a named system or function, use Tool. If it is a person's comment or request, use Human.",
+  "evolved_temperature": 0.5491,
+  "evolved_top_p": 0.7,
+  "evolved": {
+    "validation_accuracy": 92.19440353460972,
+    "test_accuracy": 92.2,
+    "per_class_validation": {
+      "Agent": 64.81481481481481,
+      "Task": 89.28571428571429,
+      "Tool": 99.3975903614458,
+      "Input": 95.45454545454545,
+      "Output": 96.18320610687023,
+      "Human": 82.35294117647058
+    },
+    "per_class_test": {
+      "Agent": 59.79381443298969,
+      "Task": 93.37016574585635,
+      "Tool": 98.41897233201581,
+      "Input": 97.85407725321889,
+      "Output": 96.3157894736842,
+      "Human": 76.08695652173914
+    },
+    "per_class_counts_val": {
+      "Agent": {
+        "correct": 35,
+        "total": 54
+      },
+      "Task": {
+        "correct": 125,
+        "total": 140
+      },
+      "Tool": {
+        "correct": 165,
+        "total": 166
+      },
+      "Input": {
+        "correct": 147,
+        "total": 154
+      },
+      "Output": {
+        "correct": 126,
+        "total": 131
+      },
+      "Human": {
+        "correct": 28,
+        "total": 34
+      }
+    },
+    "per_class_counts_test": {
+      "Agent": {
+        "correct": 58,
+        "total": 97
+      },
+      "Task": {
+        "correct": 169,
+        "total": 181
+      },
+      "Tool": {
+        "correct": 249,
+        "total": 253
+      },
+      "Input": {
+        "correct": 228,
+        "total": 233
+      },
+      "Output": {
+        "correct": 183,
+        "total": 190
+      },
+      "Human": {
+        "correct": 35,
+        "total": 46
+      }
+    },
+    "wall_time_s": 1483.335216999054
+  },
+  "static_baseline": {
+    "validation_accuracy": 86.00883652430045,
+    "test_accuracy": 86.0,
+    "per_class_validation": {
+      "Agent": 79.62962962962963,
+      "Task": 87.85714285714286,
+      "Tool": 85.54216867469879,
+      "Input": 96.1038961038961,
+      "Output": 96.94656488549617,
+      "Human": 2.941176470588235
+    },
+    "per_class_test": {
+      "Agent": 80.41237113402062,
+      "Task": 91.16022099447514,
+      "Tool": 81.81818181818183,
+      "Input": 97.85407725321889,
+      "Output": 95.78947368421052,
+      "Human": 0.0
+    },
+    "source": "full_eval_1000_results.json"
+  },
+  "comparison": {
+    "val_delta": 6.185567010309271,
+    "test_delta": 6.200000000000003
+  }
+}

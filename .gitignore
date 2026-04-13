@@ -1,0 +1,15 @@
+.env
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+dist/
+build/
+.DS_Store
+.coverage
+.xlam_cache/
+xlam_experiment_log.json
+.toolbench_cache/
+toolbench_experiment_log.json
+.apibank_cache/
+.browser_agent_cache/

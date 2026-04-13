@@ -1,0 +1,14 @@
+{
+  "name": "entity-classification",
+  "description": "Diverse seed prompts for classifying text into agentic AI entity types (Agent, Task, Tool, Input, Output, Human). Archetypes drawn from Promptbreeder (Fernando et al., 2023) and MIPRO (Opsahl-Ong et al., 2024) research on prompt diversity.",
+  "seeds": [
+    "Classify this text as Agent, Task, Tool, Input, Output, or Human.",
+    "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.",
+    "Think about what role this text plays in an agentic AI system, then classify it as Agent, Task, Tool, Input, Output, or Human.",
+    "You are an expert in agentic AI systems. Determine the entity type: Agent, Task, Tool, Input, Output, or Human.",
+    "An Agent acts autonomously, a Task is work to perform, a Tool is a capability, Input is incoming data, Output is produced data, Human is a person. Classify this text.",
+    "Entity type?",
+    "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.",
+    "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+  ]
+}

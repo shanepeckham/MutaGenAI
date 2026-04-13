@@ -1,0 +1,82 @@
+{
+  "description": "Held-out evaluation \u2014 samples excluded from evolution",
+  "holdout_seed": 99,
+  "evolution_seed": 42,
+  "evo_val_indices_excluded": 200,
+  "evo_test_indices_excluded": 200,
+  "val_size": 479,
+  "test_size": 500,
+  "evolved": {
+    "validation_accuracy": 91.44050104384134,
+    "test_accuracy": 90.4,
+    "per_class_validation": {
+      "Agent": 60.46511627906976,
+      "Task": 91.42857142857143,
+      "Tool": 98.1651376146789,
+      "Input": 96.3963963963964,
+      "Output": 96.66666666666667,
+      "Human": 71.42857142857143
+    },
+    "per_class_test": {
+      "Agent": 48.0,
+      "Task": 91.57894736842105,
+      "Tool": 99.17355371900827,
+      "Input": 96.49122807017544,
+      "Output": 95.23809523809523,
+      "Human": 73.33333333333333
+    },
+    "per_class_counts_val": {
+      "Agent": {
+        "correct": 26,
+        "total": 43
+      },
+      "Task": {
+        "correct": 96,
+        "total": 105
+      },
+      "Tool": {
+        "correct": 107,
+        "total": 109
+      },
+      "Input": {
+        "correct": 107,
+        "total": 111
+      },
+      "Output": {
+        "correct": 87,
+        "total": 90
+      },
+      "Human": {
+        "correct": 15,
+        "total": 21
+      }
+    },
+    "per_class_counts_test": {
+      "Agent": {
+        "correct": 24,
+        "total": 50
+      },
+      "Task": {
+        "correct": 87,
+        "total": 95
+      },
+      "Tool": {
+        "correct": 120,
+        "total": 121
+      },
+      "Input": {
+        "correct": 110,
+        "total": 114
+      },
+      "Output": {
+        "correct": 100,
+        "total": 105
+      },
+      "Human": {
+        "correct": 11,
+        "total": 15
+      }
+    }
+  },
+  "wall_time_s": 839.3786308765411
+}

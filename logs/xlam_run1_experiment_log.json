@@ -1,0 +1,96 @@
+{
+  "timestamp": "2026-04-13T08:53:11",
+  "experiment": "xlam_adaptive_run1",
+  "benchmark": "xlam_function_calling_60k",
+  "ollama_model": "llama3.2",
+  "improvements": [
+    "custom_function_call_mutations",
+    "warmup_adaptive",
+    "iterations_6_pop_4",
+    "tool_success_scorer",
+    "error_decay_0.5",
+    "category_aware_adaptive"
+  ],
+  "config": {
+    "iterations": 6,
+    "population_size": 4,
+    "num_islands": 2,
+    "elite_size": 3,
+    "mutation_rate": 0.5,
+    "crossover_rate": 0.3,
+    "adaptive_mutations": true,
+    "llm_mutation_rate": 0.3,
+    "warmup_adaptive": true,
+    "error_decay": 0.5,
+    "problem_type": "tool_routing"
+  },
+  "scorer_weights": {
+    "LLMJudge": 0.45,
+    "ToolSuccess": 0.3,
+    "ProxyMetrics": 0.25
+  },
+  "default_baseline": {
+    "overall": 0.9464,
+    "name_accuracy": 1.0,
+    "param_accuracy": 0.7681,
+    "n_cases": 20
+  },
+  "results_subset": {
+    "overall": 0.953,
+    "name_accuracy": 0.9722,
+    "param_accuracy": 0.7597,
+    "n_cases": 20
+  },
+  "results_full": {
+    "overall": 0.9573,
+    "name_accuracy": 0.996,
+    "param_accuracy": 0.8467,
+    "n_cases": 150
+  },
+  "noeval_fitness": 92.65,
+  "best_temperature": 0.2217,
+  "best_top_p": 0.8654,
+  "wall_time": 3440.6,
+  "history": [
+    [
+      1,
+      89.88846153846154
+    ],
+    [
+      2,
+      90.56346153846154
+    ],
+    [
+      3,
+      91.97500000000001
+    ],
+    [
+      4,
+      92.2
+    ],
+    [
+      5,
+      92.65
+    ],
+    [
+      6,
+      92.65
+    ]
+  ],
+  "vanilla_results": {
+    "strategy": "Vanilla Composite (pop=4, 3 gens)",
+    "noeval_fitness": 93.22,
+    "gt_overall": 95.51,
+    "gt_name_acc": 100.0,
+    "gt_param_acc": 77.78,
+    "wall_time": 2581.7
+  },
+  "deltas": {
+    "vs_vanilla_gt": 0.22,
+    "vs_vanilla_func_name": -0.4,
+    "vs_vanilla_param": 6.89,
+    "vs_default_gt": 1.1
+  },
+  "best_prompt": "You are a function-calling assistant.\nFor parallel calls, output each on its own line in [func(param=val)] format.\n\n## Task\nGiven a user query and a list of available functions, produce one or more function calls to fulfil the request. Output function calls only in the format: [func_name(param=value, ...)]. Do not include any explanation outside the function call brackets.\n\n## Instructions\n1) Read the function descriptions carefully.\n2) Identify expected parameters with specific data types for each query (e.g., email for \"email\" queries).\n3) If a parameter's type is ambiguous or unknown, output a default value (e.g., 'unknown').\n4.{{tool_schemas}}\n5. To disambiguate similar function names, consider the first word of the function name and any relevant parameters.\n6. Handle query types by applying relevant functions directly:\n   - For numerical queries: average, create_histogram\n   - For string queries with expected data types (e.g., email): is_valid_email\n   - For other queries or unknown parameter types: output a default value or provide an error message as needed.",
+  "best_prompt_preview": "You are a function-calling assistant.\nFor parallel calls, output each on its own line in [func(param=val)] format.\n\n## Task\nGiven a user query and a list of available functions, produce one or more function calls to fulfil the request. Output function calls only in the format: [func_name(param=value"
+}

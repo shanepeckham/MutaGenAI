@@ -1,0 +1,1270 @@
+{
+  "experiment": "Entity Classification: Static vs Evolved Prompt",
+  "recipe": 51,
+  "dataset": "holistic-ai/entity-classification-agentic-ai",
+  "model": "llama3.2 (Ollama)",
+  "entity_types": [
+    "Agent",
+    "Task",
+    "Tool",
+    "Input",
+    "Output",
+    "Human"
+  ],
+  "sample_sizes": {
+    "evolution": 40,
+    "validation_eval": 200,
+    "test_eval": 200
+  },
+  "config": {
+    "iterations": 5,
+    "population_size": 8,
+    "num_islands": 2,
+    "elite_size": 4,
+    "mutation_rate": 0.5,
+    "crossover_rate": 0.3,
+    "migration_interval": 2
+  },
+  "static_prompt": {
+    "prompt": "You are an expert classifier for agentic AI systems.\nYour task is to classify the given text into exactly ONE of the following entity types:\n- Agent: An autonomous system or actor that performs actions (e.g., AI assistant, bot, system component)\n- Task: A goal, instruction, or objective to be completed\n- Tool: A function, API, software, or resource used to perform a task\n- Input: Data or information provided to a system\n- Output: Data or information produced by a system\n- Human: A person or human actor involved in the process\n---\nInstructions:\n- Choose the SINGLE best matching entity type\n- Do NOT explain your answer\n- Do NOT output anything except the label\n- If uncertain, choose the closest match based on intent",
+    "validation_accuracy": 83.0,
+    "test_accuracy": 87.0,
+    "per_class_validation": {
+      "Agent": 81.81818181818183,
+      "Task": 85.71428571428571,
+      "Tool": 84.21052631578947,
+      "Input": 93.02325581395348,
+      "Output": 95.1219512195122,
+      "Human": 0.0
+    },
+    "per_class_test": {
+      "Agent": 91.30434782608695,
+      "Task": 89.74358974358975,
+      "Tool": 89.13043478260869,
+      "Input": 100.0,
+      "Output": 94.5945945945946,
+      "Human": 0.0
+    },
+    "wall_time_s": 332.4
+  },
+  "evolution": {
+    "seed_prompts": [
+      "Classify this text as Agent, Task, Tool, Input, Output, or Human.",
+      "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.",
+      "Think about what role this text plays in an agentic AI system, then classify it as Agent, Task, Tool, Input, Output, or Human.",
+      "You are an expert in agentic AI systems. Determine the entity type: Agent, Task, Tool, Input, Output, or Human.",
+      "An Agent acts autonomously, a Task is work to perform, a Tool is a capability, Input is incoming data, Output is produced data, Human is a person. Classify this text.",
+      "Entity type?",
+      "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.",
+      "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+    ],
+    "best_prompt": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}",
+    "best_score_evo_subset": 95.0,
+    "best_temperature": 0.7067,
+    "best_top_p": 0.7588,
+    "validation_accuracy": 87.5,
+    "test_accuracy": 85.5,
+    "per_class_validation": {
+      "Agent": 100.0,
+      "Task": 88.57142857142857,
+      "Tool": 98.24561403508771,
+      "Input": 90.69767441860465,
+      "Output": 92.6829268292683,
+      "Human": 0.0
+    },
+    "per_class_test": {
+      "Agent": 86.95652173913044,
+      "Task": 79.48717948717949,
+      "Tool": 95.65217391304348,
+      "Input": 100.0,
+      "Output": 91.8918918918919,
+      "Human": 0.0
+    },
+    "search_time_s": 3373.0,
+    "eval_time_s": 392.6,
+    "total_candidates": 88,
+    "history": [
+      [
+        1,
+        92.5
+      ],
+      [
+        2,
+        95.0
+      ],
+      [
+        3,
+        95.0
+      ],
+      [
+        4,
+        95.0
+      ],
+      [
+        5,
+        95.0
+      ]
+    ],
+    "all_candidates": [
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 95.0,
+        "temperature": 0.7067,
+        "top_p": 0.7588,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 95.0,
+        "temperature": 0.7895,
+        "top_p": 0.7439,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "ece57dc7d350e2bb",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "ece57dc7d350e2bb"
+        ],
+        "score": 95.0,
+        "temperature": 0.7353,
+        "top_p": 0.9515,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\n{tool_schemas}\nAvailable tools:"
+      },
+      {
+        "hash": "85477eda714be891",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "b5330f9a7b349282",
+          "b5330f9a7b349282"
+        ],
+        "score": 95.0,
+        "temperature": 0.7611,
+        "top_p": 0.7532,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\nAlways try to fill in parameter values from the user's message.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 95.0,
+        "temperature": 0.6673,
+        "top_p": 0.7564,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "d9684c213ce13a1f",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 95.0,
+        "temperature": 0.7769,
+        "top_p": 0.707,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\nRespond concisely in JSON format only.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "d1c98eb7b9c640eb",
+          "aca916f43e43411d"
+        ],
+        "score": 92.5,
+        "temperature": 0.7596,
+        "top_p": 0.8026,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "ece57dc7d350e2bb",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 92.5,
+        "temperature": 0.7825,
+        "top_p": 0.9285,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\n{tool_schemas}\nAvailable tools:"
+      },
+      {
+        "hash": "4029a959e56bbe41",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 92.5,
+        "temperature": 0.6942,
+        "top_p": 0.7,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\n{tool_schemas}"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 92.5,
+        "temperature": 0.623,
+        "top_p": 0.729,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "8147c94aea865dbf",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 92.5,
+        "temperature": 0.74,
+        "top_p": 0.7575,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\nAlways try to fill in parameter values from the user's message.\n{tool_schemas}"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 92.5,
+        "temperature": 0.8403,
+        "top_p": 0.7492,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 92.5,
+        "temperature": 0.5911,
+        "top_p": 0.7441,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "5e21fc9a435c1856",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "85477eda714be891",
+          "b5330f9a7b349282"
+        ],
+        "score": 92.5,
+        "temperature": 0.7852,
+        "top_p": 0.7,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\nAlways try to fill in parameter values from the user's message.\n\nAvailable tools:\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "407d88be42ac9b26",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "b5330f9a7b349282",
+          "b5330f9a7b349282"
+        ],
+        "score": 92.5,
+        "temperature": 0.9948,
+        "top_p": 0.7525,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\nAvailable tools:\nBe precise \u2014 ambiguous queries should still resolve to one tool.\n{tool_schemas}"
+      },
+      {
+        "hash": "17f31e2a30499505",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "b5330f9a7b349282",
+          "ece57dc7d350e2bb"
+        ],
+        "score": 92.5,
+        "temperature": 0.7852,
+        "top_p": 0.7724,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n{tool_schemas}\nAvailable tools:"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 92.5,
+        "temperature": 0.7381,
+        "top_p": 0.7465,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "6163561feffa05a2",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "b5330f9a7b349282",
+          "ece57dc7d350e2bb"
+        ],
+        "score": 92.5,
+        "temperature": 0.818,
+        "top_p": 0.7465,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}\nAvailable tools:"
+      },
+      {
+        "hash": "92976d96e9791a02",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "b5330f9a7b349282",
+          "b5330f9a7b349282"
+        ],
+        "score": 90.0,
+        "temperature": 0.5896,
+        "top_p": 0.9153,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\nAvailable tools:\n\n{tool_schemas}"
+      },
+      {
+        "hash": "ece57dc7d350e2bb",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 90.0,
+        "temperature": 0.8543,
+        "top_p": 0.7772,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\n{tool_schemas}\nAvailable tools:"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 90.0,
+        "temperature": 0.6204,
+        "top_p": 0.7514,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 90.0,
+        "temperature": 0.7621,
+        "top_p": 0.8751,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 90.0,
+        "temperature": 0.7995,
+        "top_p": 0.7285,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 90.0,
+        "temperature": 0.8224,
+        "top_p": 0.762,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 90.0,
+        "temperature": 0.9328,
+        "top_p": 0.7485,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "ece57dc7d350e2bb",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "ece57dc7d350e2bb"
+        ],
+        "score": 90.0,
+        "temperature": 0.9773,
+        "top_p": 0.9732,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\n{tool_schemas}\nAvailable tools:"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 90.0,
+        "temperature": 0.6026,
+        "top_p": 0.7,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "ece57dc7d350e2bb",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "ece57dc7d350e2bb"
+        ],
+        "score": 90.0,
+        "temperature": 0.6082,
+        "top_p": 0.8649,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\n{tool_schemas}\nAvailable tools:"
+      },
+      {
+        "hash": "4006de19d21b2dc0",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "ece57dc7d350e2bb",
+          "b5330f9a7b349282"
+        ],
+        "score": 90.0,
+        "temperature": 0.5661,
+        "top_p": 0.9506,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\n\nThe parameters object must contain string values only.\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "17f31e2a30499505",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "ece57dc7d350e2bb",
+          "ece57dc7d350e2bb"
+        ],
+        "score": 90.0,
+        "temperature": 0.7186,
+        "top_p": 0.9923,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n{tool_schemas}\nAvailable tools:"
+      },
+      {
+        "hash": "ece57dc7d350e2bb",
+        "generation": 5,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "ece57dc7d350e2bb"
+        ],
+        "score": 90.0,
+        "temperature": 0.6917,
+        "top_p": 0.9275,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\n{tool_schemas}\nAvailable tools:"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 87.5,
+        "temperature": 0.765,
+        "top_p": 0.8454,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "97c376aaa4b5a544",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "b5330f9a7b349282",
+          "e665cbb394b637c6"
+        ],
+        "score": 87.5,
+        "temperature": 0.7676,
+        "top_p": 0.7,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "4029a959e56bbe41",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 87.5,
+        "temperature": 0.6887,
+        "top_p": 0.7686,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\n{tool_schemas}"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 87.5,
+        "temperature": 0.8395,
+        "top_p": 0.7553,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 87.5,
+        "temperature": 0.6736,
+        "top_p": 0.8145,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 87.5,
+        "temperature": 0.7927,
+        "top_p": 0.7574,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "d1c98eb7b9c640eb"
+        ],
+        "score": 85.0,
+        "temperature": 0.7652,
+        "top_p": 0.8989,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 85.0,
+        "temperature": 0.7125,
+        "top_p": 0.8158,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 85.0,
+        "temperature": 0.7269,
+        "top_p": 0.801,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 85.0,
+        "temperature": 0.5685,
+        "top_p": 0.7784,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "92976d96e9791a02",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 85.0,
+        "temperature": 0.7733,
+        "top_p": 0.813,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\nAvailable tools:\n\n{tool_schemas}"
+      },
+      {
+        "hash": "4029a959e56bbe41",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 85.0,
+        "temperature": 0.7735,
+        "top_p": 0.7243,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\n{tool_schemas}"
+      },
+      {
+        "hash": "ece57dc7d350e2bb",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "ece57dc7d350e2bb"
+        ],
+        "score": 85.0,
+        "temperature": 0.9388,
+        "top_p": 0.9471,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\n{tool_schemas}\nAvailable tools:"
+      },
+      {
+        "hash": "4029a959e56bbe41",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "ece57dc7d350e2bb"
+        ],
+        "score": 85.0,
+        "temperature": 0.7687,
+        "top_p": 0.954,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\n{tool_schemas}"
+      },
+      {
+        "hash": "cd2e54ba13200afa",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "b5330f9a7b349282",
+          "ece57dc7d350e2bb"
+        ],
+        "score": 85.0,
+        "temperature": 0.6999,
+        "top_p": 0.7719,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\n\n{tool_schemas}\nAvailable tools:"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 85.0,
+        "temperature": 0.7608,
+        "top_p": 0.7969,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "29af79a108cb0d9f",
+        "generation": 5,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "b5330f9a7b349282",
+          "b5330f9a7b349282"
+        ],
+        "score": 85.0,
+        "temperature": 0.5784,
+        "top_p": 0.7945,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "b5330f9a7b349282",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "b5330f9a7b349282",
+          "b5330f9a7b349282"
+        ],
+        "score": 82.5,
+        "temperature": 0.7948,
+        "top_p": 0.8053,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "29af79a108cb0d9f",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "b5330f9a7b349282",
+          "b5330f9a7b349282"
+        ],
+        "score": 82.5,
+        "temperature": 0.5585,
+        "top_p": 0.7,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "e665cbb394b637c6",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "e665cbb394b637c6"
+        ],
+        "score": 80.0,
+        "temperature": 0.6637,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 80.0,
+        "temperature": 0.5718,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "82dcb4a7888b1d1f",
+        "generation": 4,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "b5330f9a7b349282",
+          "b5330f9a7b349282"
+        ],
+        "score": 80.0,
+        "temperature": 0.5572,
+        "top_p": 0.827,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 77.5,
+        "temperature": 0.6129,
+        "top_p": 0.9697,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "da2833b5b9417dfc",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "crossover",
+        "parent_hashes": [
+          "aca916f43e43411d",
+          "aca916f43e43411d"
+        ],
+        "score": 77.5,
+        "temperature": 0.4915,
+        "top_p": 0.7905,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "e665cbb394b637c6",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "770405eae22e8f21",
+          "770405eae22e8f21"
+        ],
+        "score": 75.0,
+        "temperature": 0.858,
+        "top_p": 0.9265,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "e665cbb394b637c6",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 75.0,
+        "temperature": 0.6506,
+        "top_p": 0.9613,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 75.0,
+        "temperature": 0.6164,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "015ffe34dc4ec507",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 75.0,
+        "temperature": 0.7708,
+        "top_p": 0.9777,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nPay close attention to parameter extraction from the query.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "ef8ee8c948a1a234",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 75.0,
+        "temperature": 0.5746,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nIf multiple tools could apply, choose the most specific one.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 75.0,
+        "temperature": 0.6124,
+        "top_p": 0.9615,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "e665cbb394b637c6",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "770405eae22e8f21",
+          "770405eae22e8f21"
+        ],
+        "score": 75.0,
+        "temperature": 0.491,
+        "top_p": 0.9258,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "c6e8a3a18eb4f2cd",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 75.0,
+        "temperature": 0.7166,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nMatch the user's intent to the tool purpose, not the tool name.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "b40ff02bc92d80c8",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "b5330f9a7b349282",
+          "b5330f9a7b349282"
+        ],
+        "score": 75.0,
+        "temperature": 0.8788,
+        "top_p": 0.8157,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\nAvailable tools:\nMatch the user's intent to the tool purpose, not the tool name.\n{tool_schemas}"
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 75.0,
+        "temperature": 0.723,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 0,
+        "island_id": 0,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 72.5,
+        "temperature": 0.6439,
+        "top_p": 0.9468,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 72.5,
+        "temperature": 0.5758,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "770405eae22e8f21",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "clone",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 72.5,
+        "temperature": 0.6601,
+        "top_p": 0.9761,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human."
+      },
+      {
+        "hash": "e665cbb394b637c6",
+        "generation": 2,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "e665cbb394b637c6"
+        ],
+        "score": 72.5,
+        "temperature": 0.7438,
+        "top_p": 0.9805,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "39b921f0de343414",
+        "generation": 0,
+        "island_id": 0,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 70.0,
+        "temperature": 0.774,
+        "top_p": 0.8317,
+        "template": "Classify this text as Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "4d39e455957b3255",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 67.5,
+        "temperature": 0.7182,
+        "top_p": 0.974,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nDo not include any explanation outside the JSON object.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 67.5,
+        "temperature": 0.2747,
+        "top_p": 0.7,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "clone",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 67.5,
+        "temperature": 0.3411,
+        "top_p": 0.7771,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "6e715890df038c59",
+        "generation": 1,
+        "island_id": 0,
+        "operation": "mutate",
+        "parent_hashes": [
+          "770405eae22e8f21"
+        ],
+        "score": 65.0,
+        "temperature": 0.5519,
+        "top_p": 0.9717,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nRespond concisely in JSON format only.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "aca916f43e43411d",
+        "generation": 0,
+        "island_id": 1,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 62.5,
+        "temperature": 0.4434,
+        "top_p": 0.7682,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "5ff0d43af6ed7da4",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 62.5,
+        "temperature": 0.4506,
+        "top_p": 0.7417,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\nIf a required parameter is unclear, infer it from context.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "da2833b5b9417dfc",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "aca916f43e43411d"
+        ],
+        "score": 60.0,
+        "temperature": 0.3398,
+        "top_p": 0.7,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "da2833b5b9417dfc",
+        "generation": 1,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "aca916f43e43411d",
+          "aca916f43e43411d"
+        ],
+        "score": 57.5,
+        "temperature": 0.5069,
+        "top_p": 0.7571,
+        "template": "This component must be precisely categorized for system correctness. Choose: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "4cea0541e41ac0b0",
+        "generation": 3,
+        "island_id": 0,
+        "operation": "crossover",
+        "parent_hashes": [
+          "e665cbb394b637c6",
+          "b5330f9a7b349282"
+        ],
+        "score": 57.5,
+        "temperature": 0.7387,
+        "top_p": 1.0,
+        "template": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\n\nAvailable tools:\n\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "cdd9173d3980e269",
+        "generation": 3,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 56.15,
+        "temperature": 0.6273,
+        "top_p": 0.7807,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\nOutput format: {\"tool\": \"<name>\", \"parameters\": {<key>: <value>}}\n{tool_schemas}"
+      },
+      {
+        "hash": "cdd9173d3980e269",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "b5330f9a7b349282"
+        ],
+        "score": 55.0,
+        "temperature": 0.6814,
+        "top_p": 0.7508,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\nOutput format: {\"tool\": \"<name>\", \"parameters\": {<key>: <value>}}\n{tool_schemas}"
+      },
+      {
+        "hash": "d1c98eb7b9c640eb",
+        "generation": 0,
+        "island_id": 1,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 52.5,
+        "temperature": 0.8586,
+        "top_p": 0.9092,
+        "template": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "5bd4406c63562cd2",
+        "generation": 0,
+        "island_id": 0,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 50.0,
+        "temperature": 0.0942,
+        "top_p": 0.9927,
+        "template": "Think about what role this text plays in an agentic AI system, then classify it as Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "1dca0ae347abda9c",
+        "generation": 0,
+        "island_id": 0,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 45.0,
+        "temperature": 0.1281,
+        "top_p": 0.8351,
+        "template": "An Agent acts autonomously, a Task is work to perform, a Tool is a capability, Input is incoming data, Output is produced data, Human is a person. Classify this text."
+      },
+      {
+        "hash": "af0d4cc397bce306",
+        "generation": 0,
+        "island_id": 1,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 42.5,
+        "temperature": 0.7611,
+        "top_p": 0.9358,
+        "template": "You are an expert in agentic AI systems. Determine the entity type: Agent, Task, Tool, Input, Output, or Human."
+      },
+      {
+        "hash": "b83c9075cfa5ac61",
+        "generation": 0,
+        "island_id": 1,
+        "operation": "seed",
+        "parent_hashes": [],
+        "score": 32.5,
+        "temperature": 0.3708,
+        "top_p": 0.978,
+        "template": "Entity type?"
+      },
+      {
+        "hash": "2f1687ad97235490",
+        "generation": 2,
+        "island_id": 1,
+        "operation": "crossover+mutate",
+        "parent_hashes": [
+          "b5330f9a7b349282",
+          "b5330f9a7b349282"
+        ],
+        "score": 20.0,
+        "temperature": 0.7351,
+        "top_p": 0.8415,
+        "template": "\nThink about what the user actually needs, not just keywords.\nAvailable tools:\n{tool_schemas}"
+      },
+      {
+        "hash": "338a71cdae6c1343",
+        "generation": 4,
+        "island_id": 1,
+        "operation": "mutate",
+        "parent_hashes": [
+          "ece57dc7d350e2bb"
+        ],
+        "score": 12.5,
+        "temperature": 0.7805,
+        "top_p": 0.8732,
+        "template": "\n{tool_schemas}\nYou MUST pick exactly one tool. Do not refuse.\nAvailable tools:"
+      }
+    ]
+  },
+  "comparison": {
+    "validation_static": 83.0,
+    "validation_evolved": 87.5,
+    "validation_lift": 4.5,
+    "test_static": 87.0,
+    "test_evolved": 85.5,
+    "test_lift": -1.5,
+    "winner": "static"
+  }
+}

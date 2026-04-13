@@ -1,0 +1,160 @@
+{
+  "experiment": "Full 1000-sample evaluation",
+  "model": "gpt-4.1 (Azure OpenAI)",
+  "val_size": 679,
+  "test_size": 1000,
+  "static": {
+    "prompt": "You are an expert classifier for agentic AI systems.\nYour task is to classify the given text into exactly ONE of the following entity types:\n- Agent: An autonomous system or actor that performs actions (e.g., AI assistant, bot, system component)\n- Task: A goal, instruction, or objective to be completed\n- Tool: A function, API, software, or resource used to perform a task\n- Input: Data or information provided to a system\n- Output: Data or information produced by a system\n- Human: A person or human actor involved in the process\n---\nInstructions:\n- Choose the SINGLE best matching entity type\n- Do NOT explain your answer\n- Do NOT output anything except the label\n- If uncertain, choose the closest match based on intent",
+    "temperature": 0.7,
+    "top_p": 0.95,
+    "validation_accuracy": 86.00883652430045,
+    "test_accuracy": 86.0,
+    "per_class_validation": {
+      "Agent": 79.62962962962963,
+      "Task": 87.85714285714286,
+      "Tool": 85.54216867469879,
+      "Input": 96.1038961038961,
+      "Output": 96.94656488549617,
+      "Human": 2.941176470588235
+    },
+    "per_class_test": {
+      "Agent": 80.41237113402062,
+      "Task": 91.16022099447514,
+      "Tool": 81.81818181818183,
+      "Input": 97.85407725321889,
+      "Output": 95.78947368421052,
+      "Human": 0.0
+    },
+    "per_class_counts_val": {
+      "Agent": {
+        "correct": 43,
+        "total": 54
+      },
+      "Task": {
+        "correct": 123,
+        "total": 140
+      },
+      "Tool": {
+        "correct": 142,
+        "total": 166
+      },
+      "Input": {
+        "correct": 148,
+        "total": 154
+      },
+      "Output": {
+        "correct": 127,
+        "total": 131
+      },
+      "Human": {
+        "correct": 1,
+        "total": 34
+      }
+    },
+    "per_class_counts_test": {
+      "Agent": {
+        "correct": 78,
+        "total": 97
+      },
+      "Task": {
+        "correct": 165,
+        "total": 181
+      },
+      "Tool": {
+        "correct": 207,
+        "total": 253
+      },
+      "Input": {
+        "correct": 228,
+        "total": 233
+      },
+      "Output": {
+        "correct": 182,
+        "total": 190
+      },
+      "Human": {
+        "correct": 0,
+        "total": 46
+      }
+    }
+  },
+  "evolved": {
+    "prompt": "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.\n\nAvailable tools:\n{tool_schemas}",
+    "temperature": 0.7067,
+    "top_p": 0.7588,
+    "validation_accuracy": 88.07069219440353,
+    "test_accuracy": 88.0,
+    "per_class_validation": {
+      "Agent": 81.48148148148148,
+      "Task": 86.42857142857143,
+      "Tool": 96.3855421686747,
+      "Input": 94.8051948051948,
+      "Output": 94.65648854961832,
+      "Human": 8.823529411764707
+    },
+    "per_class_test": {
+      "Agent": 78.35051546391753,
+      "Task": 85.6353591160221,
+      "Tool": 96.83794466403161,
+      "Input": 95.27896995708154,
+      "Output": 95.26315789473684,
+      "Human": 2.1739130434782608
+    },
+    "per_class_counts_val": {
+      "Agent": {
+        "correct": 44,
+        "total": 54
+      },
+      "Task": {
+        "correct": 121,
+        "total": 140
+      },
+      "Tool": {
+        "correct": 160,
+        "total": 166
+      },
+      "Input": {
+        "correct": 146,
+        "total": 154
+      },
+      "Output": {
+        "correct": 124,
+        "total": 131
+      },
+      "Human": {
+        "correct": 3,
+        "total": 34
+      }
+    },
+    "per_class_counts_test": {
+      "Agent": {
+        "correct": 76,
+        "total": 97
+      },
+      "Task": {
+        "correct": 155,
+        "total": 181
+      },
+      "Tool": {
+        "correct": 245,
+        "total": 253
+      },
+      "Input": {
+        "correct": 222,
+        "total": 233
+      },
+      "Output": {
+        "correct": 181,
+        "total": 190
+      },
+      "Human": {
+        "correct": 1,
+        "total": 46
+      }
+    }
+  },
+  "winner": "EVOLVED",
+  "val_delta": 2.0618556701030855,
+  "test_delta": 2.0,
+  "total_wall_time_s": 2892.833349943161
+}

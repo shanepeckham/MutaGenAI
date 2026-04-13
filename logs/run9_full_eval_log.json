@@ -1,0 +1,114 @@
+{
+  "experiment": "Run 9 Full Eval \u2014 Classification Mutations Winning Prompt",
+  "winning_prompt": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider the semantic meaning of the input, not just keywords.\nChoose the single most specific category that fits.\nReturn exactly one category label \u2014 no extra text.",
+  "temperature": 0.7037,
+  "top_p": 0.927,
+  "validation": {
+    "accuracy": 87.62886597938144,
+    "correct": 595,
+    "total": 679,
+    "per_class": {
+      "Agent": {
+        "accuracy": 74.07407407407408,
+        "correct": 40,
+        "total": 54
+      },
+      "Task": {
+        "accuracy": 83.57142857142857,
+        "correct": 117,
+        "total": 140
+      },
+      "Tool": {
+        "accuracy": 92.7710843373494,
+        "correct": 154,
+        "total": 166
+      },
+      "Input": {
+        "accuracy": 93.5064935064935,
+        "correct": 144,
+        "total": 154
+      },
+      "Output": {
+        "accuracy": 96.18320610687023,
+        "correct": 126,
+        "total": 131
+      },
+      "Human": {
+        "accuracy": 41.17647058823529,
+        "correct": 14,
+        "total": 34
+      }
+    }
+  },
+  "test": {
+    "accuracy": 87.5,
+    "correct": 875,
+    "total": 1000,
+    "per_class": {
+      "Agent": {
+        "accuracy": 77.89473684210526,
+        "correct": 74,
+        "total": 95
+      },
+      "Task": {
+        "accuracy": 85.16483516483517,
+        "correct": 155,
+        "total": 182
+      },
+      "Tool": {
+        "accuracy": 89.43396226415095,
+        "correct": 237,
+        "total": 265
+      },
+      "Input": {
+        "accuracy": 96.80365296803653,
+        "correct": 212,
+        "total": 219
+      },
+      "Output": {
+        "accuracy": 95.28795811518324,
+        "correct": 182,
+        "total": 191
+      },
+      "Human": {
+        "accuracy": 31.25,
+        "correct": 15,
+        "total": 48
+      }
+    }
+  },
+  "val_time_s": 559.2,
+  "test_time_s": 824.0,
+  "prior_static": {
+    "val_acc": 86.0,
+    "val_correct": 584,
+    "val_total": 679,
+    "test_acc": 86.0,
+    "test_correct": 860,
+    "test_total": 1000,
+    "per_class_test": {
+      "Agent": 80.4,
+      "Task": 91.2,
+      "Tool": 81.8,
+      "Input": 97.9,
+      "Output": 95.8,
+      "Human": 0.0
+    }
+  },
+  "prior_evolved_r7": {
+    "val_acc": 88.1,
+    "val_correct": 598,
+    "val_total": 679,
+    "test_acc": 88.0,
+    "test_correct": 880,
+    "test_total": 1000,
+    "per_class_test": {
+      "Agent": 78.4,
+      "Task": 85.6,
+      "Tool": 96.8,
+      "Input": 95.3,
+      "Output": 95.3,
+      "Human": 2.2
+    }
+  }
+}
