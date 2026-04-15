@@ -1,7 +1,6 @@
 """Tests for prompture.prompt_evolver — prompt evolution engine."""
 from __future__ import annotations
 
-import json
 
 import numpy as np
 import pytest
@@ -536,3 +535,207 @@ class TestNewConfigFields:
         cfg = NoEvalConfig(adaptive_mutations=True, llm_mutation_rate=0.3)
         assert cfg.adaptive_mutations is True
         assert cfg.llm_mutation_rate == 0.3
+
+
+# ── PromptEvolverResult tests ────────────────────────────────────────────
+
+
+class TestPromptEvolverResult:
+    def test_lineage_json(self, sample_tools, sample_dataset):
+        config = PromptEvolverConfig(
+            iterations=2,
+            population_size=2,
+            num_islands=1,
+            elite_size=2,
+            backend=LLMBackend.OLLAMA,
+            ollama_url="http://localhost:99999",
+        )
+        evolver = PromptEvolver(
+            tools=sample_tools,
+            eval_dataset=sample_dataset,
+            config=config,
+            seed=42,
+            verbose=False,
+        )
+        result = evolver.run()
+        lineage = result.lineage_json()
+        assert isinstance(lineage, list)
+        assert len(lineage) > 0
+        for rec in lineage:
+            assert "hash" in rec
+            assert "parent_hashes" in rec
+            assert "operation" in rec
+            assert "generation" in rec
+            assert "score" in rec
+            assert "template" in rec
+            assert "island_id" in rec
+
+    def test_lineage_unique_hashes(self, sample_tools, sample_dataset):
+        config = PromptEvolverConfig(
+            iterations=3,
+            population_size=3,
+            num_islands=2,
+            elite_size=2,
+            backend=LLMBackend.OLLAMA,
+            ollama_url="http://localhost:99999",
+        )
+        evolver = PromptEvolver(
+            tools=sample_tools,
+            eval_dataset=sample_dataset,
+            config=config,
+            seed=42,
+            verbose=False,
+        )
+        result = evolver.run()
+        lineage = result.lineage_json()
+        hashes = [r["hash"] for r in lineage]
+        assert len(hashes) == len(set(hashes)), "Lineage hashes must be unique"
+
+
+# ── LLMClient additional backend tests ───────────────────────────────────
+
+
+class TestLLMClientOpenAI:
+    def test_openai_needs_api_key(self, monkeypatch):
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+        cfg = PromptEvolverConfig(
+            backend=LLMBackend.OPENAI,
+            openai_api_key="",
+        )
+        client = LLMClient(cfg)
+        assert client.is_available() is False
+
+    def test_openai_with_key(self, monkeypatch):
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+        cfg = PromptEvolverConfig(
+            backend=LLMBackend.OPENAI,
+            openai_api_key="sk-test-key",
+        )
+        client = LLMClient(cfg)
+        assert client.is_available() is True
+
+    def test_complete_openai_returns_none_when_unreachable(self, monkeypatch):
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+        cfg = PromptEvolverConfig(
+            backend=LLMBackend.OPENAI,
+            openai_api_key="",
+        )
+        client = LLMClient(cfg)
+        result = client.complete("system", "user")
+        assert result is None
+
+
+class TestLLMClientAzureRBAC:
+    def test_rbac_env_var_true(self, monkeypatch):
+        monkeypatch.setenv("AZURE_OPENAI_USE_RBAC", "true")
+        cfg = PromptEvolverConfig()
+        assert cfg.azure_use_rbac is True
+
+    def test_rbac_env_var_false(self, monkeypatch):
+        monkeypatch.setenv("AZURE_OPENAI_USE_RBAC", "false")
+        cfg = PromptEvolverConfig()
+        assert cfg.azure_use_rbac is False
+
+    def test_azure_scope_foundry(self):
+        scope = LLMClient._azure_scope("https://myproject.services.ai.azure.com/openai")
+        assert "ai.azure.com" in scope
+
+    def test_azure_scope_cognitive(self):
+        scope = LLMClient._azure_scope("https://myresource.openai.azure.com")
+        assert "cognitiveservices" in scope
+
+    def test_azure_base_url_strip_openai_path(self):
+        url = LLMClient._azure_base_url(
+            "https://myresource.openai.azure.com/openai/v1/responses"
+        )
+        assert url == "https://myresource.openai.azure.com"
+
+    def test_azure_base_url_no_path(self):
+        url = LLMClient._azure_base_url("https://myresource.openai.azure.com/")
+        assert url == "https://myresource.openai.azure.com"
+
+    def test_is_foundry_endpoint_true(self):
+        assert LLMClient._is_foundry_endpoint(
+            "https://project.services.ai.azure.com"
+        ) is True
+
+    def test_is_foundry_endpoint_false(self):
+        assert LLMClient._is_foundry_endpoint(
+            "https://myresource.openai.azure.com"
+        ) is False
+
+
+# ── ErrorProfile decay test ──────────────────────────────────────────────
+
+
+class TestErrorProfileDecay:
+    def test_decay_halves_counts(self):
+        from prompture.prompt_evolver import ErrorProfile
+
+        ep = ErrorProfile()
+        ep.record("A", False)
+        ep.record("A", False)
+        ep.record("A", True)
+        ep.record("A", True)
+        assert ep.total["A"] == 4
+        assert ep.errors["A"] == 2
+
+        ep.decay(0.5)
+        assert ep.total["A"] == 2
+        assert ep.errors["A"] == 1
+
+    def test_decay_removes_zeroed_categories(self):
+        from prompture.prompt_evolver import ErrorProfile
+
+        ep = ErrorProfile()
+        ep.record("X", False)
+        ep.decay(0.0)
+        assert "X" not in ep.total
+
+
+# ── ProblemType and mutation pool tests ──────────────────────────────────
+
+
+class TestProblemTypeMutations:
+    def test_tool_routing_mutations(self):
+        from prompture.prompt_evolver import ProblemType, get_mutations_for_problem_type
+
+        mutations = get_mutations_for_problem_type(ProblemType.TOOL_ROUTING)
+        assert len(mutations) > 0
+        assert all(isinstance(m, str) for m in mutations)
+
+    def test_classification_mutations(self):
+        from prompture.prompt_evolver import ProblemType, get_mutations_for_problem_type
+
+        mutations = get_mutations_for_problem_type(ProblemType.CLASSIFICATION)
+        assert len(mutations) > 0
+        assert all(isinstance(m, str) for m in mutations)
+
+    def test_different_pools(self):
+        from prompture.prompt_evolver import ProblemType, get_mutations_for_problem_type
+
+        tool_muts = get_mutations_for_problem_type(ProblemType.TOOL_ROUTING)
+        class_muts = get_mutations_for_problem_type(ProblemType.CLASSIFICATION)
+        assert tool_muts != class_muts
+
+
+# ── Crossover with require_tool_schemas=False ────────────────────────────
+
+
+class TestCrossoverNoToolSchemas:
+    def test_crossover_without_tool_schemas(self):
+        import numpy as np
+        a = "Line A1\nLine A2\nLine A3"
+        b = "Line B1\nLine B2\nLine B3"
+        rng = np.random.default_rng(42)
+        child = _crossover_templates(a, b, rng, require_tool_schemas=False)
+        assert isinstance(child, str)
+        assert "{tool_schemas}" not in child  # Not forced
+
+    def test_mutate_without_tool_schemas(self):
+        import numpy as np
+        template = "Line 1\nLine 2\nLine 3\nLine 4\nLine 5"
+        rng = np.random.default_rng(42)
+        mutated = _mutate_template(template, rng, mutation_rate=1.0,
+                                   require_tool_schemas=False)
+        assert isinstance(mutated, str)

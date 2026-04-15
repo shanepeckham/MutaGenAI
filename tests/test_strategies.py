@@ -1,10 +1,7 @@
 """Tests for prompture.strategies — no-eval prompt evolution strategies."""
 from __future__ import annotations
 
-import json
-from unittest.mock import MagicMock, patch
 
-import numpy as np
 import pytest
 
 from prompture.strategies import (
@@ -25,7 +22,6 @@ from prompture.strategies import (
     ToolSuccessScorer,
     _is_valid_json,
 )
-from prompture.prompt_evolver import LLMClient, PromptCandidate
 
 
 # ---------------------------------------------------------------------------

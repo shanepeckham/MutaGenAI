@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MutagenAI — Prompt Lineage Tree</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0c10;--surface:#13161d;--card:#1a1e2a;--card-hover:#222840;
+  --border:#2a2f45;--text:#e4e7f0;--muted:#6b7394;
+  --accent:#7c5cfc;--accent-glow:rgba(124,92,252,.25);
+  --teal:#00d4aa;--green:#22c55e;--orange:#f59e0b;--red:#ef4444;
+  --blue:#3b82f6;--pink:#ec4899;--cyan:#06b6d4;--violet:#8b5cf6;
+  --font-mono:'SF Mono',SFMono-Regular,'Cascadia Code',Consolas,monospace;
+  --font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif;
+  --radius:12px;--radius-sm:8px;
+}
+html{font-size:14px}
+body{background:var(--bg);color:var(--text);font-family:var(--font-sans);line-height:1.55}
+::selection{background:var(--accent);color:#fff}
+
+/* ── Layout ───────────────────────────────── */
+.shell{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:380px;min-width:220px;max-width:70vw;background:var(--surface);border-right:none;display:flex;flex-direction:column;overflow:auto;flex-shrink:0}
+.resize-handle{width:5px;cursor:col-resize;background:var(--border);flex-shrink:0;position:relative;z-index:10;transition:background .15s}
+.resize-handle:hover,.resize-handle.active{background:var(--accent)}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── Header ───────────────────────────────── */
+.header{padding:.8rem 1rem;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:.8rem;flex-shrink:0}
+.header h1{font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header .badge{font-size:.7rem;padding:2px 8px;border-radius:99px;font-weight:600;font-family:var(--font-mono)}
+
+/* ── Controls ─────────────────────────────── */
+.controls{padding:.6rem 1rem;border-bottom:1px solid var(--border);display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;flex-shrink:0}
+.controls label{font-size:.75rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.controls select,.controls input[type=range]{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;font-size:.8rem;outline:none}
+.controls select:focus{border-color:var(--accent)}
+.controls .spacer{flex:1}
+.btn{padding:4px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--card);color:var(--text);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s}
+.btn:hover{border-color:var(--accent);background:var(--card-hover)}
+.btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* ── Tree ─────────────────────────────────── */
+.tree-wrap{flex:1;overflow:auto;padding:.5rem}
+.tree{position:relative}
+
+.tree-node{position:relative;padding-left:24px}
+.tree-node.collapsed > .tree-children{display:none}
+.tree-node.collapsed > .node-row .toggle::after{content:'▶';transform:none}
+
+.tree-children{margin-left:16px;border-left:1px solid var(--border);padding-left:0}
+
+.node-row{display:flex;align-items:center;gap:6px;padding:3px 6px;border-radius:var(--radius-sm);cursor:pointer;transition:background .15s;position:relative;min-height:30px}
+.node-row:hover{background:rgba(124,92,252,.08)}
+.node-row.selected{background:rgba(124,92,252,.15);outline:1px solid var(--accent)}
+.node-row.champion{background:rgba(34,197,94,.08);outline:1px solid var(--green)}
+.node-row.breakthrough{box-shadow:inset 3px 0 0 var(--orange)}
+
+.toggle{width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--muted);flex-shrink:0;border-radius:4px;transition:background .15s}
+.toggle:hover{background:var(--card-hover);color:var(--text)}
+.toggle::after{content:'▼';display:block;transition:transform .15s}
+.toggle.leaf::after{content:'';width:6px;height:6px;border-radius:50%;background:var(--border)}
+
+.op-badge{font-size:.62rem;font-weight:700;padding:1px 6px;border-radius:99px;text-transform:uppercase;letter-spacing:.3px;flex-shrink:0;white-space:nowrap}
+.op-seed{background:rgba(107,115,148,.15);color:var(--muted);border:1px solid rgba(107,115,148,.3)}
+.op-mutation{background:rgba(59,130,246,.12);color:var(--blue);border:1px solid rgba(59,130,246,.25)}
+.op-crossover{background:rgba(139,92,246,.12);color:var(--violet);border:1px solid rgba(139,92,246,.25)}
+.op-llm_mutation{background:rgba(236,72,153,.12);color:var(--pink);border:1px solid rgba(236,72,153,.25)}
+.op-migration{background:rgba(245,158,11,.12);color:var(--orange);border:1px solid rgba(245,158,11,.25)}
+
+.node-hash{font-family:var(--font-mono);font-size:.72rem;color:var(--muted);flex-shrink:0}
+.node-gen{font-size:.68rem;color:var(--muted);flex-shrink:0}
+.node-score{font-family:var(--font-mono);font-size:.78rem;font-weight:700;flex-shrink:0;min-width:48px;text-align:right}
+.node-delta{font-family:var(--font-mono);font-size:.7rem;font-weight:700;flex-shrink:0;min-width:52px;text-align:right}
+.delta-pos{color:var(--green)}
+.delta-neg{color:var(--red)}
+.delta-zero{color:var(--muted)}
+.node-island{font-size:.62rem;font-weight:600;padding:1px 5px;border-radius:4px;flex-shrink:0}
+.island-0{background:rgba(0,212,170,.12);color:var(--teal)}
+.island-1{background:rgba(245,158,11,.12);color:var(--orange)}
+.island-2{background:rgba(236,72,153,.12);color:var(--pink)}
+.island-3{background:rgba(59,130,246,.12);color:var(--blue)}
+
+.node-preview{font-size:.73rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+
+/* ── Detail panel ─────────────────────────── */
+.detail{flex:1;overflow:auto;display:flex;flex-direction:column}
+.detail-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.9rem;text-align:center;padding:2rem}
+
+.detail-header{padding:.8rem 1rem;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0}
+.detail-header .dh-row{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.detail-header .dh-title{font-weight:700;font-size:1rem}
+.detail-meta{display:flex;gap:.8rem;margin-top:.5rem;flex-wrap:wrap}
+.detail-meta .dm-item{font-size:.75rem;color:var(--muted)}
+.detail-meta .dm-item strong{color:var(--text)}
+
+.detail-body{flex:1;overflow:auto;padding:0}
+
+.detail-section{padding:.8rem 1rem;border-bottom:1px solid var(--border)}
+.detail-section-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:.5rem}
+
+.prompt-display{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.8rem;font-family:var(--font-mono);font-size:.78rem;line-height:1.65;white-space:pre-wrap;word-break:break-word;max-height:none;overflow:auto;color:var(--text)}
+
+.diff-display{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.8rem;font-family:var(--font-mono);font-size:.75rem;line-height:1.6;white-space:pre-wrap;word-break:break-word;overflow:auto}
+.diff-add{background:rgba(34,197,94,.1);color:var(--green);display:block;padding:0 4px;margin:0 -4px;border-radius:2px}
+.diff-del{background:rgba(239,68,68,.1);color:var(--red);display:block;padding:0 4px;margin:0 -4px;border-radius:2px;text-decoration:line-through;opacity:.7}
+.diff-ctx{color:var(--muted);display:block}
+
+.lineage-path{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.lineage-chip{font-size:.68rem;padding:2px 8px;border-radius:99px;border:1px solid var(--border);background:var(--card);cursor:pointer;transition:all .15s;font-family:var(--font-mono)}
+.lineage-chip:hover{border-color:var(--accent);background:var(--card-hover)}
+.lineage-arrow{color:var(--muted);font-size:.7rem}
+
+/* ── Stats bar ────────────────────────────── */
+.stats-bar{display:flex;gap:1rem;padding:.5rem 1rem;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0;flex-wrap:wrap}
+.stat-item{font-size:.72rem;color:var(--muted)}
+.stat-item strong{color:var(--text);font-family:var(--font-mono)}
+
+/* ── Load overlay ─────────────────────────── */
+.load-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;z-index:100;transition:opacity .3s}
+.load-overlay.hidden{opacity:0;pointer-events:none}
+.load-overlay h2{font-size:1.3rem;background:linear-gradient(135deg,var(--accent),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.dropzone{border:2px dashed var(--border);border-radius:var(--radius);padding:3rem;text-align:center;cursor:pointer;transition:border-color .2s;max-width:500px;width:90%}
+.dropzone:hover,.dropzone.dragover{border-color:var(--accent)}
+.dropzone p{color:var(--muted);font-size:.9rem;margin-top:.5rem}
+.dropzone .or{color:var(--muted);font-size:.8rem;margin:.8rem 0}
+.dropzone input[type=file]{display:none}
+.load-demo{margin-top:1rem}
+
+/* ── Progress bar ─────────────────────────── */
+.progress-wrap{display:none;width:90%;max-width:400px;text-align:center}
+.progress-wrap.active{display:block}
+.progress-bar{height:6px;background:var(--card);border-radius:3px;overflow:hidden;margin-top:.6rem}
+.progress-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--teal));border-radius:3px;transition:width .15s}
+.progress-msg{font-size:.78rem;color:var(--muted);margin-top:.4rem}
+
+/* ── Responsive ───────────────────────────── */
+@media(max-width:800px){
+  .shell{flex-direction:column}
+  .sidebar{width:100%!important;max-width:100%;height:50vh;border-right:none;border-bottom:1px solid var(--border)}
+  .resize-handle{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- Load overlay -->
+<div class="load-overlay" id="loadOverlay">
+  <h2>🧬 MutagenAI Lineage Tree</h2>
+  <div class="dropzone" id="dropzone">
+    <div style="font-size:2.5rem">📂</div>
+    <p>Drop a <strong>lineage JSON</strong> file here</p>
+    <div class="or">— or —</div>
+    <button class="btn" onclick="document.getElementById('fileInput').click()">Browse file</button>
+    <input type="file" id="fileInput" accept=".json">
+  </div>
+  <button class="btn load-demo" id="loadDemoBtn">Load demo data</button>
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-bar"><div class="progress-bar-fill" id="progressFill"></div></div>
+    <div class="progress-msg" id="progressMsg">Loading…</div>
+  </div>
+  <div style="color:var(--muted);font-size:.75rem;margin-top:.8rem;text-align:center;max-width:460px;line-height:1.6">
+    <p>Generate lineage data from a new evolution run:</p>
+    <pre style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:.6rem;margin-top:.4rem;text-align:left;font-family:var(--font-mono);font-size:.72rem;color:var(--text)">result = evolver.run()
+import json
+with open("lineage.json", "w") as f:
+    json.dump(result.lineage_json(), f, indent=2)</pre>
+    <p style="margin-top:.5rem">Existing experiment logs do not contain lineage data.<br>Lineage tracking is captured on new runs only.</p>
+  </div>
+</div>
+
+<!-- App shell -->
+<div class="shell" id="appShell" style="display:none">
+  <!-- LEFT: Tree sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="header">
+      <h1>🧬 Lineage Tree</h1>
+      <span class="badge" style="background:var(--card);color:var(--muted);border:1px solid var(--border)" id="countBadge">0 nodes</span>
+    </div>
+    <div class="controls">
+      <label>Island</label>
+      <select id="filterIsland"><option value="all">All</option></select>
+      <label style="margin-left:.5rem">Op</label>
+      <select id="filterOp">
+        <option value="all">All</option>
+        <option value="seed">Seed</option>
+        <option value="mutation">Mutation</option>
+        <option value="crossover">Crossover</option>
+        <option value="llm_mutation">LLM Mutation</option>
+        <option value="migration">Migration</option>
+      </select>
+      <div class="spacer"></div>
+      <button class="btn" id="collapseDeadBtn" title="Collapse branches below threshold">Prune dead ends</button>
+      <button class="btn" id="expandAllBtn" title="Expand all">Expand all</button>
+    </div>
+    <div class="controls">
+      <label>Score ≥</label>
+      <input type="range" id="scoreThreshold" min="0" max="100" value="0" style="width:100px">
+      <span id="thresholdVal" style="font-size:.75rem;font-family:var(--font-mono);color:var(--muted);min-width:36px">0%</span>
+      <div class="spacer"></div>
+      <button class="btn" id="traceChampBtn" title="Highlight path from seed to champion">⭐ Champion path</button>
+    </div>
+    <div class="stats-bar" id="statsBar"></div>
+    <div class="tree-wrap" id="treeWrap">
+      <div class="tree" id="treeContainer"></div>
+    </div>
+  </div>
+
+  <!-- Resize handle -->
+  <div class="resize-handle" id="resizeHandle"></div>
+
+  <!-- RIGHT: Detail panel -->
+  <div class="main">
+    <div class="detail" id="detailPanel">
+      <div class="detail-empty">Click a node in the tree to inspect its prompt, lineage, and diff</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let DATA = [];           // flat array of candidate records
+let BY_HASH = {};        // hash → record
+let TREE_ROOTS = [];     // root tree node objects
+let TREE_NODES = {};     // hash → tree node (for fast lookup)
+let SELECTED = null;     // selected hash
+let CHAMPION = null;     // best candidate hash
+let CHAMPION_PATH = new Set(); // hashes on the path from seed to champion
+const LARGE_THRESHOLD = 200; // auto-collapse trees with more nodes
+
+// ══════════════════════════════════════════════
+// PROGRESS HELPERS
+// ══════════════════════════════════════════════
+const progressWrap = document.getElementById('progressWrap');
+const progressFill = document.getElementById('progressFill');
+const progressMsg = document.getElementById('progressMsg');
+
+function showProgress(msg, pct) {
+  progressWrap.classList.add('active');
+  progressMsg.textContent = msg;
+  progressFill.style.width = pct + '%';
+}
+function hideProgress() { progressWrap.classList.remove('active'); }
+
+// ══════════════════════════════════════════════
+// LOAD
+// ══════════════════════════════════════════════
+const overlay = document.getElementById('loadOverlay');
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) loadFile(file);
+});
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) loadFile(fileInput.files[0]); });
+document.getElementById('loadDemoBtn').addEventListener('click', () => loadData(generateDemoData()));
+
+function loadFile(file) {
+  showProgress('Reading file…', 10);
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      showProgress('Parsing JSON…', 30);
+      const raw = JSON.parse(reader.result);
+      showProgress('Normalising data…', 50);
+      const data = normaliseInput(raw);
+      if (!data || data.length === 0) {
+        hideProgress();
+        alert('This file does not contain lineage data.\n\nLineage tracking was just added — existing experiment logs don\'t include it.\n\nTo generate lineage data, run an evolution and export:\n\n  result = evolver.run()\n  import json\n  json.dump(result.lineage_json(), open("lineage.json", "w"), indent=2)\n\nOr click "Load demo data" to explore the visualiser.');
+        return;
+      }
+      showProgress('Deduplicating & fixing cycles…', 60);
+      // Use requestAnimationFrame to let the progress bar paint
+      requestAnimationFrame(() => loadData(data));
+    } catch (err) {
+      hideProgress();
+      alert('Invalid JSON: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+/**
+ * Accept several input shapes and normalise to a flat array of lineage records.
+ * Guarantees unique hashes — appends a suffix to collisions.
+ */
+function normaliseInput(raw) {
+  let arr;
+  if (Array.isArray(raw)) {
+    arr = raw;
+  } else if (raw && typeof raw === 'object') {
+    arr = raw.candidates || raw.all_candidates || raw.lineage || raw.data;
+    if (!arr) arr = [raw];
+  }
+  if (!Array.isArray(arr) || arr.length === 0) return null;
+
+  const hasTemplate = arr.some(d => typeof d.template === 'string');
+  const hasScore = arr.some(d => typeof d.score === 'number');
+  if (!hasTemplate && !hasScore) return null;
+
+  // Fill defaults
+  let autoIdx = 0;
+  arr.forEach(d => {
+    if (typeof d.hash !== 'string' || !d.hash) {
+      d.hash = autoHash(d.template || String(autoIdx)) + autoIdx.toString(16).padStart(4, '0');
+    }
+    if (!Array.isArray(d.parent_hashes)) d.parent_hashes = [];
+    if (typeof d.operation !== 'string') d.operation = 'seed';
+    if (typeof d.generation !== 'number') d.generation = 0;
+    if (typeof d.island_id !== 'number') d.island_id = 0;
+    if (typeof d.score !== 'number') d.score = 0;
+    if (typeof d.temperature !== 'number') d.temperature = 0.15;
+    if (typeof d.top_p !== 'number') d.top_p = 0.95;
+    if (typeof d.template !== 'string') d.template = '(no template)';
+    autoIdx++;
+  });
+
+  // Deduplicate hashes — append suffix to collisions
+  const seen = new Set();
+  arr.forEach(d => {
+    let h = d.hash;
+    let suffix = 1;
+    while (seen.has(h)) {
+      h = d.hash.substring(0, 12) + suffix.toString(16).padStart(4, '0');
+      suffix++;
+    }
+    if (h !== d.hash) {
+      // Update children that reference the old hash
+      const oldHash = d.hash;
+      d.hash = h;
+      // We'll fix parent_hashes in a second pass below
+      d._oldHash = oldHash;
+    }
+    seen.add(d.hash);
+  });
+
+  // Build old→new hash mapping for reparenting
+  const remap = {};
+  const byOldHash = {}; // old hash → array of new hashes (ordered by generation)
+  arr.forEach(d => {
+    if (d._oldHash) {
+      if (!byOldHash[d._oldHash]) byOldHash[d._oldHash] = [];
+      byOldHash[d._oldHash].push(d);
+      delete d._oldHash;
+    }
+  });
+
+  // For parent_hashes referencing a duplicated hash, try to point to the
+  // correct generation (the one with the highest gen < this candidate's gen).
+  const hashToRec = {};
+  arr.forEach(d => { hashToRec[d.hash] = d; });
+  arr.forEach(d => {
+    d.parent_hashes = d.parent_hashes.map(ph => {
+      if (hashToRec[ph]) return ph; // parent exists by exact hash — good
+      // Check if it's a renamed duplicate
+      const dupes = byOldHash[ph];
+      if (dupes && dupes.length > 0) {
+        // Pick the dupe with highest generation still < this candidate's gen
+        const eligible = dupes.filter(x => x.generation < d.generation);
+        if (eligible.length > 0) return eligible[eligible.length - 1].hash;
+        return dupes[0].hash;
+      }
+      return ph; // orphan — will become a root
+    });
+  });
+
+  // Remove self-referencing parent hashes (direct cycles)
+  arr.forEach(d => {
+    d.parent_hashes = d.parent_hashes.filter(ph => ph !== d.hash);
+  });
+
+  return arr;
+}
+
+function autoHash(s) {
+  let h = 0;
+  for (let i = 0; i < Math.min(s.length, 500); i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  return Math.abs(h).toString(16).padStart(8, '0');
+}
+
+function loadData(data) {
+  showProgress('Indexing candidates…', 65);
+  DATA = data;
+  BY_HASH = {};
+  data.forEach(d => { BY_HASH[d.hash] = d; });
+
+  showProgress('Finding champion…', 70);
+  CHAMPION = data.reduce((best, d) => d.score > best.score ? d : best, data[0]).hash;
+  CHAMPION_PATH = tracePathToRoot(CHAMPION);
+
+  showProgress('Building tree…', 80);
+  buildTree();
+
+  showProgress('Computing stats…', 90);
+  renderStats();
+  populateIslandFilter();
+
+  // Auto-collapse for large trees
+  if (DATA.length > LARGE_THRESHOLD) {
+    collapseNonChampionBranches();
+  }
+
+  showProgress('Rendering…', 95);
+  overlay.classList.add('hidden');
+  document.getElementById('appShell').style.display = 'flex';
+
+  requestAnimationFrame(() => {
+    renderTree();
+    hideProgress();
+  });
+}
+
+function collapseNonChampionBranches() {
+  function walk(node) {
+    node.children.forEach(walk);
+    if (node.children.length > 0 && !CHAMPION_PATH.has(node.hash)) {
+      node.collapsed = true;
+    }
+  }
+  TREE_ROOTS.forEach(walk);
+}
+
+// ══════════════════════════════════════════════
+// TREE BUILDING (cycle-safe)
+// ══════════════════════════════════════════════
+function buildTree() {
+  TREE_NODES = {};
+  const childrenOf = {};
+  const hasParent = new Set();
+  DATA.forEach(d => {
+    if (d.parent_hashes && d.parent_hashes.length > 0) {
+      const ph = d.parent_hashes[0];
+      if (BY_HASH[ph] && ph !== d.hash) {  // skip self-refs
+        if (!childrenOf[ph]) childrenOf[ph] = [];
+        childrenOf[ph].push(d.hash);
+        hasParent.add(d.hash);
+      }
+    }
+  });
+
+  const rootHashes = DATA.filter(d => !hasParent.has(d.hash)).map(d => d.hash);
+
+  function buildNode(hash, ancestors) {
+    // Cycle guard: if this hash already appears in the ancestor chain, stop
+    if (ancestors.has(hash)) return null;
+    const d = BY_HASH[hash];
+    if (!d) return null;
+
+    const nextAncestors = new Set(ancestors);
+    nextAncestors.add(hash);
+
+    const kids = (childrenOf[hash] || [])
+      .map(ch => buildNode(ch, nextAncestors))
+      .filter(Boolean);
+    kids.sort((a, b) => b.maxScore - a.maxScore);
+    const maxScore = Math.max(d.score, ...kids.map(k => k.maxScore), 0);
+    const node = { hash, children: kids, maxScore, collapsed: false };
+    TREE_NODES[hash] = node;
+    return node;
+  }
+
+  TREE_ROOTS = rootHashes.map(h => buildNode(h, new Set())).filter(Boolean);
+  TREE_ROOTS.sort((a, b) => {
+    const da = BY_HASH[a.hash], db = BY_HASH[b.hash];
+    if (da.island_id !== db.island_id) return da.island_id - db.island_id;
+    return db.maxScore - a.maxScore;
+  });
+}
+
+function tracePathToRoot(hash) {
+  const path = new Set();
+  let cur = hash;
+  let depth = 0;
+  const maxDepth = DATA.length + 1; // absolute safety limit
+  while (cur && BY_HASH[cur] && depth < maxDepth) {
+    if (path.has(cur)) break; // cycle detected — stop
+    path.add(cur);
+    const d = BY_HASH[cur];
+    cur = (d.parent_hashes && d.parent_hashes.length > 0) ? d.parent_hashes[0] : null;
+    depth++;
+  }
+  return path;
+}
+
+// ══════════════════════════════════════════════
+// RENDERING (event delegation, DocumentFragment)
+// ══════════════════════════════════════════════
+const treeContainer = document.getElementById('treeContainer');
+const filterIsland = document.getElementById('filterIsland');
+const filterOp = document.getElementById('filterOp');
+const scoreThreshold = document.getElementById('scoreThreshold');
+const thresholdVal = document.getElementById('thresholdVal');
+
+// Event delegation: single listener on the tree container
+treeContainer.addEventListener('click', e => {
+  const toggleEl = e.target.closest('.toggle');
+  const rowEl = e.target.closest('.node-row');
+  if (!rowEl) return;
+  const nodeEl = rowEl.closest('.tree-node');
+  const hash = nodeEl && nodeEl.dataset.hash;
+  if (!hash) return;
+
+  if (toggleEl) {
+    // Toggle collapse
+    const node = TREE_NODES[hash];
+    if (node) {
+      node.collapsed = !node.collapsed;
+      renderTree();
+    }
+  } else {
+    selectNode(hash);
+  }
+});
+
+function renderTree() {
+  const frag = document.createDocumentFragment();
+  const islandFilter = filterIsland.value;
+  const opFilter = filterOp.value;
+  const minScore = parseInt(scoreThreshold.value);
+
+  let visibleCount = 0;
+
+  function shouldShow(node) {
+    const d = BY_HASH[node.hash];
+    if (!d) return false;
+    if (islandFilter !== 'all' && d.island_id !== parseInt(islandFilter)) return false;
+    if (opFilter !== 'all' && d.operation !== opFilter) return false;
+    if (d.score < minScore) return false;
+    return true;
+  }
+
+  function renderNode(node, depth) {
+    const d = BY_HASH[node.hash];
+    if (!d) return null;
+    if (!shouldShow(node) && node.maxScore < minScore) return null;
+
+    visibleCount++;
+    const el = document.createElement('div');
+    el.className = 'tree-node' + (node.collapsed ? ' collapsed' : '');
+    el.dataset.hash = node.hash;
+
+    const row = document.createElement('div');
+    row.className = 'node-row';
+    if (node.hash === SELECTED) row.classList.add('selected');
+    if (node.hash === CHAMPION) row.classList.add('champion');
+
+    // Breakthrough marker: score jump > 10pp from parent
+    const parentScore = getParentScore(d);
+    const delta = parentScore !== null ? d.score - parentScore : 0;
+    if (delta > 10) row.classList.add('breakthrough');
+
+    // Toggle
+    const toggle = document.createElement('div');
+    toggle.className = 'toggle' + (node.children.length === 0 ? ' leaf' : '');
+    row.appendChild(toggle);
+
+    // Operation badge
+    const opBadge = document.createElement('span');
+    opBadge.className = 'op-badge op-' + d.operation;
+    opBadge.textContent = formatOp(d.operation);
+    row.appendChild(opBadge);
+
+    // Island
+    const islandEl = document.createElement('span');
+    islandEl.className = 'node-island island-' + d.island_id;
+    islandEl.textContent = '🏝' + d.island_id;
+    row.appendChild(islandEl);
+
+    // Generation
+    const genEl = document.createElement('span');
+    genEl.className = 'node-gen';
+    genEl.textContent = 'G' + d.generation;
+    row.appendChild(genEl);
+
+    // Hash
+    const hashEl = document.createElement('span');
+    hashEl.className = 'node-hash';
+    hashEl.textContent = d.hash.substring(0, 8);
+    row.appendChild(hashEl);
+
+    // Preview
+    const preview = document.createElement('span');
+    preview.className = 'node-preview';
+    preview.textContent = d.template.substring(0, 80).replace(/\n/g, ' ');
+    row.appendChild(preview);
+
+    // Score
+    const scoreEl = document.createElement('span');
+    scoreEl.className = 'node-score';
+    scoreEl.style.color = scoreColor(d.score);
+    scoreEl.textContent = d.score.toFixed(1) + '%';
+    row.appendChild(scoreEl);
+
+    // Delta
+    const deltaEl = document.createElement('span');
+    deltaEl.className = 'node-delta';
+    if (parentScore !== null) {
+      const sign = delta >= 0 ? '+' : '';
+      deltaEl.className += delta > 0 ? ' delta-pos' : delta < 0 ? ' delta-neg' : ' delta-zero';
+      deltaEl.textContent = sign + delta.toFixed(1);
+    }
+    row.appendChild(deltaEl);
+
+    // Champion star
+    if (node.hash === CHAMPION) {
+      const star = document.createElement('span');
+      star.textContent = '⭐';
+      star.style.cssText = 'font-size:.8rem;flex-shrink:0';
+      row.appendChild(star);
+    }
+
+    el.appendChild(row);
+
+    // Children
+    if (node.children.length > 0) {
+      const childContainer = document.createElement('div');
+      childContainer.className = 'tree-children';
+      node.children.forEach(child => {
+        const childEl = renderNode(child, depth + 1);
+        if (childEl) childContainer.appendChild(childEl);
+      });
+      if (childContainer.children.length > 0) {
+        el.appendChild(childContainer);
+      }
+    }
+
+    return el;
+  }
+
+  TREE_ROOTS.forEach(root => {
+    const el = renderNode(root, 0);
+    if (el) frag.appendChild(el);
+  });
+
+  treeContainer.innerHTML = '';
+  treeContainer.appendChild(frag);
+
+  document.getElementById('countBadge').textContent = visibleCount + ' nodes';
+}
+
+function formatOp(op) {
+  const map = { seed: 'SEED', mutation: 'MUT', crossover: 'XOVER', llm_mutation: 'LLM', migration: 'MIGR' };
+  return map[op] || op;
+}
+
+function scoreColor(score) {
+  if (score >= 90) return 'var(--green)';
+  if (score >= 70) return 'var(--teal)';
+  if (score >= 50) return 'var(--orange)';
+  return 'var(--red)';
+}
+
+function getParentScore(d) {
+  if (!d.parent_hashes || d.parent_hashes.length === 0) return null;
+  const parent = BY_HASH[d.parent_hashes[0]];
+  return parent ? parent.score : null;
+}
+
+// ── Detail panel ────────────────────────────
+function selectNode(hash) {
+  SELECTED = hash;
+  // Update selection highlight without full re-render:
+  treeContainer.querySelectorAll('.node-row.selected').forEach(el => el.classList.remove('selected'));
+  const target = treeContainer.querySelector(`.tree-node[data-hash="${hash}"] > .node-row`);
+  if (target) target.classList.add('selected');
+  renderDetail(hash);
+}
+
+function renderDetail(hash) {
+  const d = BY_HASH[hash];
+  const panel = document.getElementById('detailPanel');
+
+  // Build lineage path (cycle-safe)
+  const lineage = [];
+  const visited = new Set();
+  let cur = hash;
+  while (cur && BY_HASH[cur] && !visited.has(cur)) {
+    lineage.unshift(cur);
+    visited.add(cur);
+    const rec = BY_HASH[cur];
+    cur = (rec.parent_hashes && rec.parent_hashes.length > 0) ? rec.parent_hashes[0] : null;
+  }
+
+  // Compute diff vs primary parent
+  let diffHtml = '';
+  const parentHash = (d.parent_hashes && d.parent_hashes.length > 0) ? d.parent_hashes[0] : null;
+  const parent = parentHash ? BY_HASH[parentHash] : null;
+  if (parent) {
+    diffHtml = computeDiff(parent.template, d.template);
+  }
+
+  const parentScore = getParentScore(d);
+  const delta = parentScore !== null ? d.score - parentScore : null;
+
+  panel.innerHTML = `
+    <div class="detail-header">
+      <div class="dh-row">
+        <span class="op-badge op-${d.operation}">${formatOp(d.operation)}</span>
+        <span class="node-island island-${d.island_id}">Island ${d.island_id}</span>
+        <span class="dh-title" style="font-family:var(--font-mono)">${d.hash.substring(0,12)}</span>
+        ${hash === CHAMPION ? '<span style="font-size:1rem">⭐ Champion</span>' : ''}
+      </div>
+      <div class="detail-meta">
+        <span class="dm-item">Generation <strong>${d.generation}</strong></span>
+        <span class="dm-item">Score <strong style="color:${scoreColor(d.score)}">${d.score.toFixed(1)}%</strong></span>
+        ${delta !== null ? `<span class="dm-item">Δ <strong class="${delta > 0 ? 'delta-pos' : delta < 0 ? 'delta-neg' : 'delta-zero'}">${delta >= 0 ? '+' : ''}${delta.toFixed(1)} pp</strong></span>` : ''}
+        <span class="dm-item">Temp <strong>${d.temperature.toFixed(4)}</strong></span>
+        <span class="dm-item">Top-p <strong>${d.top_p.toFixed(4)}</strong></span>
+        ${d.parent_hashes && d.parent_hashes.length > 1 ? `<span class="dm-item">Parents <strong>${d.parent_hashes.length}</strong> (crossover)</span>` : ''}
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">Lineage Path (seed → current)</div>
+      <div class="lineage-path">
+        ${lineage.map((h, i) => {
+          const rec = BY_HASH[h];
+          const isActive = h === hash;
+          return `${i > 0 ? '<span class="lineage-arrow">→</span>' : ''}
+                  <span class="lineage-chip" style="${isActive ? 'border-color:var(--accent);background:var(--accent);color:#fff' : ''}"
+                        onclick="selectNode('${h}')"
+                        title="${rec.operation} | ${rec.score.toFixed(1)}%">
+                    ${formatOp(rec.operation)} ${h.substring(0,6)} (${rec.score.toFixed(1)}%)
+                  </span>`;
+        }).join('')}
+      </div>
+    </div>
+
+    ${parent ? `
+    <div class="detail-section">
+      <div class="detail-section-title">Diff vs Parent (${parentHash.substring(0,8)})</div>
+      <div class="diff-display">${diffHtml}</div>
+    </div>
+    ` : ''}
+
+    <div class="detail-section" style="border-bottom:none">
+      <div class="detail-section-title">Full Prompt</div>
+      <div class="prompt-display">${escapeHtml(d.template)}</div>
+    </div>
+  `;
+}
+
+// ── Simple line-level diff ────────────────────
+function computeDiff(oldText, newText) {
+  const oldLines = oldText.split('\n');
+  const newLines = newText.split('\n');
+
+  // Simple LCS-based diff
+  const n = oldLines.length, m = newLines.length;
+  // Use a fast diff for reasonable sizes
+  if (n > 500 || m > 500) {
+    return '<span class="diff-ctx">[Diff too large — showing full new text]</span>\n' +
+           newLines.map(l => `<span class="diff-add">${escapeHtml(l)}</span>`).join('\n');
+  }
+
+  // Build LCS table
+  const dp = Array.from({length: n+1}, () => new Uint16Array(m+1));
+  for (let i = 1; i <= n; i++) {
+    for (let j = 1; j <= m; j++) {
+      dp[i][j] = oldLines[i-1] === newLines[j-1]
+        ? dp[i-1][j-1] + 1
+        : Math.max(dp[i-1][j], dp[i][j-1]);
+    }
+  }
+
+  // Backtrace
+  const result = [];
+  let i = n, j = m;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && oldLines[i-1] === newLines[j-1]) {
+      result.unshift({type: 'ctx', text: oldLines[i-1]});
+      i--; j--;
+    } else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) {
+      result.unshift({type: 'add', text: newLines[j-1]});
+      j--;
+    } else {
+      result.unshift({type: 'del', text: oldLines[i-1]});
+      i--;
+    }
+  }
+
+  return result.map(r => {
+    const cls = r.type === 'add' ? 'diff-add' : r.type === 'del' ? 'diff-del' : 'diff-ctx';
+    const prefix = r.type === 'add' ? '+ ' : r.type === 'del' ? '- ' : '  ';
+    return `<span class="${cls}">${escapeHtml(prefix + r.text)}</span>`;
+  }).join('\n');
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Stats ──────────────────────────────────
+function renderStats() {
+  const bar = document.getElementById('statsBar');
+  const opCounts = {};
+  const islandCounts = {};
+  let maxScore = 0, totalScore = 0;
+  DATA.forEach(d => {
+    opCounts[d.operation] = (opCounts[d.operation] || 0) + 1;
+    islandCounts[d.island_id] = (islandCounts[d.island_id] || 0) + 1;
+    if (d.score > maxScore) maxScore = d.score;
+    totalScore += d.score;
+  });
+  const maxGen = Math.max(...DATA.map(d => d.generation));
+
+  bar.innerHTML = `
+    <span class="stat-item">Total: <strong>${DATA.length}</strong></span>
+    <span class="stat-item">Generations: <strong>${maxGen}</strong></span>
+    <span class="stat-item">Champion: <strong style="color:var(--green)">${maxScore.toFixed(1)}%</strong></span>
+    <span class="stat-item">Avg: <strong>${(totalScore / DATA.length).toFixed(1)}%</strong></span>
+    ${Object.entries(opCounts).map(([op, cnt]) =>
+      `<span class="stat-item"><span class="op-badge op-${op}" style="font-size:.6rem">${formatOp(op)}</span> <strong>${cnt}</strong></span>`
+    ).join('')}
+  `;
+}
+
+function populateIslandFilter() {
+  const sel = document.getElementById('filterIsland');
+  const islands = [...new Set(DATA.map(d => d.island_id))].sort();
+  sel.innerHTML = '<option value="all">All Islands</option>';
+  islands.forEach(id => {
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = 'Island ' + id;
+    sel.appendChild(opt);
+  });
+}
+
+// ── Controls ──────────────────────────────
+let _filterTimer = null;
+function debouncedRender() {
+  clearTimeout(_filterTimer);
+  _filterTimer = setTimeout(renderTree, 80);
+}
+
+filterIsland.addEventListener('change', renderTree);
+filterOp.addEventListener('change', renderTree);
+scoreThreshold.addEventListener('input', () => {
+  thresholdVal.textContent = scoreThreshold.value + '%';
+  debouncedRender();
+});
+
+document.getElementById('expandAllBtn').addEventListener('click', () => {
+  Object.values(TREE_NODES).forEach(n => { n.collapsed = false; });
+  renderTree();
+});
+
+document.getElementById('collapseDeadBtn').addEventListener('click', () => {
+  const champScore = BY_HASH[CHAMPION].score;
+  const threshold = champScore * 0.5; // collapse branches whose max is < 50% of champion
+  function prune(node) {
+    node.children.forEach(prune);
+    if (node.children.length > 0 && node.maxScore < threshold && !CHAMPION_PATH.has(node.hash)) {
+      node.collapsed = true;
+    }
+  }
+  TREE_ROOTS.forEach(prune);
+  renderTree();
+});
+
+document.getElementById('traceChampBtn').addEventListener('click', () => {
+  // Expand only champion path, collapse everything else
+  function walkCollapse(node) {
+    if (CHAMPION_PATH.has(node.hash)) {
+      node.collapsed = false;
+    } else if (node.children.length > 0) {
+      node.collapsed = true;
+    }
+    node.children.forEach(walkCollapse);
+  }
+  TREE_ROOTS.forEach(walkCollapse);
+  renderTree();
+  selectNode(CHAMPION);
+  // Scroll champion into view
+  setTimeout(() => {
+    const champRow = document.querySelector('.node-row.champion');
+    if (champRow) champRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 100);
+});
+
+// ══════════════════════════════════════════════
+// DEMO DATA (synthetic)
+// ══════════════════════════════════════════════
+function generateDemoData() {
+  const data = [];
+  const seeds = [
+    { template: "You are a tool-calling AI agent. When the user asks a question, select the most appropriate tool from the available tools and format your response as a JSON function call.\n\nAvailable Tools:\n{tool_schemas}\n\nIMPORTANT: Respond with ONLY a JSON object in this format:\n{\"name\": \"tool_name\", \"arguments\": {\"param\": \"value\"}}", score: 52.3, temp: 0.15, top_p: 0.92 },
+    { template: "# System Instructions\n\nYou are an AI assistant with access to a set of tools. Your task is to understand the user's request, determine which tool best handles it, and return a structured function call.\n\n## Available Tools\n{tool_schemas}\n\n## Response Format\nReturn a single JSON object: {\"name\": \"<tool_name>\", \"arguments\": {\"<param>\": \"<value>\"}}\n\nThink step by step:\n1. Parse the user's intent\n2. Match to the right tool\n3. Extract required parameters\n4. Return the function call", score: 58.1, temp: 0.2, top_p: 0.95 },
+    { template: "ROLE: Tool Router\nTASK: Map user queries to function calls\n\nTOOLS:\n{tool_schemas}\n\nOUTPUT: {\"name\":\"...\",\"arguments\":{...}}", score: 48.7, temp: 0.1, top_p: 0.9 },
+    { template: "You are a precise tool-calling agent. Given a user query, select exactly one tool and provide the correct arguments.\n\n## Tools\n{tool_schemas}\n\n## Rules\n- Select the MOST SPECIFIC tool that matches the query\n- Never invent tools that don't exist\n- Extract parameters directly from the user's message\n- Use ToolSearcher when multiple tools could apply — it helps disambiguate\n- Return ONLY valid JSON: {\"name\": \"tool_name\", \"arguments\": {...}}", score: 61.4, temp: 0.18, top_p: 0.93 }
+  ];
+
+  // Gen 0: seeds
+  seeds.forEach((s, i) => {
+    const island = i % 2;
+    data.push({
+      hash: genHash(s.template), parent_hashes: [], operation: 'seed',
+      generation: 0, island_id: island, score: s.score,
+      temperature: s.temp, top_p: s.top_p, template: s.template
+    });
+  });
+
+  // Simulate 6 generations of evolution
+  const mutations = [
+    "\n\nCRITICAL: When the query mentions searching or finding information, ALWAYS use ToolSearcher first before selecting a specific API tool.",
+    "\n\n## Common Mistakes to Avoid\n- Do NOT confuse ToolSearcher with SearchEngine\n- ToolSearcher finds the right tool; SearchEngine searches the web\n- Always check if the query needs a search tool or an action tool",
+    "\n\n## Parameter Extraction Rules\n- Dates: convert to ISO 8601 format (YYYY-MM-DD)\n- Numbers: extract as integers or floats, never strings\n- Names: preserve exact casing from the query",
+    "\n\n## Disambiguation Strategy\nWhen multiple tools could match:\n1. Prefer the more specific tool over the general one\n2. Check required parameters — the correct tool's params will match the query\n3. Use ToolSearcher only as a last resort for truly ambiguous queries",
+    "\n\n## Output Validation Checklist\nBefore responding, verify:\n✓ Tool name exists in the available tools list\n✓ All required parameters are provided\n✓ Parameter types match the schema\n✓ No extra parameters are included",
+    "\n\nPRIORITY OVERRIDE: For any query containing 'weather', 'forecast', or 'temperature', ALWAYS use the WeatherAPI tool. For 'stock', 'price', or 'market', ALWAYS use FinanceAPI.",
+  ];
+
+  let prevGen = data.slice(); // gen 0 candidates
+  for (let gen = 1; gen <= 6; gen++) {
+    const newGen = [];
+    for (let island = 0; island < 2; island++) {
+      const islandCands = prevGen.filter(d => d.island_id === island);
+      if (islandCands.length === 0) continue;
+
+      // Create 3 offspring per island
+      for (let c = 0; c < 3; c++) {
+        const parent = islandCands[Math.floor(Math.random() * islandCands.length)];
+        const ops = ['mutation', 'mutation', 'crossover', 'llm_mutation'];
+        const op = ops[Math.floor(Math.random() * ops.length)];
+
+        let template = parent.template;
+        let parentHashes = [parent.hash];
+
+        if (op === 'crossover' && islandCands.length > 1) {
+          const other = islandCands.filter(x => x.hash !== parent.hash)[0] || parent;
+          const mid = Math.floor(parent.template.length / 2);
+          template = parent.template.substring(0, mid) + other.template.substring(Math.floor(other.template.length/2));
+          parentHashes = [parent.hash, other.hash];
+        } else if (op === 'llm_mutation' || op === 'mutation') {
+          const mutIdx = (gen * 2 + c + island) % mutations.length;
+          template = parent.template + mutations[mutIdx];
+        }
+
+        // Score improves with mutations, with some noise
+        const baseImprovement = op === 'llm_mutation' ? 8 : op === 'crossover' ? 3 : 5;
+        const noise = (Math.random() - 0.4) * 15;
+        const newScore = Math.min(100, Math.max(0, parent.score + baseImprovement + noise - gen * 0.5));
+
+        const newTemp = Math.max(0.01, Math.min(1.5, parent.temperature + (Math.random() - 0.5) * 0.1));
+        const newTopP = Math.max(0.5, Math.min(1.0, parent.top_p + (Math.random() - 0.5) * 0.05));
+
+        const rec = {
+          hash: genHash(template + gen + c + island),
+          parent_hashes: parentHashes, operation: op,
+          generation: gen, island_id: island, score: Math.round(newScore * 10) / 10,
+          temperature: Math.round(newTemp * 10000) / 10000,
+          top_p: Math.round(newTopP * 10000) / 10000, template
+        };
+        data.push(rec);
+        newGen.push(rec);
+      }
+
+      // Migration every 2 gens
+      if (gen % 2 === 0 && island === 0) {
+        const best = islandCands.reduce((a, b) => a.score > b.score ? a : b);
+        const migRec = {
+          hash: genHash(best.template + 'mig' + gen),
+          parent_hashes: [best.hash], operation: 'migration',
+          generation: gen, island_id: 1, score: best.score,
+          temperature: best.temperature, top_p: best.top_p, template: best.template
+        };
+        data.push(migRec);
+        newGen.push(migRec);
+      }
+    }
+    prevGen = [...prevGen, ...newGen];
+  }
+
+  return data;
+}
+
+function genHash(input) {
+  let h = 0;
+  for (let i = 0; i < input.length; i++) {
+    h = ((h << 5) - h + input.charCodeAt(i)) | 0;
+  }
+  return Math.abs(h).toString(16).padStart(8, '0') + Math.abs(h * 31).toString(16).padStart(8, '0');
+}
+
+// ── Resize handle drag ────────────────────
+(function() {
+  const handle = document.getElementById('resizeHandle');
+  const sidebar = document.getElementById('sidebar');
+  let dragging = false;
+
+  handle.addEventListener('mousedown', e => {
+    e.preventDefault();
+    dragging = true;
+    handle.classList.add('active');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const newWidth = Math.min(Math.max(e.clientX, 220), window.innerWidth * 0.7);
+    sidebar.style.width = newWidth + 'px';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    handle.classList.remove('active');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
+})();
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    SELECTED = null;
+    renderTree();
+    document.getElementById('detailPanel').innerHTML =
+      '<div class="detail-empty">Click a node in the tree to inspect its prompt, lineage, and diff</div>';
+  }
+});
+</script>
+</body>
+</html>

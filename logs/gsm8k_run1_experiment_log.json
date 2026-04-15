@@ -1,0 +1,2832 @@
+{
+  "benchmark": "GSM8K",
+  "model": "gpt-4.1",
+  "backend": "Azure AI Foundry (RBAC)",
+  "evolution": {
+    "iterations": 6,
+    "population_size": 4,
+    "num_islands": 2,
+    "evo_sample_size": 40,
+    "noeval_fitness": 98.3617469879518,
+    "wall_time_s": 8256.750177999958
+  },
+  "evolved_prompt": "You are a math problem solver. Given a grade-school math word\nproblem, solve it step by step and provide the final numerical\nanswer.\n\nRules:\n- Show your reasoning step by step.\n- After your reasoning, write the final answer on its own line\n  in the format: #### <number>\n- The final answer must be a single number (integer or decimal).\n- Do NOT include units, dollar signs, or commas in the final\nproblem, solve it step by step and provide the final numerical\nanswer.\n\nRules:\n- Show your reasoning step by step.\n- After your reasoning, write the final answer on its own line\n  in the format: #### <number>\n- The final answer must be a single number (integer or decimal).\n- Do NOT include units, dollar signs, or commas in the final\n  answer.\nWrite an equation or expression before computing the answer.\n- Example final line: #### 42",
+  "evolved_temperature": 0.7059767051392605,
+  "evolved_top_p": 0.8702254043742341,
+  "evolved_accuracy": 93.0,
+  "evolved_correct": 186,
+  "evolved_total": 200,
+  "default_prompt": "You are a math problem solver. Given a grade-school math word\nproblem, solve it step by step and provide the final numerical\nanswer.\n\nRules:\n- Show your reasoning step by step.\n- After your reasoning, write the final answer on its own line\n  in the format: #### <number>\n- The final answer must be a single number (integer or decimal).\n- Do NOT include units, dollar signs, or commas in the final\n  answer.\n- Example final line: #### 42",
+  "default_temperature": 0.1,
+  "default_top_p": 0.95,
+  "default_accuracy": 95.0,
+  "default_correct": 190,
+  "default_total": 200,
+  "delta": -2.0,
+  "eval_problems_count": 200,
+  "holdout_size": 1279,
+  "eval_evolved_details": [
+    {
+      "idx": 0,
+      "question": "Janet\u2019s ducks lay 16 eggs per day. She eats three for breakfast every morning an",
+      "gold": "18",
+      "predicted": "18",
+      "correct": true
+    },
+    {
+      "idx": 1,
+      "question": "A robe takes 2 bolts of blue fiber and half that much white fiber.  How many bol",
+      "gold": "3",
+      "predicted": "3",
+      "correct": true
+    },
+    {
+      "idx": 2,
+      "question": "Josh decides to try flipping a house.  He buys a house for $80,000 and then puts",
+      "gold": "70000",
+      "predicted": "70000",
+      "correct": true
+    },
+    {
+      "idx": 3,
+      "question": "James decides to run 3 sprints 3 times a week.  He runs 60 meters each sprint.  ",
+      "gold": "540",
+      "predicted": "540",
+      "correct": true
+    },
+    {
+      "idx": 4,
+      "question": "Every day, Wendi feeds each of her chickens three cups of mixed chicken feed, co",
+      "gold": "20",
+      "predicted": "20",
+      "correct": true
+    },
+    {
+      "idx": 5,
+      "question": "Kylar went to the store to buy glasses for his new apartment. One glass costs $5",
+      "gold": "64",
+      "predicted": "64",
+      "correct": true
+    },
+    {
+      "idx": 6,
+      "question": "Toulouse has twice as many sheep as Charleston. Charleston has 4 times as many s",
+      "gold": "260",
+      "predicted": "260",
+      "correct": true
+    },
+    {
+      "idx": 7,
+      "question": "Carla is downloading a 200 GB file. Normally she can download 2 GB/minute, but 4",
+      "gold": "160",
+      "predicted": "160",
+      "correct": true
+    },
+    {
+      "idx": 8,
+      "question": "John drives for 3 hours at a speed of 60 mph and then turns around because he re",
+      "gold": "45",
+      "predicted": "135",
+      "correct": false
+    },
+    {
+      "idx": 9,
+      "question": "Eliza's rate per hour for the first 40 hours she works each week is $10. She als",
+      "gold": "460",
+      "predicted": "460",
+      "correct": true
+    },
+    {
+      "idx": 10,
+      "question": "A new program had 60 downloads in the first month. The number of downloads in th",
+      "gold": "366",
+      "predicted": "366",
+      "correct": true
+    },
+    {
+      "idx": 11,
+      "question": "Toula went to the bakery and bought various types of pastries. She bought 3 doze",
+      "gold": "694",
+      "predicted": "694",
+      "correct": true
+    },
+    {
+      "idx": 12,
+      "question": "Carlos is planting a lemon tree. The tree will cost $90 to plant. Each year it w",
+      "gold": "13",
+      "predicted": "7.5",
+      "correct": false
+    },
+    {
+      "idx": 13,
+      "question": "Melanie is a door-to-door saleswoman. She sold a third of her vacuum cleaners at",
+      "gold": "18",
+      "predicted": "2",
+      "correct": false
+    },
+    {
+      "idx": 14,
+      "question": "In a dance class of 20 students, 20% enrolled in contemporary dance, 25% of the ",
+      "gold": "60",
+      "predicted": "60",
+      "correct": true
+    },
+    {
+      "idx": 15,
+      "question": "A merchant wants to make a choice of purchase between 2 purchase plans: jewelry ",
+      "gold": "125",
+      "predicted": "125",
+      "correct": true
+    },
+    {
+      "idx": 16,
+      "question": "Two trains leave San Rafael at the same time. They begin traveling westward, bot",
+      "gold": "230",
+      "predicted": "230",
+      "correct": true
+    },
+    {
+      "idx": 17,
+      "question": "Jill gets paid $20 per hour to teach and $30 to be a cheerleading coach. If she ",
+      "gold": "57500",
+      "predicted": "57500",
+      "correct": true
+    },
+    {
+      "idx": 18,
+      "question": "Claire makes a 3 egg omelet every morning for breakfast.  How many dozens of egg",
+      "gold": "7",
+      "predicted": "7",
+      "correct": true
+    },
+    {
+      "idx": 19,
+      "question": "Marissa is hiking a 12-mile trail. She took 1 hour to walk the first 4 miles, th",
+      "gold": "6",
+      "predicted": "6",
+      "correct": true
+    },
+    {
+      "idx": 20,
+      "question": "I have 10 liters of orange drink that are two-thirds water and I wish to add it ",
+      "gold": "15",
+      "predicted": "15",
+      "correct": true
+    },
+    {
+      "idx": 21,
+      "question": "Raymond and Samantha are cousins. Raymond was born 6 years before Samantha. Raym",
+      "gold": "14",
+      "predicted": "14",
+      "correct": true
+    },
+    {
+      "idx": 22,
+      "question": "Billy sells DVDs. He has 8 customers on Tuesday. His first 3 customers buy one D",
+      "gold": "7",
+      "predicted": "7",
+      "correct": true
+    },
+    {
+      "idx": 23,
+      "question": "A candle melts by 2 centimeters every hour that it burns. How many centimeters s",
+      "gold": "8",
+      "predicted": "8",
+      "correct": true
+    },
+    {
+      "idx": 24,
+      "question": "Kyle bought last year's best-selling book for $19.50. This is with a 25% discoun",
+      "gold": "26",
+      "predicted": "26",
+      "correct": true
+    },
+    {
+      "idx": 25,
+      "question": "Marie ordered one chicken meal that costs $12, 5 packs of milk that costs $3 eac",
+      "gold": "2",
+      "predicted": "2",
+      "correct": true
+    },
+    {
+      "idx": 26,
+      "question": "Mishka bought 3 pairs of shorts, 3 pairs of pants, and 3 pairs of shoes. One pai",
+      "gold": "243",
+      "predicted": "243",
+      "correct": true
+    },
+    {
+      "idx": 27,
+      "question": "Cynthia eats one serving of ice cream every night.  She buys cartons of ice crea",
+      "gold": "16",
+      "predicted": "16",
+      "correct": true
+    },
+    {
+      "idx": 28,
+      "question": "Henry made two stops during his 60-mile bike trip. He first stopped after 20 mil",
+      "gold": "25",
+      "predicted": "25",
+      "correct": true
+    },
+    {
+      "idx": 29,
+      "question": "Gloria is shoe shopping when she comes across a pair of boots that fit her shoe ",
+      "gold": "104",
+      "predicted": "104",
+      "correct": true
+    },
+    {
+      "idx": 30,
+      "question": "Darrell and Allen's ages are in the ratio of 7:11. If their total age now is 162",
+      "gold": "109",
+      "predicted": "109",
+      "correct": true
+    },
+    {
+      "idx": 31,
+      "question": "Gunter is trying to count the jelly beans in a jar. He asks his friends how many",
+      "gold": "80",
+      "predicted": "80",
+      "correct": true
+    },
+    {
+      "idx": 32,
+      "question": "John takes care of 10 dogs.  Each dog takes .5 hours a day to walk and take care",
+      "gold": "35",
+      "predicted": "35",
+      "correct": true
+    },
+    {
+      "idx": 33,
+      "question": "Gretchen has 110 coins. There are 30 more gold coins than silver coins. How many",
+      "gold": "70",
+      "predicted": "70",
+      "correct": true
+    },
+    {
+      "idx": 34,
+      "question": "Siobhan has 2 fewer jewels than Aaron. Aaron has 5 more jewels than half of Raym",
+      "gold": "23",
+      "predicted": "23",
+      "correct": true
+    },
+    {
+      "idx": 35,
+      "question": "Mike plays ping pong for 40 minutes.  In the first 20 minutes, he scores 4 point",
+      "gold": "9",
+      "predicted": "9",
+      "correct": true
+    },
+    {
+      "idx": 36,
+      "question": "Terry eats 2 yogurts a day.  They are currently on sale at 4 yogurts for $5.00. ",
+      "gold": "75",
+      "predicted": "75",
+      "correct": true
+    },
+    {
+      "idx": 37,
+      "question": "John plans to sell all his toys and use the money to buy video games. He has 13 ",
+      "gold": "2",
+      "predicted": "2",
+      "correct": true
+    },
+    {
+      "idx": 38,
+      "question": "John runs 60 miles a week. He runs 3 days a week.  He runs 3 hours the first day",
+      "gold": "10",
+      "predicted": "10",
+      "correct": true
+    },
+    {
+      "idx": 39,
+      "question": "Dana can run at a rate of speed four times faster than she can walk, but she can",
+      "gold": "18",
+      "predicted": "6",
+      "correct": false
+    },
+    {
+      "idx": 40,
+      "question": "Brandon's iPhone is four times as old as Ben's iPhone. Ben's iPhone is two times",
+      "gold": "8",
+      "predicted": "8",
+      "correct": true
+    },
+    {
+      "idx": 41,
+      "question": "The great dragon, Perg, sat high atop mount Farbo, breathing fire upon anything ",
+      "gold": "200",
+      "predicted": "200",
+      "correct": true
+    },
+    {
+      "idx": 42,
+      "question": "Grandma Jones baked 5 apple pies for the fireman's luncheon.  She cut each pie i",
+      "gold": "26",
+      "predicted": "26",
+      "correct": true
+    },
+    {
+      "idx": 43,
+      "question": "According to its nutritional info, a bag of chips has 250 calories per serving. ",
+      "gold": "48",
+      "predicted": "48",
+      "correct": true
+    },
+    {
+      "idx": 44,
+      "question": "Charlie wants to sell beeswax candles.  For every pound of beeswax, he can make ",
+      "gold": "20",
+      "predicted": "20",
+      "correct": true
+    },
+    {
+      "idx": 45,
+      "question": "Meredith is a freelance blogger who writes about health topics and submits to cl",
+      "gold": "104",
+      "predicted": "104",
+      "correct": true
+    },
+    {
+      "idx": 46,
+      "question": "Candice put 80 post-it notes in her purse before she headed out to her job at th",
+      "gold": "163",
+      "predicted": "163",
+      "correct": true
+    },
+    {
+      "idx": 47,
+      "question": "John buys twice as many red ties as blue ties.  The red ties cost 50% more than ",
+      "gold": "800",
+      "predicted": "800",
+      "correct": true
+    },
+    {
+      "idx": 48,
+      "question": "Tracy used a piece of wire 4 feet long to support tomato plants in the garden. T",
+      "gold": "8",
+      "predicted": "8",
+      "correct": true
+    },
+    {
+      "idx": 49,
+      "question": "Richard lives in an apartment building with 15 floors. Each floor contains 8 uni",
+      "gold": "30",
+      "predicted": "30",
+      "correct": true
+    },
+    {
+      "idx": 50,
+      "question": "Lloyd has an egg farm. His chickens produce 252 eggs per day and he sells them f",
+      "gold": "294",
+      "predicted": "294",
+      "correct": true
+    },
+    {
+      "idx": 51,
+      "question": "Tom's ship can travel at 10 miles per hour.  He is sailing from 1 to 4 PM.  He t",
+      "gold": "5",
+      "predicted": "5",
+      "correct": true
+    },
+    {
+      "idx": 52,
+      "question": "Uriah's book bag is getting too heavy for him. He needs to remove 15 pounds from",
+      "gold": "15",
+      "predicted": "15",
+      "correct": true
+    },
+    {
+      "idx": 53,
+      "question": "A mechanic charges different rates to repair the tires of trucks and cars.  For ",
+      "gold": "40",
+      "predicted": "40",
+      "correct": true
+    },
+    {
+      "idx": 54,
+      "question": "The Doubtfire sisters are driving home with 7 kittens adopted from the local ani",
+      "gold": "40",
+      "predicted": "40",
+      "correct": true
+    },
+    {
+      "idx": 55,
+      "question": "Jean has 30 lollipops. Jean eats 2 of the lollipops. With the remaining lollipop",
+      "gold": "14",
+      "predicted": "14",
+      "correct": true
+    },
+    {
+      "idx": 56,
+      "question": "Peter plans to go to the movies this week. He always gets a ticket for $7 and po",
+      "gold": "3",
+      "predicted": "3",
+      "correct": true
+    },
+    {
+      "idx": 57,
+      "question": "A wooden bridge can carry no more than 5000 pounds. A delivery truck filled with",
+      "gold": "83",
+      "predicted": "83",
+      "correct": true
+    },
+    {
+      "idx": 58,
+      "question": "Stephen placed an online order for groceries.  His final bill came to $40.00.  B",
+      "gold": "57",
+      "predicted": "57.00",
+      "correct": true
+    },
+    {
+      "idx": 59,
+      "question": "A raspberry bush has 6 clusters of 20 fruit each and 67 individual fruit scatter",
+      "gold": "187",
+      "predicted": "187",
+      "correct": true
+    },
+    {
+      "idx": 60,
+      "question": "A basket contains 25 oranges among which 1 is bad, 20% are unripe, 2 are sour an",
+      "gold": "17",
+      "predicted": "17",
+      "correct": true
+    },
+    {
+      "idx": 61,
+      "question": "Janet buys a brooch for her daughter.  She pays $500 for the material to make it",
+      "gold": "1430",
+      "predicted": "1430",
+      "correct": true
+    },
+    {
+      "idx": 62,
+      "question": "If Marcy works for the same company for 40 years, she gets an annual pension of ",
+      "gold": "25000",
+      "predicted": "25000",
+      "correct": true
+    },
+    {
+      "idx": 63,
+      "question": "Aleena subscribed to a streaming service that charges her $140 per month. If the",
+      "gold": "1596",
+      "predicted": "1596",
+      "correct": true
+    },
+    {
+      "idx": 64,
+      "question": "Sophia is thinking of taking a road trip in her car, and would like to know how ",
+      "gold": "300",
+      "predicted": "300",
+      "correct": true
+    },
+    {
+      "idx": 65,
+      "question": "Jim spends 2 hours watching TV and then decides to go to bed and reads for half ",
+      "gold": "36",
+      "predicted": "36",
+      "correct": true
+    },
+    {
+      "idx": 66,
+      "question": "There are four schools competing at a basketball tournament. Each school has sen",
+      "gold": "48",
+      "predicted": "48",
+      "correct": true
+    },
+    {
+      "idx": 67,
+      "question": "A treasure hunter found a buried treasure chest filled with gems. There were 175",
+      "gold": "595",
+      "predicted": "595",
+      "correct": true
+    },
+    {
+      "idx": 68,
+      "question": "There are twice as many boys as girls at Dr. Wertz's school. If there are 60 gir",
+      "gold": "36",
+      "predicted": "36",
+      "correct": true
+    },
+    {
+      "idx": 69,
+      "question": "Bailey starts with a certain amount of money. Then she receives a weekly allowan",
+      "gold": "60",
+      "predicted": "60",
+      "correct": true
+    },
+    {
+      "idx": 70,
+      "question": "Judy teaches 5 dance classes, every day, on the weekdays and 8 classes on Saturd",
+      "gold": "7425",
+      "predicted": "7425",
+      "correct": true
+    },
+    {
+      "idx": 71,
+      "question": "Kelian has two recipes for preparing dishes, one having 20 instructions and the ",
+      "gold": "60",
+      "predicted": "60",
+      "correct": true
+    },
+    {
+      "idx": 72,
+      "question": "Tommy is fundraising for his charity by selling brownies for $3 a slice and chee",
+      "gold": "221",
+      "predicted": "221",
+      "correct": true
+    },
+    {
+      "idx": 73,
+      "question": "Shiela bought five cell phones for $150 each for a 3-month installment. A 2% int",
+      "gold": "255",
+      "predicted": "255",
+      "correct": true
+    },
+    {
+      "idx": 74,
+      "question": "Artie has a flower stand at the Farmers Market. He sells three kinds of flowers:",
+      "gold": "88",
+      "predicted": "88",
+      "correct": true
+    },
+    {
+      "idx": 75,
+      "question": "Luke is spending time at the beach building sandcastles. He eventually notices t",
+      "gold": "60",
+      "predicted": "60",
+      "correct": true
+    },
+    {
+      "idx": 76,
+      "question": "Cecilia just bought a new puppy. According to her veterinarian, she has to feed ",
+      "gold": "5",
+      "predicted": "5",
+      "correct": true
+    },
+    {
+      "idx": 77,
+      "question": "If Raymond does half as much laundry as Sarah, and Sarah does 4 times as much la",
+      "gold": "100",
+      "predicted": "100",
+      "correct": true
+    },
+    {
+      "idx": 78,
+      "question": "Vincent can buy flowers in packages of 3 for $2.50 or in packages of 2 for $1. H",
+      "gold": "6",
+      "predicted": "6",
+      "correct": true
+    },
+    {
+      "idx": 79,
+      "question": "John adopts a dog.  He takes the dog to the groomer, which costs $100.  The groo",
+      "gold": "70",
+      "predicted": "70",
+      "correct": true
+    },
+    {
+      "idx": 80,
+      "question": "Two girls each got 1/6 of the 24 liters of water. Then a boy got 6 liters of wat",
+      "gold": "10",
+      "predicted": "10",
+      "correct": true
+    },
+    {
+      "idx": 81,
+      "question": "Charlie had 10 stickers. He bought 21 stickers from a store in the mall and got ",
+      "gold": "17",
+      "predicted": "17",
+      "correct": true
+    },
+    {
+      "idx": 82,
+      "question": "Grace weighs 125 pounds. Alex weighs 2 pounds less than 4 times what Grace weigh",
+      "gold": "623",
+      "predicted": "623",
+      "correct": true
+    },
+    {
+      "idx": 83,
+      "question": "A football team played 22 games. They won 8 more than they lost. How many did th",
+      "gold": "15",
+      "predicted": "15",
+      "correct": true
+    },
+    {
+      "idx": 84,
+      "question": "Gene is sewing a quilt out of old souvenir t-shirts. He has one shirt from each ",
+      "gold": "44",
+      "predicted": "48",
+      "correct": false
+    },
+    {
+      "idx": 85,
+      "question": "Greg has an alarm set to ring three times a day as a reminder. When the alarm go",
+      "gold": "22",
+      "predicted": "22",
+      "correct": true
+    },
+    {
+      "idx": 86,
+      "question": "A company pays each of its employees $600 in a month. The company has a policy o",
+      "gold": "9360",
+      "predicted": "9360",
+      "correct": true
+    },
+    {
+      "idx": 87,
+      "question": "Marilyn's first record sold 10 times as many copies as Harald's. If they sold 88",
+      "gold": "8000",
+      "predicted": "8000",
+      "correct": true
+    },
+    {
+      "idx": 88,
+      "question": "Christina is planning a birthday party and needs .75 gift bags per invited guest",
+      "gold": "24",
+      "predicted": "24",
+      "correct": true
+    },
+    {
+      "idx": 89,
+      "question": "Ted the T-Rex was planning to bring potato salad to the dinosaur picnic.  He kno",
+      "gold": "225",
+      "predicted": "225",
+      "correct": true
+    },
+    {
+      "idx": 90,
+      "question": "Jan has three times the number of pets as Marcia. Marcia has two more pets than ",
+      "gold": "28",
+      "predicted": "28",
+      "correct": true
+    },
+    {
+      "idx": 91,
+      "question": "Emily has 4 kids named Amy, Jackson, Corey, and James. Amy is 5 years older than",
+      "gold": "4",
+      "predicted": "4",
+      "correct": true
+    },
+    {
+      "idx": 92,
+      "question": "Lee used to be able to run the 400-meter hurdles two seconds faster than Gerald ",
+      "gold": "36",
+      "predicted": "36",
+      "correct": true
+    },
+    {
+      "idx": 93,
+      "question": "In a neighborhood, the number of rabbits pets is twelve less than the combined n",
+      "gold": "348",
+      "predicted": "348",
+      "correct": true
+    },
+    {
+      "idx": 94,
+      "question": "Out of the 200 Grade 5 students, 2/5 are boys and 2/3 of the girls are in the gi",
+      "gold": "40",
+      "predicted": "40",
+      "correct": true
+    },
+    {
+      "idx": 95,
+      "question": "Harry slept 9 hours last night. His friend James slept only 2/3 of what Harry sl",
+      "gold": "3",
+      "predicted": "3",
+      "correct": true
+    },
+    {
+      "idx": 96,
+      "question": "When Freda cooks canned tomatoes into sauce, they lose half their volume. Each 1",
+      "gold": "12",
+      "predicted": "",
+      "correct": false
+    },
+    {
+      "idx": 97,
+      "question": "Cars have lined up on the motorway. Some of the cars drive through in the first ",
+      "gold": "5",
+      "predicted": "5",
+      "correct": true
+    },
+    {
+      "idx": 98,
+      "question": "Mary is an avid gardener. Yesterday, she received 18 new potted plants from her ",
+      "gold": "58",
+      "predicted": "58",
+      "correct": true
+    },
+    {
+      "idx": 99,
+      "question": "Jerome had 4 friends who came to visit him on a certain day. The first friend pr",
+      "gold": "175",
+      "predicted": "175",
+      "correct": true
+    },
+    {
+      "idx": 100,
+      "question": "Solo has to read 4 pages from his Science textbook, 20 pages from his Social Stu",
+      "gold": "6",
+      "predicted": "6",
+      "correct": true
+    },
+    {
+      "idx": 101,
+      "question": "John likes to have a glass of water with breakfast, lunch and dinner.  Finally, ",
+      "gold": "26",
+      "predicted": "26",
+      "correct": true
+    },
+    {
+      "idx": 102,
+      "question": "A fog bank rolls in from the ocean to cover a city. It takes 10 minutes to cover",
+      "gold": "140",
+      "predicted": "140",
+      "correct": true
+    },
+    {
+      "idx": 103,
+      "question": "Poppy is solving a 1000-piece jigsaw puzzle. She places a quarter of the pieces ",
+      "gold": "500",
+      "predicted": "500",
+      "correct": true
+    },
+    {
+      "idx": 104,
+      "question": "Cody eats three times as many cookies as Amir eats. If Amir eats 5 cookies,\u00a0how ",
+      "gold": "20",
+      "predicted": "20",
+      "correct": true
+    },
+    {
+      "idx": 105,
+      "question": "John has 3 boxes.  Each box is 5 inches by 6 inches by 4 inches.  The walls are ",
+      "gold": "72",
+      "predicted": "72",
+      "correct": true
+    },
+    {
+      "idx": 106,
+      "question": "Frankie watches TV after he finishes his homework every night. On Monday and Tue",
+      "gold": "3",
+      "predicted": "5",
+      "correct": false
+    },
+    {
+      "idx": 107,
+      "question": "Henry is making cookies for a local baking competition. He wants to make twice a",
+      "gold": "50",
+      "predicted": "50",
+      "correct": true
+    },
+    {
+      "idx": 108,
+      "question": "A local gas station is selling gas for $3.00 a gallon.  An app company is offeri",
+      "gold": "28",
+      "predicted": "28.00",
+      "correct": true
+    },
+    {
+      "idx": 109,
+      "question": "Julia\u2019s boat sprang a leak while she was out on the lake. The boat was taking on",
+      "gold": "16",
+      "predicted": "16",
+      "correct": true
+    },
+    {
+      "idx": 110,
+      "question": "A classroom has a whiteboard which is shared between the 4 teachers who take tur",
+      "gold": "24",
+      "predicted": "24",
+      "correct": true
+    },
+    {
+      "idx": 111,
+      "question": "Ryan plants 2 flowers a day in his garden. After 15 days, how many flowers does ",
+      "gold": "25",
+      "predicted": "25",
+      "correct": true
+    },
+    {
+      "idx": 112,
+      "question": "Sasha notices that prices for lumber have gone up 50% in the last few months aft",
+      "gold": "90",
+      "predicted": "90",
+      "correct": true
+    },
+    {
+      "idx": 113,
+      "question": "Katy makes coffee using teaspoons of sugar and cups of water in the ratio of 7:1",
+      "gold": "42",
+      "predicted": "42",
+      "correct": true
+    },
+    {
+      "idx": 114,
+      "question": "John buys 2 pairs of shoes for each of his 3 children.  They cost $60 each.  How",
+      "gold": "360",
+      "predicted": "360",
+      "correct": true
+    },
+    {
+      "idx": 115,
+      "question": "A customs officer at the main port of SeaSide clearances counted 2 containers of",
+      "gold": "4",
+      "predicted": "4",
+      "correct": true
+    },
+    {
+      "idx": 116,
+      "question": "Adrien's total salary was 30 percent higher than Lylah's. Four years later, his ",
+      "gold": "95200",
+      "predicted": "56000",
+      "correct": false
+    },
+    {
+      "idx": 117,
+      "question": "Sadie slept 8 hours on Monday. For the next two days, she slept 2 hours less, ea",
+      "gold": "48",
+      "predicted": "48",
+      "correct": true
+    },
+    {
+      "idx": 118,
+      "question": "Rosie can run 10 miles per hour for 3 hours. After that, she runs 5 miles per ho",
+      "gold": "50",
+      "predicted": "50",
+      "correct": true
+    },
+    {
+      "idx": 119,
+      "question": "Jennie is helping at her mom's office. She has a pile of 60 letters needing stam",
+      "gold": "10",
+      "predicted": "10",
+      "correct": true
+    },
+    {
+      "idx": 120,
+      "question": "Julia was preparing for a dinner party at her house, where she intended to serve",
+      "gold": "10",
+      "predicted": "7",
+      "correct": false
+    },
+    {
+      "idx": 121,
+      "question": "Dylan needed chicken sausages and fish sausages to make sausage buns at a party.",
+      "gold": "82",
+      "predicted": "82",
+      "correct": true
+    },
+    {
+      "idx": 122,
+      "question": "After transferring to a new school, Amy made 20 more friends than Lily. If Lily ",
+      "gold": "120",
+      "predicted": "120",
+      "correct": true
+    },
+    {
+      "idx": 123,
+      "question": "Well's mother sells watermelons, peppers, and oranges at the local store. A wate",
+      "gold": "880",
+      "predicted": "880",
+      "correct": true
+    },
+    {
+      "idx": 124,
+      "question": "A hospital sees 500 people a day.  Each patient is seen for an average of 24 min",
+      "gold": "10000",
+      "predicted": "10000",
+      "correct": true
+    },
+    {
+      "idx": 125,
+      "question": "Nissa hires 60 seasonal workers to play elves in her department store's Santa vi",
+      "gold": "30",
+      "predicted": "30",
+      "correct": true
+    },
+    {
+      "idx": 126,
+      "question": "The expenditure of Joseph in May was $500. In June, his expenditure was $60 less",
+      "gold": "940",
+      "predicted": "940",
+      "correct": true
+    },
+    {
+      "idx": 127,
+      "question": "Pam and Fred went to a carnival. Pam rode the roller coaster 2 times while Fred ",
+      "gold": "60",
+      "predicted": "60",
+      "correct": true
+    },
+    {
+      "idx": 128,
+      "question": "On Monday, Walt walked 4 miles. Tuesday, he walked 6 times as many miles as he w",
+      "gold": "13",
+      "predicted": "13",
+      "correct": true
+    },
+    {
+      "idx": 129,
+      "question": "Tom gets 4 car washes a month.  If each car wash costs $15 how much does he pay ",
+      "gold": "720",
+      "predicted": "720",
+      "correct": true
+    },
+    {
+      "idx": 130,
+      "question": "Brian's friend Bobby has 5 fewer than 3 times as many video games as Brian does.",
+      "gold": "40",
+      "predicted": "40",
+      "correct": true
+    },
+    {
+      "idx": 131,
+      "question": "There are 27 unicorns left in the world.  One third of them are in the Scottish ",
+      "gold": "6",
+      "predicted": "6",
+      "correct": true
+    },
+    {
+      "idx": 132,
+      "question": "Rory orders 2 subs for $7.50 each, 2 bags of chips for $1.50 each and 2 cookies ",
+      "gold": "29",
+      "predicted": "29.00",
+      "correct": true
+    },
+    {
+      "idx": 133,
+      "question": "Mark took a test yesterday that consisted of 75 questions. He completed the test",
+      "gold": "105",
+      "predicted": "105",
+      "correct": true
+    },
+    {
+      "idx": 134,
+      "question": "In a candy machine, there are 22 more than four times the number of pink gumball",
+      "gold": "70",
+      "predicted": "70",
+      "correct": true
+    },
+    {
+      "idx": 135,
+      "question": "Of the 20 available cars for rent, 12 are automatic cars, 4 are manual cars, and",
+      "gold": "20",
+      "predicted": "20",
+      "correct": true
+    },
+    {
+      "idx": 136,
+      "question": "There are 700 bees in a hive. There are twice as many worker bees as baby bees, ",
+      "gold": "400",
+      "predicted": "400",
+      "correct": true
+    },
+    {
+      "idx": 137,
+      "question": "Jordan plays video games for 2 hours every day. He also has a part-time job wher",
+      "gold": "140",
+      "predicted": "140",
+      "correct": true
+    },
+    {
+      "idx": 138,
+      "question": "John buys milk for 2 dollars, eggs for 3 dollars, light bulbs for 3 dollars, cup",
+      "gold": "16",
+      "predicted": "16",
+      "correct": true
+    },
+    {
+      "idx": 139,
+      "question": "Kim has started his own housekeeping business and is calculating how much profit",
+      "gold": "20",
+      "predicted": "20",
+      "correct": true
+    },
+    {
+      "idx": 140,
+      "question": "John has 10 hectares of a pineapple field. There are 100 pineapples per hectare.",
+      "gold": "4000",
+      "predicted": "4000",
+      "correct": true
+    },
+    {
+      "idx": 141,
+      "question": "Johnny is picking up the toys on the floor of his room.  He'd dumped a lego boxe",
+      "gold": "2125",
+      "predicted": "2125",
+      "correct": true
+    },
+    {
+      "idx": 142,
+      "question": "Debra is monitoring a beehive to see how many bees come and go in a day. She see",
+      "gold": "75",
+      "predicted": "75",
+      "correct": true
+    },
+    {
+      "idx": 143,
+      "question": "Brittany and her mom go to the museum. The cost of admission is $12 for adults a",
+      "gold": "30",
+      "predicted": "30",
+      "correct": true
+    },
+    {
+      "idx": 144,
+      "question": "Charlie has three times as many Facebook friends as Dorothy. James has four time",
+      "gold": "16",
+      "predicted": "16",
+      "correct": true
+    },
+    {
+      "idx": 145,
+      "question": "Steve and Tim decide to see who can get home from school the fastest. Steve live",
+      "gold": "4",
+      "predicted": "4",
+      "correct": true
+    },
+    {
+      "idx": 146,
+      "question": "Shawnda decides that her neighborhood kids could really use a bike inflation ser",
+      "gold": "5",
+      "predicted": "5",
+      "correct": true
+    },
+    {
+      "idx": 147,
+      "question": "Carl buys ten packs of cookies. Each pack of cookies has six cookies inside. Eac",
+      "gold": "4",
+      "predicted": "4",
+      "correct": true
+    },
+    {
+      "idx": 148,
+      "question": "Dave bought a large pack of french fries and ate fourteen before a hungry seagul",
+      "gold": "48",
+      "predicted": "6",
+      "correct": false
+    },
+    {
+      "idx": 149,
+      "question": "On Mondays, Wednesdays, and Fridays, college student Kimo has three 1-hour  clas",
+      "gold": "272",
+      "predicted": "272",
+      "correct": true
+    },
+    {
+      "idx": 150,
+      "question": "Bill bakes 300 rolls, 120 chocolate croissants, and 60 baguettes every day. Each",
+      "gold": "280",
+      "predicted": "280",
+      "correct": true
+    },
+    {
+      "idx": 151,
+      "question": "The zookeeper feeds all the apes in the zoo. He orders all the bananas from a lo",
+      "gold": "1400",
+      "predicted": "1400",
+      "correct": true
+    },
+    {
+      "idx": 152,
+      "question": "Blake and Kelly are having a contest to see who can run the most in 15 minutes. ",
+      "gold": "80",
+      "predicted": "80",
+      "correct": true
+    },
+    {
+      "idx": 153,
+      "question": "Raphael went to buy some school supplies. He bought 4 pens which cost $1.5 each,",
+      "gold": "34",
+      "predicted": "34",
+      "correct": true
+    },
+    {
+      "idx": 154,
+      "question": "Finn watches 11 tadpoles swimming in the pond.  Suddenly he sees 6 of them come ",
+      "gold": "15",
+      "predicted": "15",
+      "correct": true
+    },
+    {
+      "idx": 155,
+      "question": "A tank of water has a depth of 17 feet on Monday. On Tuesday, the tank had 7 fee",
+      "gold": "16",
+      "predicted": "16",
+      "correct": true
+    },
+    {
+      "idx": 156,
+      "question": "Anakin and Locsin went to the beach today. Anakin caught 10 starfish, 6 sea hors",
+      "gold": "32",
+      "predicted": "32",
+      "correct": true
+    },
+    {
+      "idx": 157,
+      "question": "If a bag of marbles costs $20 and the price increases by 20% of the original pri",
+      "gold": "92",
+      "predicted": "766.75198",
+      "correct": false
+    },
+    {
+      "idx": 158,
+      "question": "In a room, there are various toys: 5 red cars, 3 action figures, and a doll. The",
+      "gold": "50",
+      "predicted": "50",
+      "correct": true
+    },
+    {
+      "idx": 159,
+      "question": "Jackie is trying to decide whether to do her taxes herself or hire an accountant",
+      "gold": "15",
+      "predicted": "15",
+      "correct": true
+    },
+    {
+      "idx": 160,
+      "question": "For his 30th birthday, Elvira chose a new computer with many accessories as a gi",
+      "gold": "77",
+      "predicted": "77",
+      "correct": true
+    },
+    {
+      "idx": 161,
+      "question": "Seth is twice as old as Brooke. In 2 years, the sum of their ages will be 28. Ho",
+      "gold": "16",
+      "predicted": "16",
+      "correct": true
+    },
+    {
+      "idx": 162,
+      "question": "Jimmy has $2 more than twice the money Ethel has. If Ethal has $8, how much mone",
+      "gold": "18",
+      "predicted": "18",
+      "correct": true
+    },
+    {
+      "idx": 163,
+      "question": "Pancho walks 20 miles a day. Except on weekends when he walks 10 miles. How many",
+      "gold": "120",
+      "predicted": "120",
+      "correct": true
+    },
+    {
+      "idx": 164,
+      "question": "The marching band is ordering new uniforms. Each uniform comes with a hat that c",
+      "gold": "150",
+      "predicted": "150",
+      "correct": true
+    },
+    {
+      "idx": 165,
+      "question": "Jake is walking through the Museum of Entomology. He sees 80 spiders with 8 legs",
+      "gold": "1210",
+      "predicted": "1210",
+      "correct": true
+    },
+    {
+      "idx": 166,
+      "question": "There are four birds at the Caboose. Sally Two is three years older than Granny ",
+      "gold": "51",
+      "predicted": "51",
+      "correct": true
+    },
+    {
+      "idx": 167,
+      "question": "Jessica is trying to figure out how much to pay on all her debts each month. Her",
+      "gold": "18000",
+      "predicted": "18000",
+      "correct": true
+    },
+    {
+      "idx": 168,
+      "question": "Billy is peeling and cutting potatoes in preparation for making potato salad for",
+      "gold": "95",
+      "predicted": "95",
+      "correct": true
+    },
+    {
+      "idx": 169,
+      "question": "Juan and his brother Carlos are selling lemonade. For each gallon they make it c",
+      "gold": "15",
+      "predicted": "",
+      "correct": false
+    },
+    {
+      "idx": 170,
+      "question": "In a race with 240 Asians, 80 were Japanese, and the rest were Chinese. If the n",
+      "gold": "100",
+      "predicted": "100",
+      "correct": true
+    },
+    {
+      "idx": 171,
+      "question": "Zaid spends 1/4 of his salary on rent, 1/3 on car fuel and donates half of the r",
+      "gold": "350",
+      "predicted": "350",
+      "correct": true
+    },
+    {
+      "idx": 172,
+      "question": "Rani has ten more crabs than Monic, who has 4 fewer crabs than Bo. If Bo has 40 ",
+      "gold": "122",
+      "predicted": "122",
+      "correct": true
+    },
+    {
+      "idx": 173,
+      "question": "Lloyd earns $10 an hour on Math tutoring.  He tutored 5 hours for the first week",
+      "gold": "130",
+      "predicted": "130",
+      "correct": true
+    },
+    {
+      "idx": 174,
+      "question": "Two candidates are running for class representative at Sarai's school. If the wi",
+      "gold": "20",
+      "predicted": "20",
+      "correct": true
+    },
+    {
+      "idx": 175,
+      "question": "Sandra, the florist around the corner, is very unhappy with Fred's incomplete or",
+      "gold": "160",
+      "predicted": "160",
+      "correct": true
+    },
+    {
+      "idx": 176,
+      "question": "Jean is two years older than Mark.  Two years ago Mark was 5 years older than ha",
+      "gold": "23",
+      "predicted": "24",
+      "correct": false
+    },
+    {
+      "idx": 177,
+      "question": "Two track teams are competing against each other in a 4 by 400 meter relay; a ra",
+      "gold": "2",
+      "predicted": "2",
+      "correct": true
+    },
+    {
+      "idx": 178,
+      "question": "Jerry is rolling a six-sided die. How much more likely is it (expressed as a per",
+      "gold": "25",
+      "predicted": "25",
+      "correct": true
+    },
+    {
+      "idx": 179,
+      "question": "Jenna and her mother picked some apples from their apple farm. Jenna picked half",
+      "gold": "30",
+      "predicted": "30",
+      "correct": true
+    },
+    {
+      "idx": 180,
+      "question": "Russell works at a pet store and is distributing straw among the rodents. The ra",
+      "gold": "5",
+      "predicted": "5",
+      "correct": true
+    },
+    {
+      "idx": 181,
+      "question": "Mandy owes Benedict $100. They agreed to have monthly interest of 2%. If Mandy w",
+      "gold": "106",
+      "predicted": "106.1208",
+      "correct": false
+    },
+    {
+      "idx": 182,
+      "question": "A trader buys some bags of wheat from a farmer at a rate of $20 per bag. If it c",
+      "gold": "50",
+      "predicted": "50",
+      "correct": true
+    },
+    {
+      "idx": 183,
+      "question": "Three friends spent $20.25 on 3 tickets to the fair. They also spent $4.50 less ",
+      "gold": "34",
+      "predicted": "34",
+      "correct": true
+    },
+    {
+      "idx": 184,
+      "question": "John collects peaches for 3 hours.  He can collect 2 peaches a minute.  How many",
+      "gold": "360",
+      "predicted": "360",
+      "correct": true
+    },
+    {
+      "idx": 185,
+      "question": "Ducks need to eat 3.5 pounds of insects each week to survive. If there is a floc",
+      "gold": "5",
+      "predicted": "5",
+      "correct": true
+    },
+    {
+      "idx": 186,
+      "question": "Tom plants 10 trees a year.  Every year he also chops down 2 trees a year.  He s",
+      "gold": "91",
+      "predicted": "91",
+      "correct": true
+    },
+    {
+      "idx": 187,
+      "question": "Sue lives in a fun neighborhood.  One weekend, the neighbors decided to play a p",
+      "gold": "24",
+      "predicted": "24",
+      "correct": true
+    },
+    {
+      "idx": 188,
+      "question": "Violetta wants to buy new crayons. She needs them in 5 different colors and prep",
+      "gold": "10",
+      "predicted": "10",
+      "correct": true
+    },
+    {
+      "idx": 189,
+      "question": "A pen costs as much as a pencil and eraser combined. A pencil costs $1.20 and an",
+      "gold": "12",
+      "predicted": "12.00",
+      "correct": true
+    },
+    {
+      "idx": 190,
+      "question": "200 pounds of carrots are to be distributed to 40 restaurants in a certain city.",
+      "gold": "120",
+      "predicted": "120",
+      "correct": true
+    },
+    {
+      "idx": 191,
+      "question": "In the city of Soda, there are exactly 23786 inhabitants. They include 8417 men ",
+      "gold": "6277",
+      "predicted": "6277",
+      "correct": true
+    },
+    {
+      "idx": 192,
+      "question": "Elaine initially had 20 Pokemon cards. After a month, she collected three times ",
+      "gold": "320",
+      "predicted": "320",
+      "correct": true
+    },
+    {
+      "idx": 193,
+      "question": "Mark is a copy-editor. He edits an equal number of sentences each week for two d",
+      "gold": "7500",
+      "predicted": "7500",
+      "correct": true
+    },
+    {
+      "idx": 194,
+      "question": "Baldur gets water from a well. He gets 5 pails of water every morning and 6 pail",
+      "gold": "55",
+      "predicted": "55",
+      "correct": true
+    },
+    {
+      "idx": 195,
+      "question": "John wins an award at work.  The award has a 1 time monetary reward of $5000 and",
+      "gold": "114200",
+      "predicted": "114200",
+      "correct": true
+    },
+    {
+      "idx": 196,
+      "question": "Josie grows grapes on her 10-acre farm.  Each acre produces 5 tons of grapes per",
+      "gold": "100",
+      "predicted": "100",
+      "correct": true
+    },
+    {
+      "idx": 197,
+      "question": "Carl\u2019s favorite food is cheese. He ate a sandwich every day this week for lunch ",
+      "gold": "31",
+      "predicted": "31",
+      "correct": true
+    },
+    {
+      "idx": 198,
+      "question": "Janet had 22 green pens and 10 yellow pens. Then she bought 6 bags of blue pens ",
+      "gold": "98",
+      "predicted": "98",
+      "correct": true
+    },
+    {
+      "idx": 199,
+      "question": "Brinley is in Mr. Bert's math class. Mr. Bert gives six tests each semester. He ",
+      "gold": "98",
+      "predicted": "98",
+      "correct": true
+    }
+  ],
+  "eval_default_details": [
+    {
+      "idx": 0,
+      "question": "Janet\u2019s ducks lay 16 eggs per day. She eats three for breakfast every morning an",
+      "gold": "18",
+      "predicted": "18",
+      "correct": true
+    },
+    {
+      "idx": 1,
+      "question": "A robe takes 2 bolts of blue fiber and half that much white fiber.  How many bol",
+      "gold": "3",
+      "predicted": "3",
+      "correct": true
+    },
+    {
+      "idx": 2,
+      "question": "Josh decides to try flipping a house.  He buys a house for $80,000 and then puts",
+      "gold": "70000",
+      "predicted": "70000",
+      "correct": true
+    },
+    {
+      "idx": 3,
+      "question": "James decides to run 3 sprints 3 times a week.  He runs 60 meters each sprint.  ",
+      "gold": "540",
+      "predicted": "540",
+      "correct": true
+    },
+    {
+      "idx": 4,
+      "question": "Every day, Wendi feeds each of her chickens three cups of mixed chicken feed, co",
+      "gold": "20",
+      "predicted": "20",
+      "correct": true
+    },
+    {
+      "idx": 5,
+      "question": "Kylar went to the store to buy glasses for his new apartment. One glass costs $5",
+      "gold": "64",
+      "predicted": "64",
+      "correct": true
+    },
+    {
+      "idx": 6,
+      "question": "Toulouse has twice as many sheep as Charleston. Charleston has 4 times as many s",
+      "gold": "260",
+      "predicted": "260",
+      "correct": true
+    },
+    {
+      "idx": 7,
+      "question": "Carla is downloading a 200 GB file. Normally she can download 2 GB/minute, but 4",
+      "gold": "160",
+      "predicted": "160",
+      "correct": true
+    },
+    {
+      "idx": 8,
+      "question": "John drives for 3 hours at a speed of 60 mph and then turns around because he re",
+      "gold": "45",
+      "predicted": "45",
+      "correct": true
+    },
+    {
+      "idx": 9,
+      "question": "Eliza's rate per hour for the first 40 hours she works each week is $10. She als",
+      "gold": "460",
+      "predicted": "460",
+      "correct": true
+    },
+    {
+      "idx": 10,
+      "question": "A new program had 60 downloads in the first month. The number of downloads in th",
+      "gold": "366",
+      "predicted": "366",
+      "correct": true
+    },
+    {
+      "idx": 11,
+      "question": "Toula went to the bakery and bought various types of pastries. She bought 3 doze",
+      "gold": "694",
+      "predicted": "694",
+      "correct": true
+    },
+    {
+      "idx": 12,
+      "question": "Carlos is planting a lemon tree. The tree will cost $90 to plant. Each year it w",
+      "gold": "13",
+      "predicted": "13",
+      "correct": true
+    },
+    {
+      "idx": 13,
+      "question": "Melanie is a door-to-door saleswoman. She sold a third of her vacuum cleaners at",
+      "gold": "18",
+      "predicted": "1",
+      "correct": false
+    },
+    {
+      "idx": 14,
+      "question": "In a dance class of 20 students, 20% enrolled in contemporary dance, 25% of the ",
+      "gold": "60",
+      "predicted": "60",
+      "correct": true
+    },
+    {
+      "idx": 15,
+      "question": "A merchant wants to make a choice of purchase between 2 purchase plans: jewelry ",
+      "gold": "125",
+      "predicted": "125",
+      "correct": true
+    },
+    {
+      "idx": 16,
+      "question": "Two trains leave San Rafael at the same time. They begin traveling westward, bot",
+      "gold": "230",
+      "predicted": "230",
+      "correct": true
+    },
+    {
+      "idx": 17,
+      "question": "Jill gets paid $20 per hour to teach and $30 to be a cheerleading coach. If she ",
+      "gold": "57500",
+      "predicted": "57500",
+      "correct": true
+    },
+    {
+      "idx": 18,
+      "question": "Claire makes a 3 egg omelet every morning for breakfast.  How many dozens of egg",
+      "gold": "7",
+      "predicted": "7",
+      "correct": true
+    },
+    {
+      "idx": 19,
+      "question": "Marissa is hiking a 12-mile trail. She took 1 hour to walk the first 4 miles, th",
+      "gold": "6",
+      "predicted": "2",
+      "correct": false
+    },
+    {
+      "idx": 20,
+      "question": "I have 10 liters of orange drink that are two-thirds water and I wish to add it ",
+      "gold": "15",
+      "predicted": "15",
+      "correct": true
+    },
+    {
+      "idx": 21,
+      "question": "Raymond and Samantha are cousins. Raymond was born 6 years before Samantha. Raym",
+      "gold": "14",
+      "predicted": "14",
+      "correct": true
+    },
+    {
+      "idx": 22,
+      "question": "Billy sells DVDs. He has 8 customers on Tuesday. His first 3 customers buy one D",
+      "gold": "7",
+      "predicted": "7",
+      "correct": true
+    },
+    {
+      "idx": 23,
+      "question": "A candle melts by 2 centimeters every hour that it burns. How many centimeters s",
+      "gold": "8",
+      "predicted": "8",
+      "correct": true
+    },
+    {
+      "idx": 24,
+      "question": "Kyle bought last year's best-selling book for $19.50. This is with a 25% discoun",
+      "gold": "26",
+      "predicted": "26",
+      "correct": true
+    },
+    {
+      "idx": 25,
+      "question": "Marie ordered one chicken meal that costs $12, 5 packs of milk that costs $3 eac",
+      "gold": "2",
+      "predicted": "2",
+      "correct": true
+    },
+    {
+      "idx": 26,
+      "question": "Mishka bought 3 pairs of shorts, 3 pairs of pants, and 3 pairs of shoes. One pai",
+      "gold": "243",
+      "predicted": "243",
+      "correct": true
+    },
+    {
+      "idx": 27,
+      "question": "Cynthia eats one serving of ice cream every night.  She buys cartons of ice crea",
+      "gold": "16",
+      "predicted": "16",
+      "correct": true
+    },
+    {
+      "idx": 28,
+      "question": "Henry made two stops during his 60-mile bike trip. He first stopped after 20 mil",
+      "gold": "25",
+      "predicted": "25",
+      "correct": true
+    },
+    {
+      "idx": 29,
+      "question": "Gloria is shoe shopping when she comes across a pair of boots that fit her shoe ",
+      "gold": "104",
+      "predicted": "104",
+      "correct": true
+    },
+    {
+      "idx": 30,
+      "question": "Darrell and Allen's ages are in the ratio of 7:11. If their total age now is 162",
+      "gold": "109",
+      "predicted": "109",
+      "correct": true
+    },
+    {
+      "idx": 31,
+      "question": "Gunter is trying to count the jelly beans in a jar. He asks his friends how many",
+      "gold": "80",
+      "predicted": "80",
+      "correct": true
+    },
+    {
+      "idx": 32,
+      "question": "John takes care of 10 dogs.  Each dog takes .5 hours a day to walk and take care",
+      "gold": "35",
+      "predicted": "35",
+      "correct": true
+    },
+    {
+      "idx": 33,
+      "question": "Gretchen has 110 coins. There are 30 more gold coins than silver coins. How many",
+      "gold": "70",
+      "predicted": "70",
+      "correct": true
+    },
+    {
+      "idx": 34,
+      "question": "Siobhan has 2 fewer jewels than Aaron. Aaron has 5 more jewels than half of Raym",
+      "gold": "23",
+      "predicted": "23",
+      "correct": true
+    },
+    {
+      "idx": 35,
+      "question": "Mike plays ping pong for 40 minutes.  In the first 20 minutes, he scores 4 point",
+      "gold": "9",
+      "predicted": "9",
+      "correct": true
+    },
+    {
+      "idx": 36,
+      "question": "Terry eats 2 yogurts a day.  They are currently on sale at 4 yogurts for $5.00. ",
+      "gold": "75",
+      "predicted": "75",
+      "correct": true
+    },
+    {
+      "idx": 37,
+      "question": "John plans to sell all his toys and use the money to buy video games. He has 13 ",
+      "gold": "2",
+      "predicted": "2",
+      "correct": true
+    },
+    {
+      "idx": 38,
+      "question": "John runs 60 miles a week. He runs 3 days a week.  He runs 3 hours the first day",
+      "gold": "10",
+      "predicted": "10",
+      "correct": true
+    },
+    {
+      "idx": 39,
+      "question": "Dana can run at a rate of speed four times faster than she can walk, but she can",
+      "gold": "18",
+      "predicted": "18",
+      "correct": true
+    },
+    {
+      "idx": 40,
+      "question": "Brandon's iPhone is four times as old as Ben's iPhone. Ben's iPhone is two times",
+      "gold": "8",
+      "predicted": "8",
+      "correct": true
+    },
+    {
+      "idx": 41,
+      "question": "The great dragon, Perg, sat high atop mount Farbo, breathing fire upon anything ",
+      "gold": "200",
+      "predicted": "200",
+      "correct": true
+    },
+    {
+      "idx": 42,
+      "question": "Grandma Jones baked 5 apple pies for the fireman's luncheon.  She cut each pie i",
+      "gold": "26",
+      "predicted": "26",
+      "correct": true
+    },
+    {
+      "idx": 43,
+      "question": "According to its nutritional info, a bag of chips has 250 calories per serving. ",
+      "gold": "48",
+      "predicted": "48",
+      "correct": true
+    },
+    {
+      "idx": 44,
+      "question": "Charlie wants to sell beeswax candles.  For every pound of beeswax, he can make ",
+      "gold": "20",
+      "predicted": "20",
+      "correct": true
+    },
+    {
+      "idx": 45,
+      "question": "Meredith is a freelance blogger who writes about health topics and submits to cl",
+      "gold": "104",
+      "predicted": "104",
+      "correct": true
+    },
+    {
+      "idx": 46,
+      "question": "Candice put 80 post-it notes in her purse before she headed out to her job at th",
+      "gold": "163",
+      "predicted": "163",
+      "correct": true
+    },
+    {
+      "idx": 47,
+      "question": "John buys twice as many red ties as blue ties.  The red ties cost 50% more than ",
+      "gold": "800",
+      "predicted": "800",
+      "correct": true
+    },
+    {
+      "idx": 48,
+      "question": "Tracy used a piece of wire 4 feet long to support tomato plants in the garden. T",
+      "gold": "8",
+      "predicted": "8",
+      "correct": true
+    },
+    {
+      "idx": 49,
+      "question": "Richard lives in an apartment building with 15 floors. Each floor contains 8 uni",
+      "gold": "30",
+      "predicted": "30",
+      "correct": true
+    },
+    {
+      "idx": 50,
+      "question": "Lloyd has an egg farm. His chickens produce 252 eggs per day and he sells them f",
+      "gold": "294",
+      "predicted": "294",
+      "correct": true
+    },
+    {
+      "idx": 51,
+      "question": "Tom's ship can travel at 10 miles per hour.  He is sailing from 1 to 4 PM.  He t",
+      "gold": "5",
+      "predicted": "5",
+      "correct": true
+    },
+    {
+      "idx": 52,
+      "question": "Uriah's book bag is getting too heavy for him. He needs to remove 15 pounds from",
+      "gold": "15",
+      "predicted": "15",
+      "correct": true
+    },
+    {
+      "idx": 53,
+      "question": "A mechanic charges different rates to repair the tires of trucks and cars.  For ",
+      "gold": "40",
+      "predicted": "40",
+      "correct": true
+    },
+    {
+      "idx": 54,
+      "question": "The Doubtfire sisters are driving home with 7 kittens adopted from the local ani",
+      "gold": "40",
+      "predicted": "40",
+      "correct": true
+    },
+    {
+      "idx": 55,
+      "question": "Jean has 30 lollipops. Jean eats 2 of the lollipops. With the remaining lollipop",
+      "gold": "14",
+      "predicted": "14",
+      "correct": true
+    },
+    {
+      "idx": 56,
+      "question": "Peter plans to go to the movies this week. He always gets a ticket for $7 and po",
+      "gold": "3",
+      "predicted": "3",
+      "correct": true
+    },
+    {
+      "idx": 57,
+      "question": "A wooden bridge can carry no more than 5000 pounds. A delivery truck filled with",
+      "gold": "83",
+      "predicted": "83",
+      "correct": true
+    },
+    {
+      "idx": 58,
+      "question": "Stephen placed an online order for groceries.  His final bill came to $40.00.  B",
+      "gold": "57",
+      "predicted": "57.00",
+      "correct": true
+    },
+    {
+      "idx": 59,
+      "question": "A raspberry bush has 6 clusters of 20 fruit each and 67 individual fruit scatter",
+      "gold": "187",
+      "predicted": "187",
+      "correct": true
+    },
+    {
+      "idx": 60,
+      "question": "A basket contains 25 oranges among which 1 is bad, 20% are unripe, 2 are sour an",
+      "gold": "17",
+      "predicted": "17",
+      "correct": true
+    },
+    {
+      "idx": 61,
+      "question": "Janet buys a brooch for her daughter.  She pays $500 for the material to make it",
+      "gold": "1430",
+      "predicted": "1430",
+      "correct": true
+    },
+    {
+      "idx": 62,
+      "question": "If Marcy works for the same company for 40 years, she gets an annual pension of ",
+      "gold": "25000",
+      "predicted": "25000",
+      "correct": true
+    },
+    {
+      "idx": 63,
+      "question": "Aleena subscribed to a streaming service that charges her $140 per month. If the",
+      "gold": "1596",
+      "predicted": "1596",
+      "correct": true
+    },
+    {
+      "idx": 64,
+      "question": "Sophia is thinking of taking a road trip in her car, and would like to know how ",
+      "gold": "300",
+      "predicted": "300",
+      "correct": true
+    },
+    {
+      "idx": 65,
+      "question": "Jim spends 2 hours watching TV and then decides to go to bed and reads for half ",
+      "gold": "36",
+      "predicted": "36",
+      "correct": true
+    },
+    {
+      "idx": 66,
+      "question": "There are four schools competing at a basketball tournament. Each school has sen",
+      "gold": "48",
+      "predicted": "48",
+      "correct": true
+    },
+    {
+      "idx": 67,
+      "question": "A treasure hunter found a buried treasure chest filled with gems. There were 175",
+      "gold": "595",
+      "predicted": "595",
+      "correct": true
+    },
+    {
+      "idx": 68,
+      "question": "There are twice as many boys as girls at Dr. Wertz's school. If there are 60 gir",
+      "gold": "36",
+      "predicted": "36",
+      "correct": true
+    },
+    {
+      "idx": 69,
+      "question": "Bailey starts with a certain amount of money. Then she receives a weekly allowan",
+      "gold": "60",
+      "predicted": "60",
+      "correct": true
+    },
+    {
+      "idx": 70,
+      "question": "Judy teaches 5 dance classes, every day, on the weekdays and 8 classes on Saturd",
+      "gold": "7425",
+      "predicted": "7425",
+      "correct": true
+    },
+    {
+      "idx": 71,
+      "question": "Kelian has two recipes for preparing dishes, one having 20 instructions and the ",
+      "gold": "60",
+      "predicted": "60",
+      "correct": true
+    },
+    {
+      "idx": 72,
+      "question": "Tommy is fundraising for his charity by selling brownies for $3 a slice and chee",
+      "gold": "221",
+      "predicted": "221",
+      "correct": true
+    },
+    {
+      "idx": 73,
+      "question": "Shiela bought five cell phones for $150 each for a 3-month installment. A 2% int",
+      "gold": "255",
+      "predicted": "255",
+      "correct": true
+    },
+    {
+      "idx": 74,
+      "question": "Artie has a flower stand at the Farmers Market. He sells three kinds of flowers:",
+      "gold": "88",
+      "predicted": "88",
+      "correct": true
+    },
+    {
+      "idx": 75,
+      "question": "Luke is spending time at the beach building sandcastles. He eventually notices t",
+      "gold": "60",
+      "predicted": "60",
+      "correct": true
+    },
+    {
+      "idx": 76,
+      "question": "Cecilia just bought a new puppy. According to her veterinarian, she has to feed ",
+      "gold": "5",
+      "predicted": "5",
+      "correct": true
+    },
+    {
+      "idx": 77,
+      "question": "If Raymond does half as much laundry as Sarah, and Sarah does 4 times as much la",
+      "gold": "100",
+      "predicted": "100",
+      "correct": true
+    },
+    {
+      "idx": 78,
+      "question": "Vincent can buy flowers in packages of 3 for $2.50 or in packages of 2 for $1. H",
+      "gold": "6",
+      "predicted": "6",
+      "correct": true
+    },
+    {
+      "idx": 79,
+      "question": "John adopts a dog.  He takes the dog to the groomer, which costs $100.  The groo",
+      "gold": "70",
+      "predicted": "70",
+      "correct": true
+    },
+    {
+      "idx": 80,
+      "question": "Two girls each got 1/6 of the 24 liters of water. Then a boy got 6 liters of wat",
+      "gold": "10",
+      "predicted": "10",
+      "correct": true
+    },
+    {
+      "idx": 81,
+      "question": "Charlie had 10 stickers. He bought 21 stickers from a store in the mall and got ",
+      "gold": "17",
+      "predicted": "17",
+      "correct": true
+    },
+    {
+      "idx": 82,
+      "question": "Grace weighs 125 pounds. Alex weighs 2 pounds less than 4 times what Grace weigh",
+      "gold": "623",
+      "predicted": "623",
+      "correct": true
+    },
+    {
+      "idx": 83,
+      "question": "A football team played 22 games. They won 8 more than they lost. How many did th",
+      "gold": "15",
+      "predicted": "15",
+      "correct": true
+    },
+    {
+      "idx": 84,
+      "question": "Gene is sewing a quilt out of old souvenir t-shirts. He has one shirt from each ",
+      "gold": "44",
+      "predicted": "48",
+      "correct": false
+    },
+    {
+      "idx": 85,
+      "question": "Greg has an alarm set to ring three times a day as a reminder. When the alarm go",
+      "gold": "22",
+      "predicted": "22",
+      "correct": true
+    },
+    {
+      "idx": 86,
+      "question": "A company pays each of its employees $600 in a month. The company has a policy o",
+      "gold": "9360",
+      "predicted": "9360",
+      "correct": true
+    },
+    {
+      "idx": 87,
+      "question": "Marilyn's first record sold 10 times as many copies as Harald's. If they sold 88",
+      "gold": "8000",
+      "predicted": "8000",
+      "correct": true
+    },
+    {
+      "idx": 88,
+      "question": "Christina is planning a birthday party and needs .75 gift bags per invited guest",
+      "gold": "24",
+      "predicted": "24",
+      "correct": true
+    },
+    {
+      "idx": 89,
+      "question": "Ted the T-Rex was planning to bring potato salad to the dinosaur picnic.  He kno",
+      "gold": "225",
+      "predicted": "225",
+      "correct": true
+    },
+    {
+      "idx": 90,
+      "question": "Jan has three times the number of pets as Marcia. Marcia has two more pets than ",
+      "gold": "28",
+      "predicted": "28",
+      "correct": true
+    },
+    {
+      "idx": 91,
+      "question": "Emily has 4 kids named Amy, Jackson, Corey, and James. Amy is 5 years older than",
+      "gold": "4",
+      "predicted": "4",
+      "correct": true
+    },
+    {
+      "idx": 92,
+      "question": "Lee used to be able to run the 400-meter hurdles two seconds faster than Gerald ",
+      "gold": "36",
+      "predicted": "36",
+      "correct": true
+    },
+    {
+      "idx": 93,
+      "question": "In a neighborhood, the number of rabbits pets is twelve less than the combined n",
+      "gold": "348",
+      "predicted": "348",
+      "correct": true
+    },
+    {
+      "idx": 94,
+      "question": "Out of the 200 Grade 5 students, 2/5 are boys and 2/3 of the girls are in the gi",
+      "gold": "40",
+      "predicted": "40",
+      "correct": true
+    },
+    {
+      "idx": 95,
+      "question": "Harry slept 9 hours last night. His friend James slept only 2/3 of what Harry sl",
+      "gold": "3",
+      "predicted": "3",
+      "correct": true
+    },
+    {
+      "idx": 96,
+      "question": "When Freda cooks canned tomatoes into sauce, they lose half their volume. Each 1",
+      "gold": "12",
+      "predicted": "12",
+      "correct": true
+    },
+    {
+      "idx": 97,
+      "question": "Cars have lined up on the motorway. Some of the cars drive through in the first ",
+      "gold": "5",
+      "predicted": "5",
+      "correct": true
+    },
+    {
+      "idx": 98,
+      "question": "Mary is an avid gardener. Yesterday, she received 18 new potted plants from her ",
+      "gold": "58",
+      "predicted": "58",
+      "correct": true
+    },
+    {
+      "idx": 99,
+      "question": "Jerome had 4 friends who came to visit him on a certain day. The first friend pr",
+      "gold": "175",
+      "predicted": "175",
+      "correct": true
+    },
+    {
+      "idx": 100,
+      "question": "Solo has to read 4 pages from his Science textbook, 20 pages from his Social Stu",
+      "gold": "6",
+      "predicted": "6",
+      "correct": true
+    },
+    {
+      "idx": 101,
+      "question": "John likes to have a glass of water with breakfast, lunch and dinner.  Finally, ",
+      "gold": "26",
+      "predicted": "26",
+      "correct": true
+    },
+    {
+      "idx": 102,
+      "question": "A fog bank rolls in from the ocean to cover a city. It takes 10 minutes to cover",
+      "gold": "140",
+      "predicted": "140",
+      "correct": true
+    },
+    {
+      "idx": 103,
+      "question": "Poppy is solving a 1000-piece jigsaw puzzle. She places a quarter of the pieces ",
+      "gold": "500",
+      "predicted": "500",
+      "correct": true
+    },
+    {
+      "idx": 104,
+      "question": "Cody eats three times as many cookies as Amir eats. If Amir eats 5 cookies,\u00a0how ",
+      "gold": "20",
+      "predicted": "20",
+      "correct": true
+    },
+    {
+      "idx": 105,
+      "question": "John has 3 boxes.  Each box is 5 inches by 6 inches by 4 inches.  The walls are ",
+      "gold": "72",
+      "predicted": "72",
+      "correct": true
+    },
+    {
+      "idx": 106,
+      "question": "Frankie watches TV after he finishes his homework every night. On Monday and Tue",
+      "gold": "3",
+      "predicted": "3",
+      "correct": true
+    },
+    {
+      "idx": 107,
+      "question": "Henry is making cookies for a local baking competition. He wants to make twice a",
+      "gold": "50",
+      "predicted": "50",
+      "correct": true
+    },
+    {
+      "idx": 108,
+      "question": "A local gas station is selling gas for $3.00 a gallon.  An app company is offeri",
+      "gold": "28",
+      "predicted": "28.00",
+      "correct": true
+    },
+    {
+      "idx": 109,
+      "question": "Julia\u2019s boat sprang a leak while she was out on the lake. The boat was taking on",
+      "gold": "16",
+      "predicted": "16",
+      "correct": true
+    },
+    {
+      "idx": 110,
+      "question": "A classroom has a whiteboard which is shared between the 4 teachers who take tur",
+      "gold": "24",
+      "predicted": "24",
+      "correct": true
+    },
+    {
+      "idx": 111,
+      "question": "Ryan plants 2 flowers a day in his garden. After 15 days, how many flowers does ",
+      "gold": "25",
+      "predicted": "25",
+      "correct": true
+    },
+    {
+      "idx": 112,
+      "question": "Sasha notices that prices for lumber have gone up 50% in the last few months aft",
+      "gold": "90",
+      "predicted": "",
+      "correct": false
+    },
+    {
+      "idx": 113,
+      "question": "Katy makes coffee using teaspoons of sugar and cups of water in the ratio of 7:1",
+      "gold": "42",
+      "predicted": "42",
+      "correct": true
+    },
+    {
+      "idx": 114,
+      "question": "John buys 2 pairs of shoes for each of his 3 children.  They cost $60 each.  How",
+      "gold": "360",
+      "predicted": "360",
+      "correct": true
+    },
+    {
+      "idx": 115,
+      "question": "A customs officer at the main port of SeaSide clearances counted 2 containers of",
+      "gold": "4",
+      "predicted": "4",
+      "correct": true
+    },
+    {
+      "idx": 116,
+      "question": "Adrien's total salary was 30 percent higher than Lylah's. Four years later, his ",
+      "gold": "95200",
+      "predicted": "56000",
+      "correct": false
+    },
+    {
+      "idx": 117,
+      "question": "Sadie slept 8 hours on Monday. For the next two days, she slept 2 hours less, ea",
+      "gold": "48",
+      "predicted": "48",
+      "correct": true
+    },
+    {
+      "idx": 118,
+      "question": "Rosie can run 10 miles per hour for 3 hours. After that, she runs 5 miles per ho",
+      "gold": "50",
+      "predicted": "50",
+      "correct": true
+    },
+    {
+      "idx": 119,
+      "question": "Jennie is helping at her mom's office. She has a pile of 60 letters needing stam",
+      "gold": "10",
+      "predicted": "10",
+      "correct": true
+    },
+    {
+      "idx": 120,
+      "question": "Julia was preparing for a dinner party at her house, where she intended to serve",
+      "gold": "10",
+      "predicted": "7",
+      "correct": false
+    },
+    {
+      "idx": 121,
+      "question": "Dylan needed chicken sausages and fish sausages to make sausage buns at a party.",
+      "gold": "82",
+      "predicted": "82",
+      "correct": true
+    },
+    {
+      "idx": 122,
+      "question": "After transferring to a new school, Amy made 20 more friends than Lily. If Lily ",
+      "gold": "120",
+      "predicted": "120",
+      "correct": true
+    },
+    {
+      "idx": 123,
+      "question": "Well's mother sells watermelons, peppers, and oranges at the local store. A wate",
+      "gold": "880",
+      "predicted": "880",
+      "correct": true
+    },
+    {
+      "idx": 124,
+      "question": "A hospital sees 500 people a day.  Each patient is seen for an average of 24 min",
+      "gold": "10000",
+      "predicted": "10000",
+      "correct": true
+    },
+    {
+      "idx": 125,
+      "question": "Nissa hires 60 seasonal workers to play elves in her department store's Santa vi",
+      "gold": "30",
+      "predicted": "30",
+      "correct": true
+    },
+    {
+      "idx": 126,
+      "question": "The expenditure of Joseph in May was $500. In June, his expenditure was $60 less",
+      "gold": "940",
+      "predicted": "940",
+      "correct": true
+    },
+    {
+      "idx": 127,
+      "question": "Pam and Fred went to a carnival. Pam rode the roller coaster 2 times while Fred ",
+      "gold": "60",
+      "predicted": "60",
+      "correct": true
+    },
+    {
+      "idx": 128,
+      "question": "On Monday, Walt walked 4 miles. Tuesday, he walked 6 times as many miles as he w",
+      "gold": "13",
+      "predicted": "13",
+      "correct": true
+    },
+    {
+      "idx": 129,
+      "question": "Tom gets 4 car washes a month.  If each car wash costs $15 how much does he pay ",
+      "gold": "720",
+      "predicted": "720",
+      "correct": true
+    },
+    {
+      "idx": 130,
+      "question": "Brian's friend Bobby has 5 fewer than 3 times as many video games as Brian does.",
+      "gold": "40",
+      "predicted": "40",
+      "correct": true
+    },
+    {
+      "idx": 131,
+      "question": "There are 27 unicorns left in the world.  One third of them are in the Scottish ",
+      "gold": "6",
+      "predicted": "6",
+      "correct": true
+    },
+    {
+      "idx": 132,
+      "question": "Rory orders 2 subs for $7.50 each, 2 bags of chips for $1.50 each and 2 cookies ",
+      "gold": "29",
+      "predicted": "29.00",
+      "correct": true
+    },
+    {
+      "idx": 133,
+      "question": "Mark took a test yesterday that consisted of 75 questions. He completed the test",
+      "gold": "105",
+      "predicted": "105",
+      "correct": true
+    },
+    {
+      "idx": 134,
+      "question": "In a candy machine, there are 22 more than four times the number of pink gumball",
+      "gold": "70",
+      "predicted": "70",
+      "correct": true
+    },
+    {
+      "idx": 135,
+      "question": "Of the 20 available cars for rent, 12 are automatic cars, 4 are manual cars, and",
+      "gold": "20",
+      "predicted": "20",
+      "correct": true
+    },
+    {
+      "idx": 136,
+      "question": "There are 700 bees in a hive. There are twice as many worker bees as baby bees, ",
+      "gold": "400",
+      "predicted": "400",
+      "correct": true
+    },
+    {
+      "idx": 137,
+      "question": "Jordan plays video games for 2 hours every day. He also has a part-time job wher",
+      "gold": "140",
+      "predicted": "140",
+      "correct": true
+    },
+    {
+      "idx": 138,
+      "question": "John buys milk for 2 dollars, eggs for 3 dollars, light bulbs for 3 dollars, cup",
+      "gold": "16",
+      "predicted": "16",
+      "correct": true
+    },
+    {
+      "idx": 139,
+      "question": "Kim has started his own housekeeping business and is calculating how much profit",
+      "gold": "20",
+      "predicted": "20",
+      "correct": true
+    },
+    {
+      "idx": 140,
+      "question": "John has 10 hectares of a pineapple field. There are 100 pineapples per hectare.",
+      "gold": "4000",
+      "predicted": "4000",
+      "correct": true
+    },
+    {
+      "idx": 141,
+      "question": "Johnny is picking up the toys on the floor of his room.  He'd dumped a lego boxe",
+      "gold": "2125",
+      "predicted": "2125",
+      "correct": true
+    },
+    {
+      "idx": 142,
+      "question": "Debra is monitoring a beehive to see how many bees come and go in a day. She see",
+      "gold": "75",
+      "predicted": "75",
+      "correct": true
+    },
+    {
+      "idx": 143,
+      "question": "Brittany and her mom go to the museum. The cost of admission is $12 for adults a",
+      "gold": "30",
+      "predicted": "30",
+      "correct": true
+    },
+    {
+      "idx": 144,
+      "question": "Charlie has three times as many Facebook friends as Dorothy. James has four time",
+      "gold": "16",
+      "predicted": "16",
+      "correct": true
+    },
+    {
+      "idx": 145,
+      "question": "Steve and Tim decide to see who can get home from school the fastest. Steve live",
+      "gold": "4",
+      "predicted": "4",
+      "correct": true
+    },
+    {
+      "idx": 146,
+      "question": "Shawnda decides that her neighborhood kids could really use a bike inflation ser",
+      "gold": "5",
+      "predicted": "5",
+      "correct": true
+    },
+    {
+      "idx": 147,
+      "question": "Carl buys ten packs of cookies. Each pack of cookies has six cookies inside. Eac",
+      "gold": "4",
+      "predicted": "4.00",
+      "correct": true
+    },
+    {
+      "idx": 148,
+      "question": "Dave bought a large pack of french fries and ate fourteen before a hungry seagul",
+      "gold": "48",
+      "predicted": "6",
+      "correct": false
+    },
+    {
+      "idx": 149,
+      "question": "On Mondays, Wednesdays, and Fridays, college student Kimo has three 1-hour  clas",
+      "gold": "272",
+      "predicted": "272",
+      "correct": true
+    },
+    {
+      "idx": 150,
+      "question": "Bill bakes 300 rolls, 120 chocolate croissants, and 60 baguettes every day. Each",
+      "gold": "280",
+      "predicted": "280",
+      "correct": true
+    },
+    {
+      "idx": 151,
+      "question": "The zookeeper feeds all the apes in the zoo. He orders all the bananas from a lo",
+      "gold": "1400",
+      "predicted": "1400",
+      "correct": true
+    },
+    {
+      "idx": 152,
+      "question": "Blake and Kelly are having a contest to see who can run the most in 15 minutes. ",
+      "gold": "80",
+      "predicted": "80",
+      "correct": true
+    },
+    {
+      "idx": 153,
+      "question": "Raphael went to buy some school supplies. He bought 4 pens which cost $1.5 each,",
+      "gold": "34",
+      "predicted": "34",
+      "correct": true
+    },
+    {
+      "idx": 154,
+      "question": "Finn watches 11 tadpoles swimming in the pond.  Suddenly he sees 6 of them come ",
+      "gold": "15",
+      "predicted": "15",
+      "correct": true
+    },
+    {
+      "idx": 155,
+      "question": "A tank of water has a depth of 17 feet on Monday. On Tuesday, the tank had 7 fee",
+      "gold": "16",
+      "predicted": "16",
+      "correct": true
+    },
+    {
+      "idx": 156,
+      "question": "Anakin and Locsin went to the beach today. Anakin caught 10 starfish, 6 sea hors",
+      "gold": "32",
+      "predicted": "32",
+      "correct": true
+    },
+    {
+      "idx": 157,
+      "question": "If a bag of marbles costs $20 and the price increases by 20% of the original pri",
+      "gold": "92",
+      "predicted": "92",
+      "correct": true
+    },
+    {
+      "idx": 158,
+      "question": "In a room, there are various toys: 5 red cars, 3 action figures, and a doll. The",
+      "gold": "50",
+      "predicted": "50",
+      "correct": true
+    },
+    {
+      "idx": 159,
+      "question": "Jackie is trying to decide whether to do her taxes herself or hire an accountant",
+      "gold": "15",
+      "predicted": "15",
+      "correct": true
+    },
+    {
+      "idx": 160,
+      "question": "For his 30th birthday, Elvira chose a new computer with many accessories as a gi",
+      "gold": "77",
+      "predicted": "77",
+      "correct": true
+    },
+    {
+      "idx": 161,
+      "question": "Seth is twice as old as Brooke. In 2 years, the sum of their ages will be 28. Ho",
+      "gold": "16",
+      "predicted": "16",
+      "correct": true
+    },
+    {
+      "idx": 162,
+      "question": "Jimmy has $2 more than twice the money Ethel has. If Ethal has $8, how much mone",
+      "gold": "18",
+      "predicted": "18",
+      "correct": true
+    },
+    {
+      "idx": 163,
+      "question": "Pancho walks 20 miles a day. Except on weekends when he walks 10 miles. How many",
+      "gold": "120",
+      "predicted": "120",
+      "correct": true
+    },
+    {
+      "idx": 164,
+      "question": "The marching band is ordering new uniforms. Each uniform comes with a hat that c",
+      "gold": "150",
+      "predicted": "150",
+      "correct": true
+    },
+    {
+      "idx": 165,
+      "question": "Jake is walking through the Museum of Entomology. He sees 80 spiders with 8 legs",
+      "gold": "1210",
+      "predicted": "1210",
+      "correct": true
+    },
+    {
+      "idx": 166,
+      "question": "There are four birds at the Caboose. Sally Two is three years older than Granny ",
+      "gold": "51",
+      "predicted": "51",
+      "correct": true
+    },
+    {
+      "idx": 167,
+      "question": "Jessica is trying to figure out how much to pay on all her debts each month. Her",
+      "gold": "18000",
+      "predicted": "18000",
+      "correct": true
+    },
+    {
+      "idx": 168,
+      "question": "Billy is peeling and cutting potatoes in preparation for making potato salad for",
+      "gold": "95",
+      "predicted": "95",
+      "correct": true
+    },
+    {
+      "idx": 169,
+      "question": "Juan and his brother Carlos are selling lemonade. For each gallon they make it c",
+      "gold": "15",
+      "predicted": "15",
+      "correct": true
+    },
+    {
+      "idx": 170,
+      "question": "In a race with 240 Asians, 80 were Japanese, and the rest were Chinese. If the n",
+      "gold": "100",
+      "predicted": "100",
+      "correct": true
+    },
+    {
+      "idx": 171,
+      "question": "Zaid spends 1/4 of his salary on rent, 1/3 on car fuel and donates half of the r",
+      "gold": "350",
+      "predicted": "350",
+      "correct": true
+    },
+    {
+      "idx": 172,
+      "question": "Rani has ten more crabs than Monic, who has 4 fewer crabs than Bo. If Bo has 40 ",
+      "gold": "122",
+      "predicted": "122",
+      "correct": true
+    },
+    {
+      "idx": 173,
+      "question": "Lloyd earns $10 an hour on Math tutoring.  He tutored 5 hours for the first week",
+      "gold": "130",
+      "predicted": "130",
+      "correct": true
+    },
+    {
+      "idx": 174,
+      "question": "Two candidates are running for class representative at Sarai's school. If the wi",
+      "gold": "20",
+      "predicted": "20",
+      "correct": true
+    },
+    {
+      "idx": 175,
+      "question": "Sandra, the florist around the corner, is very unhappy with Fred's incomplete or",
+      "gold": "160",
+      "predicted": "160",
+      "correct": true
+    },
+    {
+      "idx": 176,
+      "question": "Jean is two years older than Mark.  Two years ago Mark was 5 years older than ha",
+      "gold": "23",
+      "predicted": "24",
+      "correct": false
+    },
+    {
+      "idx": 177,
+      "question": "Two track teams are competing against each other in a 4 by 400 meter relay; a ra",
+      "gold": "2",
+      "predicted": "2",
+      "correct": true
+    },
+    {
+      "idx": 178,
+      "question": "Jerry is rolling a six-sided die. How much more likely is it (expressed as a per",
+      "gold": "25",
+      "predicted": "25",
+      "correct": true
+    },
+    {
+      "idx": 179,
+      "question": "Jenna and her mother picked some apples from their apple farm. Jenna picked half",
+      "gold": "30",
+      "predicted": "30",
+      "correct": true
+    },
+    {
+      "idx": 180,
+      "question": "Russell works at a pet store and is distributing straw among the rodents. The ra",
+      "gold": "5",
+      "predicted": "5",
+      "correct": true
+    },
+    {
+      "idx": 181,
+      "question": "Mandy owes Benedict $100. They agreed to have monthly interest of 2%. If Mandy w",
+      "gold": "106",
+      "predicted": "106.12",
+      "correct": false
+    },
+    {
+      "idx": 182,
+      "question": "A trader buys some bags of wheat from a farmer at a rate of $20 per bag. If it c",
+      "gold": "50",
+      "predicted": "50",
+      "correct": true
+    },
+    {
+      "idx": 183,
+      "question": "Three friends spent $20.25 on 3 tickets to the fair. They also spent $4.50 less ",
+      "gold": "34",
+      "predicted": "34",
+      "correct": true
+    },
+    {
+      "idx": 184,
+      "question": "John collects peaches for 3 hours.  He can collect 2 peaches a minute.  How many",
+      "gold": "360",
+      "predicted": "360",
+      "correct": true
+    },
+    {
+      "idx": 185,
+      "question": "Ducks need to eat 3.5 pounds of insects each week to survive. If there is a floc",
+      "gold": "5",
+      "predicted": "5",
+      "correct": true
+    },
+    {
+      "idx": 186,
+      "question": "Tom plants 10 trees a year.  Every year he also chops down 2 trees a year.  He s",
+      "gold": "91",
+      "predicted": "91",
+      "correct": true
+    },
+    {
+      "idx": 187,
+      "question": "Sue lives in a fun neighborhood.  One weekend, the neighbors decided to play a p",
+      "gold": "24",
+      "predicted": "24",
+      "correct": true
+    },
+    {
+      "idx": 188,
+      "question": "Violetta wants to buy new crayons. She needs them in 5 different colors and prep",
+      "gold": "10",
+      "predicted": "10",
+      "correct": true
+    },
+    {
+      "idx": 189,
+      "question": "A pen costs as much as a pencil and eraser combined. A pencil costs $1.20 and an",
+      "gold": "12",
+      "predicted": "12.00",
+      "correct": true
+    },
+    {
+      "idx": 190,
+      "question": "200 pounds of carrots are to be distributed to 40 restaurants in a certain city.",
+      "gold": "120",
+      "predicted": "120",
+      "correct": true
+    },
+    {
+      "idx": 191,
+      "question": "In the city of Soda, there are exactly 23786 inhabitants. They include 8417 men ",
+      "gold": "6277",
+      "predicted": "6277",
+      "correct": true
+    },
+    {
+      "idx": 192,
+      "question": "Elaine initially had 20 Pokemon cards. After a month, she collected three times ",
+      "gold": "320",
+      "predicted": "320",
+      "correct": true
+    },
+    {
+      "idx": 193,
+      "question": "Mark is a copy-editor. He edits an equal number of sentences each week for two d",
+      "gold": "7500",
+      "predicted": "7500",
+      "correct": true
+    },
+    {
+      "idx": 194,
+      "question": "Baldur gets water from a well. He gets 5 pails of water every morning and 6 pail",
+      "gold": "55",
+      "predicted": "55",
+      "correct": true
+    },
+    {
+      "idx": 195,
+      "question": "John wins an award at work.  The award has a 1 time monetary reward of $5000 and",
+      "gold": "114200",
+      "predicted": "114200",
+      "correct": true
+    },
+    {
+      "idx": 196,
+      "question": "Josie grows grapes on her 10-acre farm.  Each acre produces 5 tons of grapes per",
+      "gold": "100",
+      "predicted": "100",
+      "correct": true
+    },
+    {
+      "idx": 197,
+      "question": "Carl\u2019s favorite food is cheese. He ate a sandwich every day this week for lunch ",
+      "gold": "31",
+      "predicted": "31",
+      "correct": true
+    },
+    {
+      "idx": 198,
+      "question": "Janet had 22 green pens and 10 yellow pens. Then she bought 6 bags of blue pens ",
+      "gold": "98",
+      "predicted": "98",
+      "correct": true
+    },
+    {
+      "idx": 199,
+      "question": "Brinley is in Mr. Bert's math class. Mr. Bert gives six tests each semester. He ",
+      "gold": "98",
+      "predicted": "71",
+      "correct": false
+    }
+  ]
+}

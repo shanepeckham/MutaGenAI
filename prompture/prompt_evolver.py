@@ -100,6 +100,9 @@ class EvalSample:
     expected_params: dict[str, str] = field(default_factory=dict)
 
 
+_candidate_counter: int = 0
+
+
 @dataclass
 class PromptCandidate:
     """A scored prompt template candidate."""
@@ -116,7 +119,11 @@ class PromptCandidate:
 
     def __post_init__(self) -> None:
         if not self.hash:
-            self.hash = hashlib.sha256(self.template.encode()).hexdigest()[:16]
+            global _candidate_counter  # noqa: PLW0603
+            _candidate_counter += 1
+            # Include counter to guarantee uniqueness even when templates match
+            blob = f"{self.template}|{self.generation}|{self.island_id}|{_candidate_counter}"
+            self.hash = hashlib.sha256(blob.encode()).hexdigest()[:16]
 
 
 @dataclass
@@ -1122,6 +1129,28 @@ class PromptEvolverResult:
         ]
         return "\n".join(lines)
 
+    def lineage_json(self) -> list[dict]:
+        """Return lineage records for all candidates as a list of dicts.
+
+        Each dict contains the candidate's hash, parent_hashes, operation,
+        generation, island_id, score, temperature, top_p, and full template.
+        Suitable for JSON serialisation and the lineage tree visualiser.
+        """
+        return [
+            {
+                "hash": c.hash,
+                "parent_hashes": c.parent_hashes,
+                "operation": c.operation,
+                "generation": c.generation,
+                "island_id": c.island_id,
+                "score": round(c.score, 2),
+                "temperature": round(c.temperature, 4),
+                "top_p": round(c.top_p, 4),
+                "template": c.template,
+            }
+            for c in self.all_candidates
+        ]
+
 
 # ---------------------------------------------------------------------------
 # Main engine
@@ -1192,6 +1221,7 @@ class PromptEvolver:
         ]
 
         for i, template in enumerate(_SEED_TEMPLATES):
+            assigned_island = i % self.config.num_islands
             candidate = PromptCandidate(
                 template=template,
                 temperature=float(
@@ -1199,9 +1229,11 @@ class PromptEvolver:
                 ),
                 top_p=float(self._rng.uniform(*self.config.top_p_range)),
                 generation=0,
+                island_id=assigned_island,
+                operation="seed",
             )
             candidate.score = self._evaluate_candidate(candidate)
-            islands[i % self.config.num_islands].append(candidate)
+            islands[assigned_island].append(candidate)
             self._all_candidates.append(candidate)
 
         best_overall = max(self._all_candidates, key=lambda c: c.score)
@@ -1220,6 +1252,7 @@ class PromptEvolver:
                 new_candidates: list[PromptCandidate] = []
                 for _ in range(self.config.population_size):
                     child = self._breed(island, gen)
+                    child.island_id = island_id
                     child.score = self._evaluate_candidate(child)
                     new_candidates.append(child)
                     self._all_candidates.append(child)
@@ -1289,6 +1322,10 @@ class PromptEvolver:
         # Tournament selection
         parent_a = self._tournament_select(island)
 
+        # Track lineage
+        parent_hashes = [parent_a.hash]
+        operation = "mutation"
+
         if self._rng.random() < self.config.crossover_rate and len(island) > 1:
             parent_b = self._tournament_select(island)
             child_template = _crossover_templates(
@@ -1297,6 +1334,8 @@ class PromptEvolver:
                 self._rng,
                 require_tool_schemas=self._require_tool_schemas,
             )
+            parent_hashes = [parent_a.hash, parent_b.hash]
+            operation = "crossover"
         else:
             child_template = parent_a.template
 
@@ -1323,6 +1362,7 @@ class PromptEvolver:
                 ProblemType.TOOL_ROUTING,
                 require_tool_schemas=self._require_tool_schemas,
             )
+            operation = "llm_mutation"
         elif self._rng.random() < self.config.mutation_rate:
             # Mutate template
             child_template = _mutate_template(
@@ -1354,6 +1394,8 @@ class PromptEvolver:
             temperature=temp,
             top_p=top_p,
             generation=generation,
+            parent_hashes=parent_hashes,
+            operation=operation,
         )
 
     def _tournament_select(
@@ -1381,8 +1423,12 @@ class PromptEvolver:
                 top_p=best.top_p,
                 generation=best.generation,
                 score=best.score,
+                island_id=dest,
+                operation="migration",
+                parent_hashes=[best.hash],
             )
             islands[dest].append(migrant)
+            self._all_candidates.append(migrant)
 
     def _evaluate_candidate(self, candidate: PromptCandidate) -> float:
         """Evaluate a candidate prompt on the dataset. Returns accuracy * 100."""

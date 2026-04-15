@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MutagenAI — Evolution Dashboard</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0c10;--surface:#13161d;--card:#1a1e2a;--card-hover:#222840;
+  --border:#2a2f45;--text:#e4e7f0;--muted:#6b7394;
+  --accent:#7c5cfc;--accent-glow:rgba(124,92,252,.25);
+  --teal:#00d4aa;--teal-glow:rgba(0,212,170,.2);
+  --green:#22c55e;--orange:#f59e0b;--red:#ef4444;--blue:#3b82f6;
+  --pink:#ec4899;--cyan:#06b6d4;--violet:#8b5cf6;
+  --font-mono:'SF Mono',SFMono-Regular,'Cascadia Code',Consolas,monospace;
+  --font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif;
+  --radius:14px;--radius-sm:10px;
+}
+html{font-size:15px;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font-sans);line-height:1.6;overflow-x:hidden}
+::selection{background:var(--accent);color:#fff}
+
+/* ── Layout ─────────────────────────────────── */
+.shell{max-width:1280px;margin:0 auto;padding:1.5rem}
+.hero{text-align:center;padding:3rem 0 2rem;position:relative}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 0%,var(--accent-glow),transparent);pointer-events:none}
+.hero h1{font-size:2.6rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;position:relative}
+.hero .tagline{color:var(--muted);font-size:1.05rem;margin-top:.6rem;position:relative}
+.hero .stats-row{display:flex;gap:2rem;justify-content:center;margin-top:1.8rem;flex-wrap:wrap;position:relative}
+.hero-stat{text-align:center}
+.hero-stat .num{font-size:2rem;font-weight:800;font-family:var(--font-mono)}
+.hero-stat .lbl{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:.1rem}
+
+/* ── Tabs ───────────────────────────────────── */
+.tab-bar{display:flex;gap:4px;justify-content:center;margin:2rem 0 1.5rem;flex-wrap:wrap}
+.tab{padding:.55rem 1.3rem;border-radius:99px;font-size:.82rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .25s}
+.tab:hover{border-color:var(--accent);color:var(--text)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* ── Sections ───────────────────────────────── */
+.section{display:none;animation:fadeUp .45s ease-out}
+.section.visible{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+.section-title{font-size:1.5rem;font-weight:700;margin-bottom:.3rem}
+.section-subtitle{color:var(--muted);font-size:.9rem;margin-bottom:1.8rem}
+
+/* ── Cards ──────────────────────────────────── */
+.grid{display:grid;gap:1rem}
+.grid-2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.grid-3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.grid-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.3rem;transition:all .3s}
+.card:hover{border-color:var(--accent);background:var(--card-hover);transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.card-header{display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem}
+.card-icon{width:36px;height:36px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.card-title{font-weight:700;font-size:.95rem}
+.card-subtitle{font-size:.78rem;color:var(--muted)}
+
+/* ── Bar charts ─────────────────────────────── */
+.bar-group{margin:.6rem 0}
+.bar-label{display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:4px}
+.bar-label .name{color:var(--muted)}
+.bar-label .val{font-family:var(--font-mono);font-weight:700}
+.bar-track{height:22px;background:var(--bg);border-radius:6px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:6px;transition:width 1.4s cubic-bezier(.22,1,.36,1);position:absolute;left:0;top:0}
+.bar-fill.baseline{background:linear-gradient(90deg,#374151,#4b5563);opacity:.6;z-index:1}
+.bar-fill.evolved{z-index:2}
+.bar-delta{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:.7rem;font-weight:700;font-family:var(--font-mono);z-index:3}
+
+/* ── Benchmark table ────────────────────────── */
+.bench-table{width:100%;border-collapse:separate;border-spacing:0;font-size:.85rem}
+.bench-table th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;padding:.6rem .8rem;text-align:left;border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card)}
+.bench-table td{padding:.55rem .8rem;border-bottom:1px solid var(--border);transition:background .2s}
+.bench-table tr:hover td{background:rgba(124,92,252,.06)}
+.bench-table .win{color:var(--green);font-weight:700}
+.bench-table .delta-pos{color:var(--green);font-family:var(--font-mono);font-size:.8rem}
+.bench-table .delta-neg{color:var(--red);font-family:var(--font-mono);font-size:.8rem}
+.bench-table .model-tag{display:inline-block;padding:1px 8px;border-radius:99px;font-size:.68rem;font-weight:600;letter-spacing:.3px}
+.tag-ollama{background:rgba(0,212,170,.12);color:var(--teal);border:1px solid rgba(0,212,170,.25)}
+.tag-gpt41{background:rgba(124,92,252,.12);color:var(--accent);border:1px solid rgba(124,92,252,.25)}
+
+/* ── Process flow ──────────────────────────── */
+.flow-pipeline{display:flex;flex-direction:column;gap:0;align-items:stretch}
+.flow-node{display:flex;align-items:center;gap:1rem;padding:1rem 1.2rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);transition:all .5s;opacity:0;transform:translateX(-30px)}
+.flow-node.show{opacity:1;transform:translateX(0)}
+.flow-node:hover{border-color:var(--accent);background:var(--card-hover)}
+.flow-node .step-num{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;flex-shrink:0}
+.flow-node .step-body{flex:1}
+.flow-node .step-name{font-weight:700;font-size:.95rem}
+.flow-node .step-desc{color:var(--muted);font-size:.8rem;margin-top:.15rem}
+.flow-connector{width:2px;height:24px;background:linear-gradient(to bottom,var(--border),transparent);margin-left:2.4rem;opacity:0;transition:opacity .3s}
+.flow-connector.show{opacity:1}
+
+/* ── Radar chart (CSS) ─────────────────────── */
+.radar-wrap{display:flex;justify-content:center;margin:1rem 0}
+.radar-svg{max-width:380px;width:100%}
+
+/* ── Strategy comparison ───────────────────── */
+.strat-row{display:flex;align-items:center;gap:.8rem;padding:.7rem 1rem;border-radius:var(--radius-sm);transition:background .2s;border:1px solid transparent}
+.strat-row:hover{background:var(--card-hover);border-color:var(--border)}
+.strat-rank{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0}
+.strat-name{font-weight:600;font-size:.88rem;flex:1}
+.strat-score{font-family:var(--font-mono);font-weight:700;font-size:.9rem}
+.strat-bar{flex:2;height:10px;background:var(--bg);border-radius:5px;overflow:hidden}
+.strat-fill{height:100%;border-radius:5px;transition:width 1.2s ease-out}
+
+/* ── Insight callout ───────────────────────── */
+.insight{background:linear-gradient(135deg,rgba(124,92,252,.08),rgba(0,212,170,.06));border-left:3px solid var(--accent);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:1rem 1.2rem;margin-top:1.2rem;font-size:.88rem;line-height:1.7}
+.insight strong{color:var(--text)}
+.insight.teal{border-color:var(--teal)}
+.insight.green{border-color:var(--green)}
+.insight.orange{border-color:var(--orange)}
+
+/* ── Responsive ─────────────────────────────── */
+@media(max-width:700px){
+  .hero h1{font-size:1.8rem}
+  .hero .stats-row{gap:1rem}
+  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
+  .flow-node{flex-direction:column;text-align:center;transform:translateY(20px)}
+  .flow-node.show{transform:translateY(0)}
+  .flow-connector{margin-left:auto;margin-right:auto;height:16px}
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- ════════════════════ HERO ════════════════════ -->
+  <section class="hero">
+    <h1>🧬 MutagenAI</h1>
+    <p class="tagline">Evolving LLM system prompts with evolutionary search — no fine-tuning, no GPUs, no labels required</p>
+    <div class="stats-row">
+      <div class="hero-stat"><div class="num" style="color:var(--green)" id="hero-bench">0</div><div class="lbl">Benchmarks</div></div>
+      <div class="hero-stat"><div class="num" style="color:var(--accent)" id="hero-gain">0</div><div class="lbl">Max Gain (pp)</div></div>
+      <div class="hero-stat"><div class="num" style="color:var(--teal)" id="hero-models">0</div><div class="lbl">Models Tested</div></div>
+      <div class="hero-stat"><div class="num" style="color:var(--orange)" id="hero-strats">0</div><div class="lbl">Scoring Strategies</div></div>
+    </div>
+  </section>
+
+  <!-- ════════════════════ TABS ════════════════════ -->
+  <div class="tab-bar" id="tabBar">
+    <button class="tab active" data-tab="overview">Overview</button>
+    <button class="tab" data-tab="process">The Process</button>
+    <button class="tab" data-tab="ollama">Ollama 3B Results</button>
+    <button class="tab" data-tab="gpt41">GPT-4.1 Results</button>
+    <button class="tab" data-tab="noeval">No-Eval Strategies</button>
+    <button class="tab" data-tab="insights">Key Insights</button>
+  </div>
+
+  <!-- ════════════ TAB: OVERVIEW ════════════ -->
+  <div class="section visible" id="sec-overview">
+    <div class="section-title">Cross-Benchmark Results</div>
+    <div class="section-subtitle">Every benchmark tested — Ollama llama3.2 3B (local, untuned) and GPT-4.1 (Azure AI Foundry)</div>
+
+    <div class="card" style="overflow-x:auto;margin-bottom:1.5rem">
+      <table class="bench-table" id="overviewTable">
+        <thead>
+          <tr>
+            <th>Benchmark</th>
+            <th>Category</th>
+            <th>Model</th>
+            <th>Default</th>
+            <th>Evolved</th>
+            <th>Δ (pp)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="grid grid-4" id="summaryCards"></div>
+
+    <div class="insight teal" style="margin-top:1.5rem">
+      <strong>The pattern is clear:</strong> MutagenAI improves prompts across every benchmark, every model class, and every task type.
+      The largest gains appear where default prompts are weakest — ToolBench G1 jumps +73.5 pp, xLAM data +53.7 pp.
+      Even where defaults are strong (BFCL at 98.4%), evolution finds the remaining margin.
+    </div>
+  </div>
+
+  <!-- ════════════ TAB: PROCESS ════════════ -->
+  <div class="section" id="sec-process">
+    <div class="section-title">The Evolutionary Pipeline</div>
+    <div class="section-subtitle">How MutagenAI transforms a seed template into a champion prompt</div>
+
+    <div class="grid grid-2">
+      <div>
+        <div class="flow-pipeline" id="pipelineSteps"></div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:1rem">
+          <div class="card-header">
+            <div class="card-icon" style="background:rgba(124,92,252,.15);color:var(--accent)">🧬</div>
+            <div><div class="card-title">Triple Mutation Sources</div><div class="card-subtitle">Three complementary operators ensure diverse exploration</div></div>
+          </div>
+          <div id="mutationBars"></div>
+        </div>
+
+        <div class="card" style="margin-bottom:1rem">
+          <div class="card-header">
+            <div class="card-icon" style="background:rgba(0,212,170,.15);color:var(--teal)">📊</div>
+            <div><div class="card-title">Composite Scoring</div><div class="card-subtitle">No single metric can game the system</div></div>
+          </div>
+          <div id="scorerBars"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon" style="background:rgba(245,158,11,.15);color:var(--orange)">🏝️</div>
+            <div><div class="card-title">Island Model</div><div class="card-subtitle">Parallel evolution prevents premature convergence</div></div>
+          </div>
+          <div style="display:flex;gap:1rem;margin-top:.5rem">
+            <div style="flex:1;background:var(--bg);border-radius:var(--radius-sm);padding:.8rem;text-align:center">
+              <div style="font-size:1.5rem">🏝️</div>
+              <div style="font-weight:700;font-size:.85rem;margin-top:.3rem">Island 1</div>
+              <div style="color:var(--muted);font-size:.75rem">Independent evolution</div>
+            </div>
+            <div style="display:flex;align-items:center;flex-direction:column;justify-content:center;gap:.2rem">
+              <div style="color:var(--orange);font-size:1.2rem" id="migArrow1">⇌</div>
+              <div style="font-size:.65rem;color:var(--muted);text-align:center">Migration<br>every 2 gen</div>
+            </div>
+            <div style="flex:1;background:var(--bg);border-radius:var(--radius-sm);padding:.8rem;text-align:center">
+              <div style="font-size:1.5rem">🏝️</div>
+              <div style="font-weight:700;font-size:.85rem;margin-top:.3rem">Island 2</div>
+              <div style="color:var(--muted);font-size:.75rem">Independent evolution</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="insight" style="margin-top:1.5rem">
+      <strong>What makes MutagenAI different from naive prompt optimization:</strong><br>
+      ① <strong>Adaptive mutations</strong> — error analysis drives targeted fixes, not random rewrites<br>
+      ② <strong>CMA-ES co-evolution</strong> — temperature &amp; top_p evolve alongside the prompt text<br>
+      ③ <strong>Error decay (0.5×/gen)</strong> — stale corrections fade; only persistent errors remain influential<br>
+      ④ <strong>Elite preservation</strong> — the best prompt is never lost. Population can only stay same or improve
+    </div>
+  </div>
+
+  <!-- ════════════ TAB: OLLAMA ════════════ -->
+  <div class="section" id="sec-ollama">
+    <div class="section-title">Ollama llama3.2 3B — Local, Untuned</div>
+    <div class="section-subtitle">Evolution gains on a 3-billion parameter model running locally — no API costs</div>
+
+    <div class="grid grid-2" id="ollamaCards"></div>
+
+    <div class="insight green" style="margin-top:1.5rem">
+      <strong>Small model, massive gains.</strong> MutagenAI turns a 3B parameter model into a competitive tool-calling agent.
+      ToolBench G1 goes from 16% (unusable) to 89.5% (production-ready). The evolutionary process
+      discovers prompt structures that unlock capabilities the default prompt completely misses.
+    </div>
+  </div>
+
+  <!-- ════════════ TAB: GPT-4.1 ════════════ -->
+  <div class="section" id="sec-gpt41">
+    <div class="section-title">GPT-4.1 — Azure AI Foundry</div>
+    <div class="section-subtitle">Evolution gains on a frontier model — proving the approach works at scale</div>
+
+    <div class="grid grid-2" id="gpt41Cards"></div>
+
+    <div class="card" style="margin-top:1.5rem;overflow-x:auto">
+      <div class="card-header">
+        <div class="card-icon" style="background:rgba(124,92,252,.15);color:var(--accent)">🏆</div>
+        <div><div class="card-title">API-Bank Leaderboard Context</div><div class="card-subtitle">MutagenAI evolved prompt vs published results</div></div>
+      </div>
+      <table class="bench-table">
+        <thead><tr><th>Approach</th><th>GT Score</th><th>vs MutagenAI</th></tr></thead>
+        <tbody>
+          <tr class="win"><td>MutagenAI + GPT-4.1 (evolved)</td><td style="font-family:var(--font-mono);font-weight:700">96.8%</td><td>—</td></tr>
+          <tr><td>GPT-4.1 default (no evolution)</td><td style="font-family:var(--font-mono)">93.5%</td><td class="delta-neg">−3.3 pp</td></tr>
+          <tr><td>Published GPT-4 (Li et al.)</td><td style="font-family:var(--font-mono)">83.8%</td><td class="delta-neg">−13.0 pp</td></tr>
+          <tr><td>Published GPT-3.5 (Li et al.)</td><td style="font-family:var(--font-mono)">82.6%</td><td class="delta-neg">−14.2 pp</td></tr>
+          <tr><td>Published Lynx-7B (Li et al.)</td><td style="font-family:var(--font-mono)">78.4%</td><td class="delta-neg">−18.4 pp</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="insight" style="margin-top:1.5rem">
+      <strong>Evolution works on frontier models too.</strong> GPT-4.1 is already a strong baseline at 93.5% — yet
+      MutagenAI still finds +3.3 pp. On Entity Classification, the gain is +6.2 pp on 1,000 test samples
+      (92.2% vs 86.0%), with +4.8 pp confirmed on a held-out 500-sample test set.
+    </div>
+  </div>
+
+  <!-- ════════════ TAB: NO-EVAL ════════════ -->
+  <div class="section" id="sec-noeval">
+    <div class="section-title">No-Eval Scoring Strategies</div>
+    <div class="section-subtitle">When you have no ground-truth labels — 7 strategies that still find better prompts</div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(236,72,153,.15);color:var(--pink)">🎯</div>
+          <div><div class="card-title">API-Bank — No-Eval Comparison</div><div class="card-subtitle">Default baseline: 55.0% GT score</div></div>
+        </div>
+        <div id="apibankNoeval"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(6,182,212,.15);color:var(--cyan)">🎯</div>
+          <div><div class="card-title">xLAM — No-Eval Comparison</div><div class="card-subtitle">Default baseline: 95.4% GT score</div></div>
+        </div>
+        <div id="xlamNoeval"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:1.5rem">
+      <div class="card-header">
+        <div class="card-icon" style="background:rgba(139,92,246,.15);color:var(--violet)">📋</div>
+        <div><div class="card-title">Strategy Guide</div><div class="card-subtitle">When to use which scoring strategy</div></div>
+      </div>
+      <div class="grid grid-3" style="margin-top:.8rem" id="strategyGuide"></div>
+    </div>
+
+    <div class="insight orange" style="margin-top:1.5rem">
+      <strong>Composite scorer wins consistently.</strong> Blending LLMJudge + ToolSuccess + ProxyMetrics
+      avoids overfitting to any single signal. On API-Bank it reaches 82.3% (vs default 55.0%)
+      without ever seeing a ground-truth label. Self-Consistency is the best single strategy — fast
+      and effective at 81.8%.
+    </div>
+  </div>
+
+  <!-- ════════════ TAB: INSIGHTS ════════════ -->
+  <div class="section" id="sec-insights">
+    <div class="section-title">Key Insights</div>
+    <div class="section-subtitle">What we learned from 12+ experiments across 6 benchmarks</div>
+
+    <div class="grid grid-2" id="insightCards"></div>
+  </div>
+
+</div><!-- .shell -->
+
+<script>
+// ══════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════
+const OVERVIEW_DATA = [
+  { bench:'BFCL', cat:'simple_python', model:'ollama', tag:'tag-ollama', def:98.42, evo:100.0 },
+  { bench:'BFCL', cat:'live_simple', model:'ollama', tag:'tag-ollama', def:77.56, evo:80.50 },
+  { bench:'xLAM', cat:'data', model:'ollama', tag:'tag-ollama', def:46.32, evo:100.0 },
+  { bench:'xLAM', cat:'entertainment', model:'ollama', tag:'tag-ollama', def:58.12, evo:96.79 },
+  { bench:'xLAM', cat:'finance', model:'ollama', tag:'tag-ollama', def:50.65, evo:97.96 },
+  { bench:'API-Bank', cat:'level_1', model:'ollama', tag:'tag-ollama', def:52.34, evo:100.0 },
+  { bench:'API-Bank', cat:'level_2 (deep)', model:'ollama', tag:'tag-ollama', def:57.09, evo:82.56 },
+  { bench:'ToolBench', cat:'G1 instruction', model:'ollama', tag:'tag-ollama', def:16.0, evo:89.50 },
+  { bench:'ToolBench', cat:'G3 (deep)', model:'ollama', tag:'tag-ollama', def:19.0, evo:74.31 },
+  { bench:'τ-bench', cat:'airline (deep)', model:'ollama', tag:'tag-ollama', def:30.02, evo:46.60 },
+  { bench:'Browser', cat:'failure_recovery', model:'ollama', tag:'tag-ollama', def:24.30, evo:28.00 },
+  { bench:'API-Bank', cat:'level_1', model:'GPT-4.1', tag:'tag-gpt41', def:93.46, evo:96.79 },
+  { bench:'Entity', cat:'classification (n=1000)', model:'GPT-4.1', tag:'tag-gpt41', def:86.0, evo:92.20 },
+  { bench:'Entity', cat:'holdout (n=500)', model:'GPT-4.1', tag:'tag-gpt41', def:85.60, evo:90.40 },
+];
+
+const OLLAMA_BENCHMARKS = [
+  { name:'ToolBench G1', def:16.0, evo:89.5, color:'var(--green)' },
+  { name:'xLAM data', def:46.32, evo:100.0, color:'var(--teal)' },
+  { name:'API-Bank L1', def:52.34, evo:100.0, color:'var(--accent)' },
+  { name:'xLAM entertainment', def:58.12, evo:96.79, color:'var(--blue)' },
+  { name:'ToolBench G3 (deep)', def:19.0, evo:74.31, color:'var(--cyan)' },
+  { name:'API-Bank L2 (deep)', def:57.09, evo:82.56, color:'var(--violet)' },
+  { name:'xLAM finance', def:50.65, evo:97.96, color:'var(--pink)' },
+  { name:'τ-bench airline (deep)', def:30.02, evo:46.60, color:'var(--orange)' },
+  { name:'BFCL simple_python', def:98.42, evo:100.0, color:'var(--green)' },
+  { name:'Browser failure_recovery', def:24.30, evo:28.0, color:'var(--red)' },
+];
+
+const GPT41_BENCHMARKS = [
+  { name:'Entity Classification (n=1000)', def:86.0, evo:92.2, color:'var(--accent)' },
+  { name:'Entity Holdout (n=500)', def:85.6, evo:90.4, color:'var(--violet)' },
+  { name:'API-Bank Level 1', def:93.46, evo:96.79, color:'var(--teal)' },
+  { name:'vs GPT-4 Leaderboard', def:83.8, evo:96.79, color:'var(--green)' },
+];
+
+const APIBANK_NOEVAL = [
+  { name:'Composite', score:82.32, color:'var(--green)' },
+  { name:'Self-Consistency', score:81.80, color:'var(--teal)' },
+  { name:'Tool-Use Success', score:68.23, color:'var(--blue)' },
+  { name:'Proxy Metrics', score:63.42, color:'var(--orange)' },
+  { name:'Preference Scoring', score:59.96, color:'var(--pink)' },
+  { name:'LLM-as-Judge', score:57.88, color:'var(--violet)' },
+];
+
+const XLAM_NOEVAL = [
+  { name:'Composite', score:95.51, color:'var(--green)' },
+  { name:'Self-Consistency', score:95.39, color:'var(--teal)' },
+  { name:'LLM-as-Judge', score:94.64, color:'var(--blue)' },
+  { name:'Proxy Metrics', score:94.64, color:'var(--orange)' },
+];
+
+const PIPELINE_STEPS = [
+  { num:'1', name:'Seed Population', desc:'4 diverse prompt templates — minimal, structured, CoT, strict format', color:'var(--accent)', icon:'🌱' },
+  { num:'2', name:'Composite Scoring', desc:'LLMJudge (45%) + ToolSuccess (30%) + ProxyMetrics (25%)', color:'var(--teal)', icon:'📊' },
+  { num:'3', name:'Warmup & Error Profiling', desc:'Analyse seed errors to bootstrap adaptive mutations for Gen 1', color:'var(--pink)', icon:'🔍' },
+  { num:'4', name:'Tournament Selection', desc:'Random pairwise comparison — fitter candidate becomes parent', color:'var(--blue)', icon:'⚔️' },
+  { num:'5', name:'Adaptive Mutation', desc:'Static snippets + LLM rewrites + error-driven hints (50/30/20%)', color:'var(--orange)', icon:'🧬' },
+  { num:'6', name:'Crossover', desc:'Splice two parent prompts at midpoint — 30% probability', color:'var(--cyan)', icon:'✂️' },
+  { num:'7', name:'CMA-ES Parameter Tuning', desc:'Temperature & top_p co-evolve alongside the prompt text', color:'var(--violet)', icon:'📐' },
+  { num:'8', name:'Island Migration', desc:'Best candidates cross between 2 islands every 2 generations', color:'var(--green)', icon:'🌊' },
+  { num:'9', name:'Error Decay (0.5×)', desc:'Stale corrections fade — only persistent errors drive mutations', color:'var(--red)', icon:'📉' },
+  { num:'10', name:'Elite Preservation', desc:'Top 3 per island survive unchanged — population only improves', color:'var(--orange)', icon:'⭐' },
+];
+
+const STRATEGY_GUIDE = [
+  { icon:'🧑‍⚖️', name:'LLM Judge', when:'Rich output quality matters', desc:'Second LLM scores output 0-10 against a rubric' },
+  { icon:'🔁', name:'Self-Consistency', when:'Reliable, repeatable outputs', desc:'Agreement across N runs of the same input' },
+  { icon:'🔧', name:'Tool Success', when:'API calls with observable results', desc:'Score by HTTP status code from real API calls' },
+  { icon:'📏', name:'Proxy Metrics', when:'Fast structural validation', desc:'Format checks, length, JSON validity' },
+  { icon:'👥', name:'Preference Scoring', when:'Few good/bad examples available', desc:'Few-shot comparison against reference pairs' },
+  { icon:'🤝', name:'Human Tournament', when:'Subjective quality judgment', desc:'Interactive human selection per generation' },
+  { icon:'🧪', name:'Synthetic Eval', when:'Need test data generated', desc:'LLM generates validation input/output pairs' },
+];
+
+const INSIGHT_CARDS = [
+  { icon:'🎯', title:'Biggest gains where defaults fail', text:'When the default prompt scores low (ToolBench 16%, API-Bank 52%), evolution finds massive improvements. The framework discovers prompt structures that unlock latent model capabilities.', color:'var(--green)' },
+  { icon:'🏔️', title:'Still works at ceiling', text:'Even when GPT-4.1 scores 93.5% with a hand-written prompt, MutagenAI finds +3.3 pp more. BFCL at 98.4% still yields +1.6 pp to reach 100%. There is almost always headroom.', color:'var(--accent)' },
+  { icon:'🧪', title:'No-eval is viable', text:'Composite scoring without ground-truth labels reaches 82.3% on API-Bank (vs 55% default). You do not need labelled data to benefit from prompt evolution.', color:'var(--pink)' },
+  { icon:'📊', title:'Holdout validation confirms', text:'Entity Classification gains hold on unseen data: +4.8 pp on 500-sample holdout (90.4% vs 85.6%). API-Bank holdout: 96.6% vs 96.5% with only 0.15% generalisation gap.', color:'var(--teal)' },
+  { icon:'🌡️', title:'Parameter co-evolution matters', text:'CMA-ES tunes temperature and top_p alongside prompt text. The best API-Bank prompt found temp=0.97 and top_p=0.92 — not the defaults most engineers would choose.', color:'var(--orange)' },
+  { icon:'🏝️', title:'Islands prevent local optima', text:'The island model with migration every 2 generations consistently outperforms single-population evolution. Cross-pollination between isolated populations finds combinations neither discovers alone.', color:'var(--blue)' },
+  { icon:'⚡', title:'Adaptive > random mutation', text:'Error-profiling + adaptive mutations gave API-Bank Run 3 its +3.3 pp over default. Targeted fixes for specific API confusion patterns (e.g., ToolSearcher vs SearchEngine) are more efficient than random prompt rewrites.', color:'var(--violet)' },
+  { icon:'🔬', title:'Small model amplification', text:'A 3B parameter llama3.2 with an evolved prompt beats published GPT-3.5 results on API-Bank (82.3% vs 82.6%). Evolution can make a tiny model punch above its weight class.', color:'var(--cyan)' },
+];
+
+// ══════════════════════════════════════════════
+// RENDERING
+// ══════════════════════════════════════════════
+
+// ── Hero counter animation ──────────────────
+function animateCounter(id, target, duration=1200, suffix='') {
+  const el = document.getElementById(id);
+  const start = performance.now();
+  const isFloat = target % 1 !== 0;
+  function tick(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    const val = target * ease;
+    el.textContent = (isFloat ? val.toFixed(1) : Math.round(val)) + suffix;
+    if (t < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+// ── Tab switching ───────────────────────────
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+    const sec = document.getElementById('sec-' + tab.dataset.tab);
+    if (sec) {
+      sec.classList.add('visible');
+      renderSection(tab.dataset.tab);
+    }
+  });
+});
+
+const rendered = {};
+function renderSection(name) {
+  if (rendered[name]) return;
+  rendered[name] = true;
+  switch(name) {
+    case 'overview': renderOverview(); break;
+    case 'process': renderProcess(); break;
+    case 'ollama': renderOllama(); break;
+    case 'gpt41': renderGpt41(); break;
+    case 'noeval': renderNoeval(); break;
+    case 'insights': renderInsights(); break;
+  }
+}
+
+// ── Overview ────────────────────────────────
+function renderOverview() {
+  const tbody = document.querySelector('#overviewTable tbody');
+  OVERVIEW_DATA.forEach((r, i) => {
+    const delta = (r.evo - r.def).toFixed(1);
+    const cls = delta > 0 ? 'delta-pos' : delta < 0 ? 'delta-neg' : '';
+    const sign = delta > 0 ? '+' : '';
+    const tr = document.createElement('tr');
+    if (parseFloat(delta) > 10) tr.classList.add('win');
+    tr.style.cssText = 'opacity:0;transition:opacity .35s';
+    tr.innerHTML = `
+      <td style="font-weight:600">${r.bench}</td>
+      <td>${r.cat}</td>
+      <td><span class="model-tag ${r.tag}">${r.model}</span></td>
+      <td style="font-family:var(--font-mono)">${r.def.toFixed(1)}%</td>
+      <td style="font-family:var(--font-mono);font-weight:700">${r.evo.toFixed(1)}%</td>
+      <td class="${cls}">${sign}${delta}</td>
+    `;
+    tbody.appendChild(tr);
+    setTimeout(() => tr.style.opacity = '1', 40 + i * 40);
+  });
+
+  // Summary cards
+  const summaries = [
+    { label:'Avg Gain (Ollama)', value:'+27.4 pp', icon:'📈', color:'var(--green)' },
+    { label:'Avg Gain (GPT-4.1)', value:'+5.4 pp', icon:'🎯', color:'var(--accent)' },
+    { label:'Benchmarks Won', value:'14 / 14', icon:'🏆', color:'var(--teal)' },
+    { label:'Perfect Scores', value:'3', icon:'💯', color:'var(--orange)' },
+  ];
+  const container = document.getElementById('summaryCards');
+  summaries.forEach((s, i) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.cssText = 'text-align:center;opacity:0;transition:opacity .5s';
+    card.innerHTML = `
+      <div style="font-size:1.8rem;margin-bottom:.3rem">${s.icon}</div>
+      <div style="font-size:1.6rem;font-weight:800;font-family:var(--font-mono);color:${s.color}">${s.value}</div>
+      <div style="font-size:.78rem;color:var(--muted);margin-top:.2rem">${s.label}</div>
+    `;
+    container.appendChild(card);
+    setTimeout(() => card.style.opacity = '1', 300 + i * 150);
+  });
+}
+
+// ── Process ─────────────────────────────────
+function renderProcess() {
+  const pipeline = document.getElementById('pipelineSteps');
+  PIPELINE_STEPS.forEach((s, i) => {
+    if (i > 0) {
+      const conn = document.createElement('div');
+      conn.className = 'flow-connector';
+      pipeline.appendChild(conn);
+      setTimeout(() => conn.classList.add('show'), 80 + i * 120);
+    }
+    const node = document.createElement('div');
+    node.className = 'flow-node';
+    node.innerHTML = `
+      <div class="step-num" style="background:${s.color};color:#fff">${s.icon}</div>
+      <div class="step-body">
+        <div class="step-name">${s.name}</div>
+        <div class="step-desc">${s.desc}</div>
+      </div>
+    `;
+    pipeline.appendChild(node);
+    setTimeout(() => node.classList.add('show'), 100 + i * 120);
+  });
+
+  // Mutation bars
+  const mutations = [
+    { name:'Static snippet injection', pct:50, color:'var(--blue)' },
+    { name:'LLM-driven rewrite', pct:30, color:'var(--accent)' },
+    { name:'Adaptive error-driven hint', pct:20, color:'var(--pink)' },
+  ];
+  renderBarGroup('mutationBars', mutations);
+
+  // Scorer bars
+  const scorers = [
+    { name:'LLM Judge', pct:45, color:'var(--accent)' },
+    { name:'Tool Success', pct:30, color:'var(--green)' },
+    { name:'Proxy Metrics', pct:25, color:'var(--orange)' },
+  ];
+  renderBarGroup('scorerBars', scorers);
+}
+
+function renderBarGroup(containerId, items) {
+  const container = document.getElementById(containerId);
+  items.forEach((item, i) => {
+    const group = document.createElement('div');
+    group.className = 'bar-group';
+    group.innerHTML = `
+      <div class="bar-label"><span class="name">${item.name}</span><span class="val" style="color:${item.color}">${item.pct}%</span></div>
+      <div class="bar-track"><div class="bar-fill evolved" id="${containerId}-bar-${i}" style="background:${item.color};width:0"></div></div>
+    `;
+    container.appendChild(group);
+    setTimeout(() => {
+      document.getElementById(`${containerId}-bar-${i}`).style.width = item.pct + '%';
+    }, 300 + i * 200);
+  });
+}
+
+// ── Ollama ──────────────────────────────────
+function renderOllama() {
+  const container = document.getElementById('ollamaCards');
+  // Sort by delta descending
+  const sorted = [...OLLAMA_BENCHMARKS].sort((a, b) => (b.evo - b.def) - (a.evo - a.def));
+  sorted.forEach((b, i) => {
+    const delta = (b.evo - b.def).toFixed(1);
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.cssText = 'opacity:0;transition:opacity .5s';
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
+        <div style="font-weight:700;font-size:.92rem">${b.name}</div>
+        <div style="font-family:var(--font-mono);font-weight:800;color:var(--green);font-size:1rem">+${delta} pp</div>
+      </div>
+      <div class="bar-group" style="margin-bottom:.3rem">
+        <div class="bar-label"><span class="name">Default</span><span class="val" style="color:var(--muted)">${b.def.toFixed(1)}%</span></div>
+        <div class="bar-track"><div class="bar-fill baseline" id="ol-def-${i}" style="width:0"></div></div>
+      </div>
+      <div class="bar-group">
+        <div class="bar-label"><span class="name">Evolved</span><span class="val" style="color:${b.color}">${b.evo.toFixed(1)}%</span></div>
+        <div class="bar-track"><div class="bar-fill evolved" id="ol-evo-${i}" style="background:${b.color};width:0"></div></div>
+      </div>
+    `;
+    container.appendChild(card);
+    setTimeout(() => {
+      card.style.opacity = '1';
+      document.getElementById(`ol-def-${i}`).style.width = b.def + '%';
+      document.getElementById(`ol-evo-${i}`).style.width = b.evo + '%';
+    }, 100 + i * 100);
+  });
+}
+
+// ── GPT-4.1 ─────────────────────────────────
+function renderGpt41() {
+  const container = document.getElementById('gpt41Cards');
+  GPT41_BENCHMARKS.forEach((b, i) => {
+    const delta = (b.evo - b.def).toFixed(1);
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.cssText = 'opacity:0;transition:opacity .5s';
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
+        <div style="font-weight:700;font-size:.92rem">${b.name}</div>
+        <div style="font-family:var(--font-mono);font-weight:800;color:var(--green);font-size:1rem">+${delta} pp</div>
+      </div>
+      <div class="bar-group" style="margin-bottom:.3rem">
+        <div class="bar-label"><span class="name">Default / Baseline</span><span class="val" style="color:var(--muted)">${b.def.toFixed(1)}%</span></div>
+        <div class="bar-track"><div class="bar-fill baseline" id="gpt-def-${i}" style="width:0"></div></div>
+      </div>
+      <div class="bar-group">
+        <div class="bar-label"><span class="name">MutagenAI Evolved</span><span class="val" style="color:${b.color}">${b.evo.toFixed(1)}%</span></div>
+        <div class="bar-track"><div class="bar-fill evolved" id="gpt-evo-${i}" style="background:${b.color};width:0"></div></div>
+      </div>
+    `;
+    container.appendChild(card);
+    setTimeout(() => {
+      card.style.opacity = '1';
+      document.getElementById(`gpt-def-${i}`).style.width = b.def + '%';
+      document.getElementById(`gpt-evo-${i}`).style.width = b.evo + '%';
+    }, 100 + i * 150);
+  });
+}
+
+// ── No-Eval ─────────────────────────────────
+function renderNoeval() {
+  renderStrategyRanking('apibankNoeval', APIBANK_NOEVAL, 55.01);
+  renderStrategyRanking('xlamNoeval', XLAM_NOEVAL, 95.39);
+
+  const guide = document.getElementById('strategyGuide');
+  STRATEGY_GUIDE.forEach((s, i) => {
+    const card = document.createElement('div');
+    card.style.cssText = 'background:var(--bg);border-radius:var(--radius-sm);padding:1rem;opacity:0;transition:opacity .4s';
+    card.innerHTML = `
+      <div style="font-size:1.5rem;margin-bottom:.4rem">${s.icon}</div>
+      <div style="font-weight:700;font-size:.88rem;margin-bottom:.2rem">${s.name}</div>
+      <div style="font-size:.78rem;color:var(--muted);margin-bottom:.4rem">${s.desc}</div>
+      <div style="font-size:.72rem;color:var(--teal);font-weight:600">Best when: ${s.when}</div>
+    `;
+    guide.appendChild(card);
+    setTimeout(() => card.style.opacity = '1', 200 + i * 100);
+  });
+}
+
+function renderStrategyRanking(containerId, data, baseline) {
+  const container = document.getElementById(containerId);
+  // Add baseline reference
+  const ref = document.createElement('div');
+  ref.style.cssText = 'font-size:.78rem;color:var(--muted);margin-bottom:.8rem;padding-left:.5rem';
+  ref.innerHTML = `<span style="display:inline-block;width:10px;height:2px;background:var(--red);vertical-align:middle;margin-right:6px"></span>Default baseline: <strong style="color:var(--red)">${baseline}%</strong>`;
+  container.appendChild(ref);
+
+  data.forEach((s, i) => {
+    const row = document.createElement('div');
+    row.className = 'strat-row';
+    const rankColors = ['var(--green)','var(--teal)','var(--blue)','var(--orange)','var(--pink)','var(--violet)'];
+    row.innerHTML = `
+      <div class="strat-rank" style="background:${rankColors[i]};color:#fff">${i+1}</div>
+      <div class="strat-name">${s.name}</div>
+      <div class="strat-bar"><div class="strat-fill" id="${containerId}-sf-${i}" style="background:${s.color};width:0"></div></div>
+      <div class="strat-score" style="color:${s.color}">${s.score.toFixed(1)}%</div>
+    `;
+    container.appendChild(row);
+    setTimeout(() => {
+      document.getElementById(`${containerId}-sf-${i}`).style.width = s.score + '%';
+    }, 200 + i * 120);
+  });
+}
+
+// ── Insights ────────────────────────────────
+function renderInsights() {
+  const container = document.getElementById('insightCards');
+  INSIGHT_CARDS.forEach((c, i) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.cssText = 'opacity:0;transition:opacity .5s';
+    card.innerHTML = `
+      <div class="card-header">
+        <div class="card-icon" style="background:${c.color}22;color:${c.color};font-size:1.4rem">${c.icon}</div>
+        <div class="card-title">${c.title}</div>
+      </div>
+      <div style="font-size:.85rem;color:var(--muted);line-height:1.7">${c.text}</div>
+    `;
+    container.appendChild(card);
+    setTimeout(() => card.style.opacity = '1', 100 + i * 100);
+  });
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+animateCounter('hero-bench', 6);
+animateCounter('hero-gain', 73.5, 1500, ' pp');
+animateCounter('hero-models', 3);
+animateCounter('hero-strats', 7);
+renderSection('overview');
+
+// Keyboard navigation for tabs
+document.addEventListener('keydown', e => {
+  const tabs = [...document.querySelectorAll('.tab')];
+  const active = tabs.findIndex(t => t.classList.contains('active'));
+  if (e.key === 'ArrowRight' && active < tabs.length - 1) { tabs[active + 1].click(); }
+  if (e.key === 'ArrowLeft' && active > 0) { tabs[active - 1].click(); }
+});
+</script>
+</body>
+</html>

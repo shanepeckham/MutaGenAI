@@ -1,10 +1,10 @@
-# Prompture
+# MutagenAI
 
 Evolve LLM system prompts using evolutionary search — no fine-tuning, no
 GPUs, no labelled data required.
 
 > **Explain like I'm 10:** You know how the *instructions* you give someone
-> matter as much as the question? Prompture tries hundreds of different ways
+> matter as much as the question? MutagenAI tries hundreds of different ways
 > to phrase the instructions for an AI, tests each one, and breeds the
 > winners — just like evolving animals — until it finds the best wording.
 
@@ -55,7 +55,7 @@ GPUs, no labelled data required.
 
 ## Getting started — the wizard
 
-> Answer a few questions about your AI agent and Prompture generates a
+> Answer a few questions about your AI agent and MutagenAI generates a
 > ready-to-run script that evolves the perfect system prompt — no PhD
 > required.
 
@@ -63,8 +63,8 @@ The wizard walks you through nine steps and generates a self-contained
 Python script tailored to your project:
 
 ```bash
-prompture init                        # interactive walkthrough
-prompture init --output my_agent.py   # custom output file
+mutagenai init                        # interactive walkthrough
+mutagenai init --output my_agent.py   # custom output file
 ```
 
 ### What the wizard asks
@@ -167,7 +167,7 @@ access to labels.
 ### Example walkthrough
 
 ```text
-🧬 Prompture — Prompt Evolution Wizard
+🧬 MutagenAI — Prompt Evolution Wizard
 
 Step 1 of 9 — Task Description
   Task description: You are an API-calling assistant that maps queries
@@ -213,7 +213,7 @@ you find that perfect prompt automatically?
 
 ### The evolutionary loop
 
-Prompture treats prompt engineering as an **optimisation problem** and
+MutagenAI treats prompt engineering as an **optimisation problem** and
 solves it with evolutionary search:
 
 1. **Seed population.** Start with 4 prompt templates ranging from a
@@ -266,11 +266,11 @@ solves it with evolutionary search:
 
 | Module | Purpose |
 |---|---|
-| [`prompture/prompt_evolver.py`](prompture/prompt_evolver.py) | `PromptEvolver` — ground-truth prompt evolution with island-model EA + CMA-ES continuous tuning |
-| [`prompture/strategies.py`](prompture/strategies.py) | `NoEvalPromptEvolver` + 7 scoring strategies for label-free evolution |
-| [`prompture/wizard.py`](prompture/wizard.py) | `prompture init` wizard — interactive questionnaire that generates a ready-to-run script |
-| [`prompture/seed_loader.py`](prompture/seed_loader.py) | Load seed templates from external JSON files |
-| [`prompture/dashboard.py`](prompture/dashboard.py) | Plotting functions for benchmark visualisation (BFCL, xLAM, τ-bench, ToolBench, API-Bank, Browser Agent) |
+| [`mutagenai/prompt_evolver.py`](mutagenai/prompt_evolver.py) | `PromptEvolver` — ground-truth prompt evolution with island-model EA + CMA-ES continuous tuning |
+| [`mutagenai/strategies.py`](mutagenai/strategies.py) | `NoEvalPromptEvolver` + 7 scoring strategies for label-free evolution |
+| [`mutagenai/wizard.py`](mutagenai/wizard.py) | `mutagenai init` wizard — interactive questionnaire that generates a ready-to-run script |
+| [`mutagenai/seed_loader.py`](mutagenai/seed_loader.py) | Load seed templates from external JSON files |
+| [`mutagenai/dashboard.py`](mutagenai/dashboard.py) | Plotting functions for benchmark visualisation (BFCL, xLAM, τ-bench, ToolBench, API-Bank, Browser Agent) |
 | [`docs/algorithm_animation.html`](docs/algorithm_animation.html) | Interactive step-through animation showing how the evolutionary loop works (open in a browser) |
 
 ---
@@ -284,7 +284,7 @@ accuracy.
 ### Quick start — PromptEvolver
 
 ```python
-from prompture import (
+from mutagenai import (
     PromptEvolver, PromptEvolverConfig, Tool, EvalSample, LLMBackend,
 )
 
@@ -318,7 +318,7 @@ Ollama llama3.2, 6 tools, 24 samples:
 | Verbose (kitchen sink) | 95.0 % | +52.5 % |
 | High temperature (creative) | 78.8 % | +36.3 % |
 | Zero temperature (greedy) | 89.6 % | +47.1 % |
-| **EVOLVED (Prompture)** | **96.7 %** | **+54.2 %** |
+| **EVOLVED (MutagenAI)** | **96.7 %** | **+54.2 %** |
 
 ### Ollama vs Azure OpenAI
 
@@ -329,7 +329,7 @@ Same baselines on both backends:
 | Naive (tool list only) | 44.2 % | 0.0 % | -44.2 % |
 | Minimal JSON instruction | 90.4 % | 92.1 % | +1.7 % |
 | Verbose (kitchen sink) | 89.2 % | 98.8 % | +9.6 % |
-| **EVOLVED (Prompture)** | **100.0 %** | **100.0 %** | **+0.0 %** |
+| **EVOLVED (MutagenAI)** | **100.0 %** | **100.0 %** | **+0.0 %** |
 
 Both backends reached **100 % accuracy** after evolution.
 
@@ -348,7 +348,7 @@ samples each:
 
 ## Six agentic benchmarks
 
-Prompture has been evaluated across six real-world agentic benchmarks
+MutagenAI has been evaluated across six real-world agentic benchmarks
 covering function calling, conversational agents, multi-tool
 orchestration, and failure recovery.
 
@@ -511,7 +511,7 @@ three difficulty tiers. Published baseline: ToolLLaMA 66.7 %, GPT-4
 
 The benchmarks above all use ground-truth labels. Real-world agents
 rarely have these. The **no-eval strategies** module
-(`prompture.strategies`) replaces the ground-truth fitness function with
+(`mutagenai.strategies`) replaces the ground-truth fitness function with
 seven alternative signal sources.
 
 ### The seven strategies
@@ -529,7 +529,7 @@ seven alternative signal sources.
 ### Quick start — NoEvalPromptEvolver
 
 ```python
-from prompture import (
+from mutagenai import (
     NoEvalPromptEvolver,
     NoEvalConfig,
     LLMJudge,
@@ -689,7 +689,7 @@ model. This is the **ceiling** — the best result when labels are available.
 
 ### How to apply this to your own agent
 
-1. **Run `prompture init`** — at Step 2 select "no" for ground truth,
+1. **Run `mutagenai init`** — at Step 2 select "no" for ground truth,
    at Step 4 pick **Composite**.
 2. **Provide 10–30 representative test inputs** — real queries.
 3. **Write proxy checks** for your output format (valid JSON, bracket
@@ -758,7 +758,7 @@ Place JSON files in the `seed_templates/` directory at the project root:
 ### Loading seeds in code
 
 ```python
-from prompture import load_seed_templates, list_seed_templates
+from mutagenai import load_seed_templates, list_seed_templates
 
 # List available template files
 print(list_seed_templates())  # ['entity_classification']
@@ -833,7 +833,7 @@ All plotting functions auto-detect the environment: **Plotly** for
 interactive notebooks, **Matplotlib** for scripts and static output.
 
 ```python
-from prompture.dashboard import plot_bfcl_evolution
+from mutagenai.dashboard import plot_bfcl_evolution
 
 # BFCL benchmark convergence and comparison
 plot_bfcl_evolution("bfcl_experiment_log.json")
@@ -884,8 +884,8 @@ All prompt evolution recipes live in
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Clone and sync
-git clone https://github.com/shanepeckham/Prompture.git
-cd Prompture
+git clone https://github.com/shanepeckham/MutagenAI.git
+cd MutagenAI
 uv sync --extra all
 
 # Start a local LLM backend
@@ -893,17 +893,17 @@ ollama serve
 ollama pull llama3.2
 
 # Run your first evolution
-prompture init
+mutagenai init
 ```
 
 **Optional dependency groups:**
 
 ```bash
-pip install prompture              # core engine (numpy only)
-pip install prompture[llm]         # + httpx, azure-identity
-pip install prompture[viz]         # + matplotlib, plotly
-pip install prompture[wizard]      # + rich
-pip install prompture[all]         # everything
+pip install mutagenai              # core engine (numpy only)
+pip install mutagenai[llm]         # + httpx, azure-identity
+pip install mutagenai[viz]         # + matplotlib, plotly
+pip install mutagenai[wizard]      # + rich
+pip install mutagenai[all]         # everything
 ```
 
 For Azure OpenAI, set `AZURE_OPENAI_ENDPOINT` and

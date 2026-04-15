@@ -1,0 +1,42 @@
+{
+  "timestamp": "2026-04-14T20:45:46",
+  "benchmark": "toolbench_g1_instruction",
+  "backend": "ollama",
+  "model": "llama3.2",
+  "config": {
+    "iterations": 4,
+    "population_size": 8,
+    "num_islands": 2,
+    "elite_size": 5,
+    "mutation_rate": 0.6,
+    "crossover_rate": 0.3,
+    "adaptive_mutations": true,
+    "llm_mutation_rate": 0.3
+  },
+  "default_baseline": 91.5,
+  "evolved_score": 100.0,
+  "delta": 8.5,
+  "best_temperature": 0.7925,
+  "best_top_p": 0.9349,
+  "wall_time": 4905.7,
+  "total_candidates": 68,
+  "best_prompt": "You are a precise tool-calling assistant. Rules:\nPay close attention to parameter extraction from the query.\n- ONLY use tools from the list below.\n- Every required parameter MUST be provided.\n- Match tool names and API names EXACTLY as listed.\n- For multi-step tasks, return calls in execution order.\n- Return ONLY a JSON array \u2014 no explanation text.\n\nAvailable tools:\n{toolbench_apis}\n\nJSON array of tool calls:",
+  "history": [
+    {
+      "generation": 1,
+      "best_score": 100.0
+    },
+    {
+      "generation": 2,
+      "best_score": 100.0
+    },
+    {
+      "generation": 3,
+      "best_score": 100.0
+    },
+    {
+      "generation": 4,
+      "best_score": 100.0
+    }
+  ]
+}

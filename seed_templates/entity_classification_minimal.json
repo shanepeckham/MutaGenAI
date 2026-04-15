@@ -5,6 +5,6 @@
     "Classify this text as Agent, Task, Tool, Input, Output, or Human.",
     "Tell me the entity type: Agent, Task, Tool, Input, Output, or Human.",
     "What type of entity is described? Choose: Agent, Task, Tool, Input, Output, Human.",
-    "Identify the entity category from: Agent, Task, Tool, Input, Output, Human.",
+    "Identify the entity category from: Agent, Task, Tool, Input, Output, Human."
 ]
 }

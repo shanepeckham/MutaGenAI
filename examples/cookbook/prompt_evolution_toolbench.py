@@ -179,7 +179,11 @@ def _download_toolbench_data() -> dict[str, list[dict[str, Any]]]:
                     f"{_BASE_URL}&split={split_name}"
                     f"&offset={offset}&length={batch_size}"
                 )
-                resp = urllib.request.urlopen(url, timeout=30)
+                req = urllib.request.Request(url)
+                hf_token = os.environ.get("HF_TOKEN", "")
+                if hf_token:
+                    req.add_header("Authorization", f"Bearer {hf_token}")
+                resp = urllib.request.urlopen(req, timeout=30)
                 data = json.loads(resp.read())
                 rows = data.get("rows", [])
                 if not rows:
@@ -204,6 +208,39 @@ def _download_toolbench_data() -> dict[str, list[dict[str, Any]]]:
     if all_splits:
         with open(cache_file, "w") as f:
             json.dump(all_splits, f)
+        return all_splits
+
+    # Fallback: Maurus/ToolBench (public, no auth) ───────────────────
+    print("  Primary dataset unavailable — falling back to Maurus/ToolBench...")
+    _FB_URL = (
+        "https://datasets-server.huggingface.co/rows"
+        "?dataset=Maurus/ToolBench&config=default&split=train"
+    )
+    try:
+        records = []
+        fb_resp = urllib.request.urlopen(
+            f"{_FB_URL}&offset=0&length=100", timeout=30
+        )
+        fb_data = json.loads(fb_resp.read())
+        for row_obj in fb_data.get("rows", []):
+            r = row_obj.get("row", {})
+            records.append({
+                "query_id": str(r.get("query_id", "")),
+                "query": str(r.get("query", "")),
+                "api_list": r.get("api_list", "[]"),
+                "relevant_apis": r.get("api_list", "[]"),
+            })
+        # Assign to synthetic splits based on domain complexity
+        all_splits["g1_instruction"] = records[:40]
+        all_splits["g2_category"] = records[40:70]
+        all_splits["g3_instruction"] = records[70:]
+        for sn, recs in all_splits.items():
+            print(f"    {sn}: {len(recs)} cases (from Maurus/ToolBench)")
+        if all_splits:
+            with open(cache_file, "w") as f:
+                json.dump(all_splits, f)
+    except Exception as exc:
+        print(f"    ⚠ Fallback also failed: {exc}")
 
     return all_splits
 
