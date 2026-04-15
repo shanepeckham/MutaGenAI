@@ -1,4 +1,4 @@
-# MutaGenAI — agent instructions
+# [MutaGenAI](https://github.com/shanepeckham/MutaGenAI) — agent instructions
 
 ## What MutaGenAI is
 
