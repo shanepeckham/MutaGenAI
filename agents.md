@@ -1,8 +1,8 @@
-# Prompture — agent instructions
+# MutaGenAI — agent instructions
 
-## What Prompture is
+## What MutaGenAI is
 
-Prompture is a standalone Python library extracted from the EvoSim
+MutaGenAI is a standalone Python library extracted from the EvoSim
 evolutionary computing framework. It evolves LLM system prompts using
 evolutionary search — no fine-tuning, no GPUs, no labelled data required.
 
@@ -16,7 +16,7 @@ search.
 
 ## Origin and extraction history
 
-Prompture was extracted from
+MutaGenAI was extracted from
 [EvoSim](https://github.com/shanepeckham/EvoSim) in April 2026. The
 extraction was clean because the prompt evolution code had **zero hard
 coupling** to EvoSim's evolutionary algorithm engine:
@@ -26,7 +26,7 @@ coupling** to EvoSim's evolutionary algorithm engine:
 - `strategies.py` only imported from `prompt_evolver`
 - `seed_loader.py` had zero internal imports (stdlib only)
 
-All `from evosim.` imports were rewritten to `from prompture.`. The
+All `from evosim.` imports were rewritten to `from MutaGenAI.`. The
 wizard was rebranded (banners, CLI examples, generated code references).
 The dashboard was rebuilt from scratch using only the 6 benchmark plot
 families — all EA-specific plots (`plot_convergence`, `plot_pareto`,
@@ -37,8 +37,8 @@ families — all EA-specific plots (`plot_convergence`, `plot_pareto`,
 ## Repository structure
 
 ```text
-Prompture/
-├── prompture/                 # Package source
+MutaGenAI/
+├── MutaGenAI/                 # Package source
 │   ├── __init__.py            # Public API — all exports
 │   ├── prompt_evolver.py      # Core engine: PromptEvolver, island EA, CMA-ES, LLM backends
 │   ├── strategies.py          # 7 no-eval scoring strategies + NoEvalPromptEvolver
@@ -115,8 +115,8 @@ Interactive 9-step CLI wizard. Generates a ready-to-run Python script
 tailored to the user's agent. Uses Rich for terminal UI (graceful
 fallback to plain input if Rich is not installed).
 
-Entry point: `prompture init` (mapped in pyproject.toml to
-`prompture.wizard:run_wizard`).
+Entry point: `MutaGenAI init` (mapped in pyproject.toml to
+`MutaGenAI.wizard:run_wizard`).
 
 ### seed_loader.py (~62 LOC)
 
@@ -137,7 +137,7 @@ Benchmarks: BFCL, τ-bench, xLAM, ToolBench, API-Bank, Browser Agent.
 Four utility functions: `_has_plotly()`, `_has_matplotlib()`,
 `_has_ipywidgets()`, `_in_notebook()`.
 
-No imports from any other Prompture module — fully standalone.
+No imports from any other MutaGenAI module — fully standalone.
 
 ## Dependencies
 
@@ -148,7 +148,7 @@ No imports from any other Prompture module — fully standalone.
 | Viz | `matplotlib>=3.8`, `plotly>=5.18` | Dashboard plots |
 | Wizard | `rich>=13.0` | Pretty CLI wizard |
 
-Install groups: `pip install prompture[llm]`, `[viz]`, `[wizard]`,
+Install groups: `pip install MutaGenAI[llm]`, `[viz]`, `[wizard]`,
 `[all]`.
 
 ## Build and test
@@ -168,7 +168,7 @@ Build system: **hatchling**. Python >=3.11.
   engine importable without network dependencies.
 - Optional viz deps (`plotly`, `matplotlib`) are detected at call time
   via `_has_plotly()` / `_has_matplotlib()`. Functions degrade gracefully.
-- The wizard generates code with `from prompture import ...` — never
+- The wizard generates code with `from MutaGenAI import ...` — never
   `from evosim`.
 - No circular imports. Dependency direction:
   `strategies → prompt_evolver`, `wizard → prompt_evolver + strategies`,
@@ -203,12 +203,12 @@ When working on this codebase, follow these rules:
    - `_plot_<name>_plotly(data, ...)` — Plotly implementation
    - `_plot_<name>_mpl(data, ...)` — Matplotlib fallback
 2. Follow the existing pattern: load JSON, extract series, render.
-3. No imports from other Prompture modules.
+3. No imports from other MutaGenAI modules.
 
 ### Adding a new cookbook example
 
 1. Create `examples/cookbook/prompt_evolution_<name>.py`.
-2. Use `from prompture import ...` — never `from prompture.prompt_evolver`.
+2. Use `from MutaGenAI import ...` — never `from MutaGenAI.prompt_evolver`.
 3. Each example should be runnable standalone:
    `uv run python examples/cookbook/prompt_evolution_<name>.py`.
 4. Save results to a JSON log that the dashboard can consume.
@@ -235,7 +235,7 @@ When working on this codebase, follow these rules:
   reference to `evosim` is a bug.
 - **Don't add EA engine features** (pareto fronts, map-elites, surrogate
   models, landscape analysis). Those belong in EvoSim.
-- **Don't make `dashboard.py` import from other Prompture modules.** It
+- **Don't make `dashboard.py` import from other MutaGenAI modules.** It
   must stay self-contained for independent use.
 - **Don't add hard dependencies beyond numpy.** All other deps must
   remain optional with lazy imports and graceful fallbacks.
@@ -262,19 +262,19 @@ default) and 95.5 % on xLAM (vs 95.4 % default) — without labels.
 
 ```python
 # Ground-truth evolution
-from prompture import PromptEvolver, PromptEvolverConfig, Tool, EvalSample, LLMBackend
+from MutaGenAI import PromptEvolver, PromptEvolverConfig, Tool, EvalSample, LLMBackend
 
 # No-eval evolution
-from prompture import NoEvalPromptEvolver, NoEvalConfig
-from prompture import LLMJudge, SelfConsistencyScorer, ProxyMetricsScorer, CompositeScorer
-from prompture import ToolSuccessScorer, PreferenceScorer, HumanTournament
-from prompture import SyntheticEvalGenerator, SyntheticEvalScorer
+from MutaGenAI import NoEvalPromptEvolver, NoEvalConfig
+from MutaGenAI import LLMJudge, SelfConsistencyScorer, ProxyMetricsScorer, CompositeScorer
+from MutaGenAI import ToolSuccessScorer, PreferenceScorer, HumanTournament
+from MutaGenAI import SyntheticEvalGenerator, SyntheticEvalScorer
 
 # Seed templates
-from prompture import load_seed_templates, list_seed_templates
+from MutaGenAI import load_seed_templates, list_seed_templates
 
 # Dashboard
-from prompture.dashboard import (
+from MutaGenAI.dashboard import (
     plot_bfcl_evolution,
     plot_tau_bench_evolution,
     plot_xlam_evolution,
@@ -284,5 +284,5 @@ from prompture.dashboard import (
 )
 
 # Wizard
-from prompture import run_wizard
+from MutaGenAI import run_wizard
 ```
