@@ -229,7 +229,7 @@ solves it with evolutionary search:
    adding a constraint, injecting a chain-of-thought hint, or
    reordering instructions. Pairs of good prompts are also *crossed
    over*. Meanwhile, CMA-ES tunes the numeric knobs (temperature,
-   top-p).
+   top-p) — see below.
 4. **Island migration.** The population is split across 2 islands that
    evolve independently. Every 3 generations the best prompt from each
    island migrates to its neighbour, injecting diversity.
@@ -259,6 +259,30 @@ solves it with evolutionary search:
                     │  every 3 generations           │
                     └───────────────────────────────┘
 ```
+
+### What is CMA-ES? (the short version)
+
+Imagine you're playing "hot and cold" to find hidden treasure in a huge
+field — blindfolded. You throw a bunch of darts. Some land closer to the
+treasure, some farther away. You keep the best ones and throw your next
+batch *near where the good ones landed*.
+
+At first your darts land in a circle around your best guess. But say the
+treasure is inside a long, narrow valley. A circle wastes most darts on
+the hillsides. CMA-ES notices "the good darts keep landing in a line
+going *this* way" and stretches the circle into an oval pointing down
+the valley. That oval is the **covariance matrix** — a description of
+the shape and direction of where darts are thrown.
+
+CMA-ES also adjusts how *far* it throws. If several rounds in a row the
+good darts keep moving the same direction, it takes bigger steps. If
+they zigzag, it shrinks — it must be close.
+
+In MutagenAI, CMA-ES tunes the *continuous knobs* — `temperature` and
+`top_p` — while the evolutionary algorithm handles the *words* in the
+prompt. CMA-ES needs no formula for "how good is temperature = 0.7"; it
+just tries values, keeps the best, and learns which combinations work
+together.
 
 ---
 
