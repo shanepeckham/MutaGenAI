@@ -933,3 +933,12 @@ pip install mutagenai[all]         # everything
 For Azure OpenAI, set `AZURE_OPENAI_ENDPOINT` and
 `AZURE_OPENAI_DEPLOYMENT` (uses RBAC via `DefaultAzureCredential`).
 For OpenAI, set `OPENAI_API_KEY`.
+
+Copy the sample env file and fill in the values you need:
+
+```bash
+cp .env.sample .env
+```
+
+See [`.env.sample`](.env.sample) for the full list of supported
+variables (Ollama, Azure OpenAI, OpenAI, Hugging Face).
