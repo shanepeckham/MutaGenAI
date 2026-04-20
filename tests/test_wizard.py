@@ -14,8 +14,11 @@ from prompture.wizard import (
     _build_main_block,
     _build_scorer_setup,
     _confirm,
+    _expand_seed_templates,
     _generate_script,
     _print,
+    _proxy_checks_for_problem_type,
+    _rubric_for_problem_type,
     _show_summary,
     _step_backend,
     _step_config,
@@ -42,8 +45,8 @@ class TestWizardState:
         assert state.has_ground_truth == "no"
         assert state.backend == "ollama"
         assert state.model == "llama3.2"
-        assert state.iterations == 3
-        assert state.population_size == 4
+        assert state.iterations == 5
+        assert state.population_size == 6
         assert state.num_islands == 2
 
     def test_custom_fields(self):
@@ -255,16 +258,16 @@ class TestWizardSteps:
         state = WizardState()
         with patch("prompture.wizard._ask", return_value="standard"):
             _step_config(state)
-        assert state.iterations == 3
-        assert state.population_size == 4
+        assert state.iterations == 5
+        assert state.population_size == 6
         assert state.num_islands == 2
 
     def test_step_config_deep(self):
         state = WizardState()
         with patch("prompture.wizard._ask", return_value="deep"):
             _step_config(state)
-        assert state.iterations == 5
-        assert state.population_size == 6
+        assert state.iterations == 10
+        assert state.population_size == 8
         assert state.num_islands == 3
 
     def test_step_config_custom(self):
@@ -483,3 +486,227 @@ class TestRunWizard:
             assert output_path.exists()
             content = output_path.read_text()
             assert "from prompture" in content
+
+
+# ---------------------------------------------------------------------------
+# Seed template expansion
+# ---------------------------------------------------------------------------
+
+
+class TestExpandSeedTemplates:
+    def test_single_seed_expands_to_six(self):
+        seeds = _expand_seed_templates("Route queries to agents", ["Route queries to agents"])
+        assert len(seeds) >= 4
+        assert len(seeds) <= 6
+        # Original seed preserved first
+        assert seeds[0] == "Route queries to agents"
+
+    def test_no_duplicates(self):
+        seeds = _expand_seed_templates("Test task", ["Test task"])
+        assert len(seeds) == len(set(seeds))
+
+    def test_two_seeds_expanded(self):
+        seeds = _expand_seed_templates("Task", ["Seed A", "Seed B"])
+        assert seeds[0] == "Seed A"
+        assert seeds[1] == "Seed B"
+        assert len(seeds) >= 4
+
+    def test_six_seeds_not_expanded_further(self):
+        original = [f"Seed {i}" for i in range(6)]
+        seeds = _expand_seed_templates("Task", original)
+        assert seeds == original
+
+    def test_variants_include_diverse_styles(self):
+        seeds = _expand_seed_templates("Classify entities", ["Classify entities"])
+        all_text = " ".join(seeds)
+        # Should contain CoT, format-first, or contrastive styles
+        assert any(kw in all_text for kw in ["step-by-step", "JSON only", "NOT"])
+
+
+# ---------------------------------------------------------------------------
+# Problem-type rubrics
+# ---------------------------------------------------------------------------
+
+
+class TestRubricForProblemType:
+    def test_tool_routing_rubric(self):
+        rubric = _rubric_for_problem_type("tool_routing", "Route to agents")
+        assert "agent" in rubric.lower() or "routing" in rubric.lower()
+        assert "JSON" in rubric
+        assert "0-10" in rubric
+
+    def test_classification_rubric(self):
+        rubric = _rubric_for_problem_type("classification", "Classify entities")
+        assert "classification" in rubric.lower()
+        assert "0-10" in rubric
+
+    def test_unknown_type_fallback(self):
+        rubric = _rubric_for_problem_type("unknown_type", "Do something")
+        assert "0-10" in rubric
+        assert "Do something" in rubric
+
+
+# ---------------------------------------------------------------------------
+# Problem-type proxy checks
+# ---------------------------------------------------------------------------
+
+
+class TestProxyChecksForProblemType:
+    def test_tool_routing_checks(self):
+        lines = _proxy_checks_for_problem_type("tool_routing")
+        code = "\n".join(lines)
+        assert "valid_json" in code
+        assert "has_sequence_or_array" in code
+        assert "contains_agent_name" in code
+        assert "no_verbose_explanation" in code
+        assert "at_least_one_selection" in code
+
+    def test_classification_checks(self):
+        lines = _proxy_checks_for_problem_type("classification")
+        code = "\n".join(lines)
+        assert "valid_json" in code
+        assert "single_label" in code
+        assert "not_empty" in code
+        # Should NOT have tool_routing-specific checks
+        assert "has_sequence_or_array" not in code
+
+    def test_unknown_type_fallback(self):
+        lines = _proxy_checks_for_problem_type("other")
+        code = "\n".join(lines)
+        assert "valid_json" in code
+        assert "max_length" in code
+
+
+# ---------------------------------------------------------------------------
+# Scorer setup improvements
+# ---------------------------------------------------------------------------
+
+
+class TestScorerSetupImprovements:
+    def _base_state(self) -> WizardState:
+        return WizardState(
+            problem_type="tool_routing",
+            task_description="Route queries to tools",
+            has_ground_truth="no",
+            strategies=["composite"],
+            backend="ollama",
+            model="llama3.2",
+            human_eval="no",
+        )
+
+    def test_composite_weights_sum_to_one(self):
+        state = self._base_state()
+        code = _build_scorer_setup(state)
+        # Extract weight values from CompositeScorer lines
+        import re
+        weights = [float(m) for m in re.findall(r",\s*([\d.]+)\)", code)]
+        if weights:
+            assert abs(sum(weights) - 1.0) < 0.05
+
+    def test_rubric_is_task_specific(self):
+        state = self._base_state()
+        code = _build_scorer_setup(state)
+        # Should contain problem-type-specific rubric, not generic truncation
+        assert "agent" in code.lower() or "routing" in code.lower()
+
+    def test_proxy_checks_are_problem_type_aware(self):
+        state = self._base_state()
+        code = _build_scorer_setup(state)
+        assert "has_sequence_or_array" in code
+        assert "contains_agent_name" in code
+
+    def test_classification_proxy_checks(self):
+        state = self._base_state()
+        state.problem_type = "classification"
+        code = _build_scorer_setup(state)
+        assert "single_label" in code
+
+    def test_is_valid_json_always_included(self):
+        state = self._base_state()
+        code = _build_scorer_setup(state)
+        assert "_is_valid_json" in code
+
+    def test_single_strategy_no_normalization_needed(self):
+        state = self._base_state()
+        state.strategies = ["llm_judge"]
+        state.llm_judge_rubric = "Rate it"
+        code = _build_scorer_setup(state)
+        assert "CompositeScorer" not in code
+        assert "return judge" in code
+
+
+# ---------------------------------------------------------------------------
+# Main block improvements
+# ---------------------------------------------------------------------------
+
+
+class TestMainBlockImprovements:
+    def _base_state(self) -> WizardState:
+        return WizardState(
+            problem_type="tool_routing",
+            task_description="Route queries to tools",
+            has_ground_truth="no",
+            strategies=["composite"],
+            backend="ollama",
+            model="llama3.2",
+            human_eval="no",
+        )
+
+    def test_adaptive_mutations_enabled(self):
+        state = self._base_state()
+        block = _build_main_block(state)
+        assert "adaptive_mutations=True" in block
+
+    def test_llm_mutation_rate_set(self):
+        state = self._base_state()
+        block = _build_main_block(state)
+        assert "llm_mutation_rate=0.3" in block
+
+    def test_refine_after_splice_enabled(self):
+        state = self._base_state()
+        block = _build_main_block(state)
+        assert "refine_after_splice=True" in block
+
+    def test_domain_mutations_wired(self):
+        state = self._base_state()
+        block = _build_main_block(state)
+        assert "custom_mutations=DOMAIN_MUTATIONS" in block
+
+
+# ---------------------------------------------------------------------------
+# Seed diversification in generated scripts
+# ---------------------------------------------------------------------------
+
+
+class TestGeneratedSeedDiversification:
+    def test_no_seeds_generates_diverse_variants(self):
+        state = WizardState(
+            problem_type="tool_routing",
+            task_description="Route queries to agents",
+            has_ground_truth="no",
+            strategies=["composite"],
+            backend="ollama",
+            model="llama3.2",
+            human_eval="no",
+        )
+        script = _generate_script(state)
+        # Should have multiple seed templates
+        assert script.count("SEED_TEMPLATES") >= 1
+        # Should contain diverse styles
+        assert "step-by-step" in script or "JSON only" in script
+
+    def test_single_seed_diversified(self):
+        state = WizardState(
+            problem_type="tool_routing",
+            task_description="Route queries to agents",
+            has_ground_truth="no",
+            strategies=["composite"],
+            backend="ollama",
+            model="llama3.2",
+            human_eval="no",
+            seed_templates=["My custom seed"],
+        )
+        script = _generate_script(state)
+        assert "My custom seed" in script
+        # Should have expanded beyond just the one seed
+        assert "SEED_TEMPLATES = [" in script

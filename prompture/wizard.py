@@ -130,8 +130,8 @@ class WizardState:
 
     # Config
     config_preset: str = "standard"  # standard / deep / custom
-    iterations: int = 3
-    population_size: int = 4
+    iterations: int = 5
+    population_size: int = 6
     num_islands: int = 2
 
 
@@ -447,30 +447,162 @@ def _step_config(state: WizardState) -> None:
         tbl.add_column("Population", width=12)
         tbl.add_column("Islands", width=10)
         tbl.add_column("Best for")
-        tbl.add_row("standard", "3", "4", "2", "Quick exploration (~5 min)")
-        tbl.add_row("[green]deep[/green]", "5", "6", "3",
+        tbl.add_row("standard", "5", "6", "2", "Quick exploration (~5 min)")
+        tbl.add_row("[green]deep[/green]", "10", "8", "3",
                      "Thorough search (~15 min)")
         tbl.add_row("custom", "—", "—", "—", "You set everything")
         _console.print(tbl)
     else:
-        print("  standard — 3 gen, 4 pop, 2 islands (quick)")
-        print("  deep     — 5 gen, 6 pop, 3 islands (thorough)")
+        print("  standard — 5 gen, 6 pop, 2 islands (quick)")
+        print("  deep     — 10 gen, 8 pop, 3 islands (thorough)")
         print("  custom   — You set everything")
 
     state.config_preset = _ask("\n  Preset", default="standard",
                                 choices=["standard", "deep", "custom"])
     if state.config_preset == "standard":
-        state.iterations = 3
-        state.population_size = 4
-        state.num_islands = 2
-    elif state.config_preset == "deep":
         state.iterations = 5
         state.population_size = 6
+        state.num_islands = 2
+    elif state.config_preset == "deep":
+        state.iterations = 10
+        state.population_size = 8
         state.num_islands = 3
     else:
         state.iterations = _ask_int("  Generations", default=5)
         state.population_size = _ask_int("  Population size per island", default=4)
         state.num_islands = _ask_int("  Number of islands", default=2)
+
+
+# ── Seed template helpers ────────────────────────────────────────────────
+
+
+def _expand_seed_templates(task: str, seeds: list[str]) -> list[str]:
+    """Expand a small seed set into structurally diverse archetypes.
+
+    When the user provides only 1-2 seeds, the population would be
+    filled with near-duplicates.  This function generates 4-6 diverse
+    structural variants so every island starts with different material.
+    """
+    variants = [
+        # CoT variant
+        f"{task}\n\nThink step-by-step about which actions are needed before responding.",
+        # Output-format-first variant
+        f"Respond with JSON only. No explanation.\n\n{task}",
+        # Minimalist variant
+        task.split(".")[0] + "." if "." in task else task,
+        # Contrastive variant
+        f"{task}\n\nDo NOT include unnecessary steps. Select ONLY what is relevant.",
+        # Persona variant
+        f"You are a precise workflow engine.\n\n{task}\n\nEmit the execution plan concisely.",
+        # Intent-matching variant
+        f"{task}\n\nMatch the user's intent to the purpose, not the name.",
+    ]
+    # Start with user seeds, then fill with variants avoiding duplicates
+    expanded = list(seeds)
+    for v in variants:
+        if len(expanded) >= 6:
+            break
+        if v not in expanded:
+            expanded.append(v)
+    return expanded
+
+
+def _rubric_for_problem_type(problem_type: str, task_desc: str) -> str:
+    """Generate a task-specific LLM Judge rubric based on problem type."""
+    task_short = task_desc[:120]
+    if problem_type == "tool_routing":
+        return (
+            f"You are evaluating an agent routing output for the task: {task_short}. "
+            "Score 0-10 on these criteria: "
+            "(1) Are the selected agents relevant to the user request? "
+            "(2) Are they in a logical execution order? "
+            "(3) Are unnecessary agents excluded (precision)? "
+            "(4) Is the output valid, well-structured JSON?"
+        )
+    if problem_type == "classification":
+        return (
+            f"You are evaluating a classification output for the task: {task_short}. "
+            "Score 0-10 on these criteria: "
+            "(1) Is the predicted class correct and specific? "
+            "(2) Is the output in the expected format? "
+            "(3) Is there no extraneous explanation? "
+            "(4) Does the reasoning (if present) support the prediction?"
+        )
+    return (
+        f"Rate this output for the task: {task_short}. "
+        "Score 0-10 on: correctness, format compliance, completeness."
+    )
+
+
+def _proxy_checks_for_problem_type(problem_type: str) -> list[str]:
+    """Return proxy check code lines appropriate for the problem type."""
+    lines: list[str] = ["    checks = ["]
+    if problem_type == "tool_routing":
+        lines.extend([
+            "        ProxyCheck(",
+            '            name="valid_json",',
+            "            check_fn=_is_valid_json,",
+            "            weight=3.0,",
+            "        ),",
+            "        ProxyCheck(",
+            '            name="has_sequence_or_array",',
+            '            check_fn=lambda x: \'"sequence"\' in x or (x.strip().startswith("[") and x.strip().endswith("]")),',
+            "            weight=2.0,",
+            "        ),",
+            "        ProxyCheck(",
+            '            name="contains_agent_name",',
+            '            check_fn=lambda x: "_agent" in x.lower() or "agent" in x.lower(),',
+            "            weight=2.0,",
+            "        ),",
+            "        ProxyCheck(",
+            '            name="no_verbose_explanation",',
+            '            check_fn=lambda x: len(x) < 1000 and x.count(".") < 10,',
+            "            weight=1.0,",
+            "        ),",
+            "        ProxyCheck(",
+            '            name="at_least_one_selection",',
+            '            check_fn=lambda x: len(x.strip()) > 10,',
+            "            weight=1.0,",
+            "        ),",
+        ])
+    elif problem_type == "classification":
+        lines.extend([
+            "        ProxyCheck(",
+            '            name="valid_json",',
+            "            check_fn=_is_valid_json,",
+            "            weight=2.0,",
+            "        ),",
+            "        ProxyCheck(",
+            '            name="single_label",',
+            '            check_fn=lambda x: len(x.strip().splitlines()) <= 3,',
+            "            weight=2.0,",
+            "        ),",
+            "        ProxyCheck(",
+            '            name="no_verbose_explanation",',
+            '            check_fn=lambda x: len(x) < 300,',
+            "            weight=1.0,",
+            "        ),",
+            "        ProxyCheck(",
+            '            name="not_empty",',
+            '            check_fn=lambda x: len(x.strip()) > 0,',
+            "            weight=1.0,",
+            "        ),",
+        ])
+    else:
+        lines.extend([
+            "        ProxyCheck(",
+            '            name="valid_json",',
+            "            check_fn=_is_valid_json,",
+            "            weight=2.0,",
+            "        ),",
+            "        ProxyCheck(",
+            '            name="max_length",',
+            '            check_fn=lambda x: len(x) < 500,',
+            "            weight=1.0,",
+            "        ),",
+        ])
+    lines.append("    ]")
+    return lines
 
 
 # ── Script generation ────────────────────────────────────────────────────
@@ -572,22 +704,20 @@ def _generate_script(state: WizardState) -> str:
         ''')
     sections.append(backend_block)
 
-    # ── Seed templates ───────────────────────────────────
+    # ── Seed templates (auto-diversified) ────────────────
     if state.seed_templates:
-        seeds_code = "SEED_TEMPLATES = [\n"
-        for tpl in state.seed_templates:
-            tpl_escaped = tpl.replace("\\", "\\\\").replace('"', '\\"')
-            seeds_code += f'    "{tpl_escaped}",\n'
-        seeds_code += "]\n"
+        expanded = _expand_seed_templates(
+            state.task_description, state.seed_templates
+        )
     else:
-        seeds_code = textwrap.dedent(f'''\
-            SEED_TEMPLATES = [
-                TASK_DESCRIPTION,
-                TASK_DESCRIPTION + "\\n\\nThink step-by-step before answering.",
-                TASK_DESCRIPTION + "\\n\\nBe concise. Output only the result.",
-                TASK_DESCRIPTION + "\\n\\nFollow the format exactly. No extra text.",
-            ]
-        ''')
+        expanded = _expand_seed_templates(
+            state.task_description, [state.task_description]
+        )
+    seeds_code = "SEED_TEMPLATES = [\n"
+    for tpl in expanded:
+        tpl_escaped = tpl.replace("\\", "\\\\").replace('"', '\\"')
+        seeds_code += f'    "{tpl_escaped}",\n'
+    seeds_code += "]\n"
     sections.append(seeds_code)
 
     # ── Test inputs ──────────────────────────────────────
@@ -684,61 +814,37 @@ def _build_scorer_setup(state: WizardState) -> str:
     lines: list[str] = [
         "",
         "# ── Scoring setup ─────────────────────────────────────────",
+        "",
+        "def _is_valid_json(text: str) -> bool:",
+        "    try:",
+        "        json.loads(text)",
+        "        return True",
+        "    except (json.JSONDecodeError, ValueError):",
+        "        return False",
+        "",
         "def build_scorer(client: LLMClient) -> Scorer:",
         '    """Build the scoring strategy for prompt evaluation."""',
     ]
 
-    scorers_with_weights: list[tuple[str, str]] = []
+    scorers_with_weights: list[tuple[str, float]] = []
 
     if "llm_judge" in state.strategies or "composite" in state.strategies:
-        rubric = state.llm_judge_rubric or (
-            f"Rate this output for the task: {state.task_description[:100]}. "
-            "Score 0-10 on: correctness, format compliance, completeness."
+        rubric = state.llm_judge_rubric or _rubric_for_problem_type(
+            state.problem_type, state.task_description
         )
         rubric_escaped = rubric.replace("\\", "\\\\").replace('"', '\\"')
         lines.append(f'    judge = LLMJudge(rubric="{rubric_escaped}")')
-        scorers_with_weights.append(("judge", "0.3"))
+        scorers_with_weights.append(("judge", 0.35))
 
     if "self_consistency" in state.strategies or "composite" in state.strategies:
         lines.append("    consistency = SelfConsistencyScorer(num_samples=3)")
-        scorers_with_weights.append(("consistency", "0.25"))
+        scorers_with_weights.append(("consistency", 0.30))
 
     if "proxy_metrics" in state.strategies or "composite" in state.strategies:
-        lines.append("    checks = [")
-        for check_name in (state.proxy_checks or ["valid_json", "max_length"]):
-            if check_name == "valid_json":
-                lines.append("        ProxyCheck(")
-                lines.append('            name="valid_json",')
-                lines.append("            check_fn=_is_valid_json,")
-                lines.append("            weight=2.0,")
-                lines.append("        ),")
-            elif check_name == "has_function_name":
-                lines.append("        ProxyCheck(")
-                lines.append('            name="has_function_name",')
-                lines.append('            check_fn=lambda x: any(c.isupper() for c in x),')
-                lines.append("            weight=1.5,")
-                lines.append("        ),")
-            elif check_name == "bracket_format":
-                lines.append("        ProxyCheck(")
-                lines.append('            name="bracket_format",')
-                lines.append("            check_fn=lambda x: '[' in x and '(' in x,")
-                lines.append("            weight=2.0,")
-                lines.append("        ),")
-            elif check_name == "max_length":
-                lines.append("        ProxyCheck(")
-                lines.append('            name="max_length",')
-                lines.append("            check_fn=lambda x: len(x) < 500,")
-                lines.append("            weight=1.0,")
-                lines.append("        ),")
-            elif check_name == "no_explanation":
-                lines.append("        ProxyCheck(")
-                lines.append('            name="no_explanation",')
-                lines.append("            check_fn=lambda x: len(x.splitlines()) <= 3,")
-                lines.append("            weight=1.0,")
-                lines.append("        ),")
-        lines.append("    ]")
+        proxy_lines = _proxy_checks_for_problem_type(state.problem_type)
+        lines.extend(proxy_lines)
         lines.append("    proxy = ProxyMetricsScorer(checks=checks)")
-        scorers_with_weights.append(("proxy", "0.2"))
+        scorers_with_weights.append(("proxy", 0.35))
 
     if "tool_success" in state.strategies:
         lines.append("")
@@ -749,7 +855,7 @@ def _build_scorer_setup(state: WizardState) -> str:
         lines.append("        return ToolResult(success=True, return_code=200)")
         lines.append("")
         lines.append("    tool_scorer = ToolSuccessScorer(tool_executor=_tool_executor)")
-        scorers_with_weights.append(("tool_scorer", "0.25"))
+        scorers_with_weights.append(("tool_scorer", 0.25))
 
     if "preference" in state.strategies:
         lines.append("")
@@ -762,12 +868,19 @@ def _build_scorer_setup(state: WizardState) -> str:
         lines.append("        ),")
         lines.append("    ]")
         lines.append("    pref = PreferenceScorer(pairs=pairs)")
-        scorers_with_weights.append(("pref", "0.2"))
+        scorers_with_weights.append(("pref", 0.2))
 
     if "human" in state.strategies or state.human_eval == "always":
         lines.append("")
         lines.append("    human = HumanTournament()")
-        scorers_with_weights.append(("human", "0.3"))
+        scorers_with_weights.append(("human", 0.3))
+
+    # Normalize weights to sum to 1.0
+    total = sum(w for _, w in scorers_with_weights)
+    if total > 0:
+        scorers_with_weights = [
+            (name, round(w / total, 2)) for name, w in scorers_with_weights
+        ]
 
     # Combine into composite or return single
     if len(scorers_with_weights) > 1:
@@ -780,19 +893,11 @@ def _build_scorer_setup(state: WizardState) -> str:
         lines.append(f"    return {scorers_with_weights[0][0]}")
     else:
         lines.append("    # Fallback: LLM-as-Judge")
-        rubric = f"Rate this output for: {state.task_description[:80]}"
-        lines.append(f'    return LLMJudge(rubric="{rubric}")')
-
-    # Helper function for JSON check
-    if any(c == "valid_json" for c in state.proxy_checks):
-        lines.insert(2, "")
-        lines.insert(3, "def _is_valid_json(text: str) -> bool:")
-        lines.insert(4, "    try:")
-        lines.insert(5, "        json.loads(text)")
-        lines.insert(6, "        return True")
-        lines.insert(7, "    except (json.JSONDecodeError, ValueError):")
-        lines.insert(8, "        return False")
-        lines.insert(9, "")
+        rubric = _rubric_for_problem_type(
+            state.problem_type, state.task_description
+        )
+        rubric_escaped = rubric.replace("\\", "\\\\").replace('"', '\\"')
+        lines.append(f'    return LLMJudge(rubric="{rubric_escaped}")')
 
     return "\n".join(lines)
 
@@ -824,19 +929,21 @@ def _build_human_eval_block(state: WizardState) -> str:
 
 def _build_main_block(state: WizardState) -> str:
     """Generate the main execution block."""
-    backend_kwarg = ""
+    # NoEvalConfig only accepts backend=, not model-specific kwargs
+    noeval_backend_kwarg = "        backend=BACKEND,\n"
+    # PromptEvolverConfig accepts backend + model kwargs (for LLMClient)
     if state.backend == "ollama":
-        backend_kwarg = (
+        client_backend_kwarg = (
             "        backend=BACKEND,\n"
             "        ollama_model=MODEL,\n"
         )
     elif state.backend == "openai":
-        backend_kwarg = (
+        client_backend_kwarg = (
             "        backend=BACKEND,\n"
             "        openai_model=MODEL,\n"
         )
     else:
-        backend_kwarg = (
+        client_backend_kwarg = (
             "        backend=BACKEND,\n"
             "        azure_deployment=MODEL,\n"
         )
@@ -852,7 +959,7 @@ def _build_main_block(state: WizardState) -> str:
         "    print()",
         '    print("=" * 60)',
         f'    print("  Prompture Prompt Evolution")',
-        f'    print("  Task: {state.task_description[:50]}...")',
+        f'    print("  Task: {state.task_description[:50].replace(chr(34), chr(92)+chr(34))}...")',
         '    print("=" * 60)',
         "    print()",
         "",
@@ -868,16 +975,38 @@ def _build_main_block(state: WizardState) -> str:
     lines.append(f"        population_size={state.population_size},")
     lines.append(f"        num_islands={state.num_islands},")
     lines.append(f"        problem_type={problem_type_enum},")
-    lines.append(f"{backend_kwarg}    )")
+    lines.append(f"        adaptive_mutations=True,")
+    lines.append(f"        llm_mutation_rate=0.3,")
+    lines.append(f"        refine_after_splice=True,")
+    lines.append(f"{noeval_backend_kwarg}    )")
+
+    # Config summary
+    lines.append("")
+    lines.append('    print("  Configuration:")')
+    lines.append(f'    print(f"    Generations:    {{config.iterations}}")')
+    lines.append(f'    print(f"    Population:     {{config.population_size}} per island")')
+    lines.append(f'    print(f"    Islands:        {{config.num_islands}}")')
+    lines.append(f'    print(f"    Seed templates: {{len(SEED_TEMPLATES)}}")')
+    lines.append(f'    print(f"    Test inputs:    {{len(TEST_INPUTS)}}")')
+    lines.append(f'    print(f"    Backend:        {{BACKEND.value}}")')
+    lines.append(f'    print(f"    Model:          {{MODEL}}")')
+    lines.append("    print()")
 
     # Build client for scorer
-    lines.append("")
     lines.append("    # Build LLM client and scorer")
     lines.append("    from prompture.prompt_evolver import LLMClient, PromptEvolverConfig")
     lines.append("    _llm_cfg = PromptEvolverConfig(")
-    lines.append(f"{backend_kwarg}    )")
+    lines.append(f"{client_backend_kwarg}    )")
     lines.append("    client = LLMClient(_llm_cfg)")
+    lines.append("")
+    lines.append('    print("  Checking LLM backend...", end=" ")')
+    lines.append("    if client.is_available():")
+    lines.append('        print("OK")')
+    lines.append("    else:")
+    lines.append('        print("UNAVAILABLE (running in mock mode)")')
+    lines.append("")
     lines.append("    scorer = build_scorer(client)")
+    lines.append('    print(f"  Scorer: {scorer.name()}")')
 
     # Run evolution
     lines.append("")
@@ -888,9 +1017,12 @@ def _build_main_block(state: WizardState) -> str:
     lines.append("        scorer=scorer,")
     lines.append("        config=config,")
     lines.append("        seed_templates=SEED_TEMPLATES,")
+    lines.append("        custom_mutations=DOMAIN_MUTATIONS,")
     lines.append("    )")
     lines.append("    print()")
+    lines.append('    print("  " + "─" * 58)')
     lines.append('    print("  Starting evolution...")')
+    lines.append('    print("  " + "─" * 58)')
     lines.append("    start = time.time()")
     lines.append("    result = evolver.run()")
     lines.append("    elapsed = time.time() - start")
@@ -902,13 +1034,18 @@ def _build_main_block(state: WizardState) -> str:
     lines.append('    print("=" * 60)')
     lines.append('    print("  EVOLUTION COMPLETE")')
     lines.append('    print("=" * 60)')
-    lines.append('    print(f"  Best fitness:  {result.best_score:.1%}")')
-    lines.append('    print(f"  Temperature:   {result.best_temperature:.3f}")')
-    lines.append('    print(f"  Top-p:         {result.best_top_p:.3f}")')
-    lines.append('    print(f"  Wall time:     {elapsed:.1f}s")')
+    lines.append('    print(f"  Best fitness:      {result.best_score:.1%}")')
+    lines.append('    print(f"  Temperature:       {result.best_temperature:.3f}")')
+    lines.append('    print(f"  Top-p:             {result.best_top_p:.3f}")')
+    lines.append('    print(f"  Wall time:         {elapsed:.1f}s")')
+    lines.append('    print(f"  Total candidates:  {len(result.all_candidates)}")')
+    lines.append('    print(f"  Generations run:   {result.iterations_run}")')
     lines.append("    print()")
     lines.append('    print("  Best prompt:")')
-    lines.append('    print(f"    {result.best_prompt[:200]}")')
+    lines.append('    print("  " + "─" * 58)')
+    lines.append("    for line in result.best_prompt.split(\"\\n\"):")
+    lines.append("        print(f\"    {line}\")")
+    lines.append('    print("  " + "─" * 58)')
 
     # Human final selection
     if state.human_eval == "final":
@@ -935,6 +1072,14 @@ def _build_main_block(state: WizardState) -> str:
     lines.append('        "iterations": result.iterations_run,')
     lines.append("    }, indent=2))")
     lines.append('    print(f"\\n  Results saved to {out_path}")')
+
+    # Lineage export
+    lines.append("")
+    lines.append("    # Export lineage tree")
+    lines.append("    lineage = result.lineage_json()")
+    lines.append('    lineage_path = Path("evolution_lineage.json")')
+    lines.append('    lineage_path.write_text(json.dumps(lineage, indent=2))')
+    lines.append(f'    print(f"  Lineage saved to {{lineage_path}} ({{len(lineage)}} candidates)")')
     lines.append('    print("  Done.")')
 
     return "\n".join(lines)
@@ -1028,3 +1173,7 @@ def run_wizard(output: str = "evolve_prompt.py") -> str:
     _print("")
 
     return str(out_path.resolve())
+
+
+if __name__ == "__main__":
+    run_wizard()

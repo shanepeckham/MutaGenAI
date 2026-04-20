@@ -15,6 +15,7 @@ GPUs, no labelled data required.
   - [Three paths through the wizard](#three-paths-through-the-wizard)
   - [How to evaluate when you have no ground truth](#how-to-evaluate-when-you-have-no-ground-truth)
   - [Example walkthrough](#example-walkthrough)
+  - [Wizard code generation improvements](#wizard-code-generation-improvements)
 - [How prompt evolution works](#how-prompt-evolution-works)
   - [The approach](#the-approach)
   - [The evolutionary loop](#the-evolutionary-loop)
@@ -142,10 +143,13 @@ Do you have labelled eval data?
 ```
 
 **Recommended starting point: Composite.** The wizard's default Composite
-scorer blends LLM-as-Judge (35 %), Self-Consistency (35 %), and Proxy
-Metrics (30 %). This covers three independent signal types — semantic
-quality, output stability, and structural correctness — so it is robust
-even when individual signals are noisy. The
+scorer blends LLM-as-Judge (35 %), Self-Consistency (30 %), and Proxy
+Metrics (35 %). Weights are normalised to sum to 1.0. This covers three
+independent signal types — semantic quality, output stability, and
+structural correctness — so it is robust even when individual signals are
+noisy. Proxy checks are now **problem-type-aware**: tool routing gets
+JSON and agent-name checks; classification gets single-label and format
+checks. The
 [xLAM worked example](#xlam-no-eval-worked-example) below proves that
 this approach preserves 95 %+ ground-truth accuracy while having zero
 access to labels.
@@ -190,6 +194,23 @@ Step 6 of 9 — Human Evaluation
 The generated script includes all imports, seed templates, scoring setup,
 evolution loop, results saving, and (if selected) a human final-selection
 step.
+
+### Wizard code generation improvements
+
+The wizard generates smarter, more effective evolution scripts out of the
+box. Eight improvements ensure that generated code follows best practices
+discovered through benchmarking:
+
+| Improvement | What changed |
+|---|---|
+| **Seed template diversification** | A single user seed is auto-expanded to 6 structural variants (CoT, output-format-first, minimalist, contrastive, persona, intent-matching) so every island starts with different material. |
+| **Problem-type proxy checks** | Generic proxy checks (`has_function_name`, `bracket_format`) replaced with task-aware checks. Tool routing gets `valid_json`, `has_sequence_or_array`, `contains_agent_name`, `no_verbose_explanation`, `at_least_one_selection`. Classification gets `valid_json`, `single_label`, `not_empty`, `no_verbose_explanation`. |
+| **Task-specific LLM Judge rubrics** | The rubric is no longer a truncated task description. For tool routing: checks agent relevance, logical order, precision, JSON validity. For classification: checks predicted class, format, reasoning. |
+| **Adaptive mutations enabled** | Generated scripts now set `adaptive_mutations=True` and `llm_mutation_rate=0.3` in `NoEvalConfig`, enabling the evolver to learn which mutations are effective. |
+| **`refine_after_splice` enabled** | Crossover offspring are refined by the LLM to improve coherence, reducing the chance of Frankenstein prompts. |
+| **Domain mutations wired** | `DOMAIN_MUTATIONS` are now passed as `custom_mutations` to `NoEvalPromptEvolver`, so user-defined and auto-generated mutations actually drive evolution. |
+| **Normalized CompositeScorer weights** | Weights in the composite scorer now sum to 1.0 (e.g. judge 0.35, consistency 0.30, proxy 0.35) for clarity. |
+| **Scaled-up config presets** | `standard` preset: 5 generations, 6 population, 2 islands (was 3/4/2). `deep` preset: 10 generations, 8 population, 3 islands (was 5/6/3). |
 
 ---
 
@@ -649,8 +670,8 @@ The experiment uses the wizard's **standard** preset:
 
 | Parameter | Value | What it controls |
 |---|---|---|
-| Generations | 3 | Number of evolutionary cycles |
-| Population | 4 | Prompt variants per island |
+| Generations | 5 | Number of evolutionary cycles |
+| Population | 6 | Prompt variants per island |
 | Islands | 2 | Parallel sub-populations |
 | Elite size | 3 | Top candidates that survive unchanged |
 | Migration | every 3 gens | Best prompts shared between islands |

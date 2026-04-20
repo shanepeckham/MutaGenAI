@@ -28,6 +28,7 @@ classifiers = [
 ]
 
 dependencies = [
+    "datasets>=4.8.4",
     "numpy>=1.26",
 ]
 
