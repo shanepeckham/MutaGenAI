@@ -66,6 +66,8 @@ from prompture.prompt_evolver import (
     PromptEvolverResult,
     _SEED_TEMPLATES,
     _crossover_templates,
+    _has_entity_descriptions,
+    _llm_describe_entities,
     _llm_mutate_template,
     _mutate_template,
     _refine_template,
@@ -131,6 +133,12 @@ class NoEvalConfig:
         parent prompt plus a sample of recent failure cases and rewrites
         it to fix those errors.  ``0.0`` disables LLM mutation.
         Default ``0.0``.
+    describe_entities : bool
+        If ``True``, the describe-entities LLM rewrite is added to the
+        mutation pool.  During breeding, a candidate may be randomly
+        selected for expansion of bare agent/category names into
+        ``name — description`` format.  This lets evolution discover
+        whether descriptions help.  Default ``False``.
     """
 
     iterations: int = 5
@@ -148,6 +156,7 @@ class NoEvalConfig:
     problem_type: ProblemType = ProblemType.TOOL_ROUTING
     adaptive_mutations: bool = False
     llm_mutation_rate: float = 0.0
+    describe_entities: bool = False
     warmup_adaptive: bool = False
     error_decay: float = 0.0
 
@@ -993,6 +1002,7 @@ class NoEvalPromptEvolver:
         self._client = LLMClient(llm_config)
 
         self._seed_templates = seed_templates or self._build_seed_templates()
+
         self._all_candidates: list[PromptCandidate] = []
         self._history: list[tuple[int, float]] = []
         self._extract_category = extract_category
@@ -1004,6 +1014,16 @@ class NoEvalPromptEvolver:
         """Run the evolutionary loop.  Returns :class:`PromptEvolverResult`."""
         t0 = time.perf_counter()
 
+        logger.info(
+            "Starting no-eval evolution: %d generations, population=%d, "
+            "islands=%d, strategy=%s, backend=%s",
+            self.config.iterations,
+            self.config.population_size,
+            self.config.num_islands,
+            self.scorer.name(),
+            self.config.backend.value,
+        )
+
         if not self._client.is_available():
             logger.warning(
                 "LLM backend not available — running in mock mode."
@@ -1014,6 +1034,7 @@ class NoEvalPromptEvolver:
             [] for _ in range(self.config.num_islands)
         ]
 
+        logger.info("Seeding %d templates across %d islands", len(self._seed_templates), self.config.num_islands)
         for i, template in enumerate(self._seed_templates):
             isl_id = i % self.config.num_islands
             candidate = PromptCandidate(
@@ -1029,8 +1050,14 @@ class NoEvalPromptEvolver:
             candidate.score = self._evaluate(candidate)
             islands[isl_id].append(candidate)
             self._all_candidates.append(candidate)
+            logger.info(
+                "  Seed %d → island %d  score=%.1f%%  template=%.60s...",
+                i, isl_id, candidate.score,
+                template.replace('\n', ' '),
+            )
 
         best_overall = max(self._all_candidates, key=lambda c: c.score)
+        logger.info("Seed evaluation complete — best seed score=%.1f%%", best_overall.score)
 
         # Warmup: bootstrap error profile from seed evaluation so Gen 1
         # already has adaptive hints available.
@@ -1051,6 +1078,9 @@ class NoEvalPromptEvolver:
                 )
 
         for gen in range(1, self.config.iterations + 1):
+            gen_t0 = time.perf_counter()
+            logger.info("── Generation %d/%d ──", gen, self.config.iterations)
+
             # Decay or reset error tracking per generation
             if self.config.adaptive_mutations or self.config.llm_mutation_rate > 0:
                 if self.config.error_decay > 0:
@@ -1073,6 +1103,17 @@ class NoEvalPromptEvolver:
                     child.score = self._evaluate(child)
                     new_candidates.append(child)
                     self._all_candidates.append(child)
+                    logger.debug(
+                        "  Island %d: child op=%-20s score=%.1f%%",
+                        island_id, child.operation, child.score,
+                    )
+
+                island_best = max(new_candidates, key=lambda c: c.score)
+                logger.info(
+                    "  Island %d: bred %d candidates, best=%.1f%% (op=%s)",
+                    island_id, len(new_candidates),
+                    island_best.score, island_best.operation,
+                )
 
                 combined = island + new_candidates
                 combined.sort(key=lambda c: c.score, reverse=True)
@@ -1089,16 +1130,37 @@ class NoEvalPromptEvolver:
                     self.config.problem_type,
                     self._client,
                 )
+                logger.info(
+                    "  Adaptive mutations: %d hints from %d error categories",
+                    len(self._adaptive_pool),
+                    len(self._error_profile.worst_categories()),
+                )
             else:
                 self._adaptive_pool = []
 
             gen_best = max(
                 (c for isl in islands for c in isl), key=lambda c: c.score
             )
-            if gen_best.score > best_overall.score:
+            improved = gen_best.score > best_overall.score
+            if improved:
                 best_overall = gen_best
 
             self._history.append((gen, best_overall.score))
+
+            gen_elapsed = time.perf_counter() - gen_t0
+            logger.info(
+                "  Gen %d summary: best=%.1f%% %stemp=%.3f  "
+                "candidates=%d  elapsed=%.1fs  "
+                "LLM calls=%d  tokens_in=%d  tokens_out=%d",
+                gen, best_overall.score,
+                "▲ NEW BEST  " if improved else "",
+                best_overall.temperature,
+                len(self._all_candidates),
+                gen_elapsed,
+                self._client.call_count,
+                self._client.total_input_tokens,
+                self._client.total_output_tokens,
+            )
 
             if self.verbose:
                 print(
@@ -1109,6 +1171,17 @@ class NoEvalPromptEvolver:
                 )
 
         wall_time = time.perf_counter() - t0
+
+        logger.info(
+            "Evolution complete: best=%.1f%%  wall_time=%.1fs  "
+            "total_candidates=%d  LLM calls=%d  "
+            "tokens_in=%d  tokens_out=%d",
+            best_overall.score, wall_time,
+            len(self._all_candidates),
+            self._client.call_count,
+            self._client.total_input_tokens,
+            self._client.total_output_tokens,
+        )
 
         return PromptEvolverResult(
             best_prompt=best_overall.template,
@@ -1236,6 +1309,21 @@ class NoEvalPromptEvolver:
             )
             op_parts.append("mutate")
 
+        # Describe-entities mutation: randomly expand bare entity names
+        if (
+            self.config.describe_entities
+            and self._client.is_available()
+            and self._rng.random() < self.config.mutation_rate * 0.15
+            and not _has_entity_descriptions(child_template)
+        ):
+            child_template = _llm_describe_entities(
+                child_template,
+                self._client,
+                self.config.problem_type,
+                require_tool_schemas=False,
+            )
+            op_parts.append("describe_entities")
+
         # Optional LLM-based clarity refinement
         if self.config.refine_after_splice and op_parts:
             child_template = _refine_template(
@@ -1272,6 +1360,7 @@ class NoEvalPromptEvolver:
         n = len(islands)
         if n < 2:
             return
+        logger.info("  Migration: sharing elite candidates across %d islands", n)
         for src in range(n):
             if not islands[src]:
                 continue

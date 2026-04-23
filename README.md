@@ -47,6 +47,7 @@ GPUs, no labelled data required.
   - [How to apply this to your own agent](#how-to-apply-this-to-your-own-agent)
 - [API-Bank no-eval vs ground-truth comparison](#api-bank-no-eval-vs-ground-truth-comparison)
 - [Seed templates — external prompt configuration](#seed-templates--external-prompt-configuration)
+- [Agent routing — static vs evolved prompt (GPT-4.1)](#agent-routing--static-vs-evolved-prompt-gpt-41)
 - [Entity classification — static vs evolved prompt](#entity-classification--static-vs-evolved-prompt)
 - [Dashboard and visualisation](#dashboard-and-visualisation)
 - [Cookbook recipes](#cookbook-recipes)
@@ -838,6 +839,73 @@ quality. Design seeds that vary across **structural archetypes**:
 
 Rule of thumb: **one seed per archetype**, and set `population_size` ≥
 the number of seeds so every archetype enters the initial gene pool.
+
+---
+
+## Agent routing — static vs evolved prompt (GPT-4.1)
+
+This experiment benchmarks an **evolved** system prompt against a
+**static** baseline on multi-step agent routing using Azure OpenAI
+GPT-4.1. The dataset is
+[V1rtucious/multi-step-agent-routing](https://huggingface.co/datasets/V1rtucious/multi-step-agent-routing)
+(616 train / 154 test rows, 27 specialist agents).
+
+**Evolution config:** 8 generations, population 8 × 2 islands,
+`NoEvalPromptEvolver` with `CompositeScorer` (LLMJudge 0.3 +
+SelfConsistency 0.3 + ProxyMetrics 0.3), adaptive mutations,
+`llm_mutation_rate=0.3`, `describe_entities=True`,
+`refine_after_splice=True`. The evolution evaluated 134 candidates
+over ≈ 2.7 hours and converged to a best no-eval fitness of **88.6 %**.
+
+**Benchmark:** 100 samples from train + 100 from test (seed 42),
+scored on agent-set precision / recall / F1.
+
+### Results
+
+| | Train F1 | Test F1 | Test Precision | Test Recall |
+|---|---|---|---|---|
+| Static prompt | 52.0 % | 49.3 % | 42.4 % | 67.5 % |
+| **Evolved prompt** | 51.2 % | 49.2 % | 39.1 % | 72.8 % |
+| Delta | -0.8 % | **-0.2 %** | -3.3 % | **+5.3 %** |
+
+**Evolved prompt — test by complexity (mean F1):**
+
+| Complexity | F1 |
+|---|---|
+| High | 58.6 % |
+| Medium | 51.6 % |
+| Low | 38.1 % |
+
+**Evolved prompt — test by routing pattern (mean F1):**
+
+| Routing pattern | F1 |
+|---|---|
+| Approval chain | 56.8 % |
+| Conditional branching | 56.8 % |
+| Data enrichment | 54.1 % |
+| Investigative | 52.7 % |
+| Linear sequential | 42.9 % |
+
+**Key findings:**
+
+1. **Recall improved significantly** (+5.3 % test, +9.4 % train) —
+   the evolved prompt's `"Respond with JSON only. No explanation."`
+   prefix helped the model include more relevant agents rather than
+   hedging.
+2. **Precision dropped** (-3.3 %) as the model traded conservative
+   selection for broader coverage.
+3. **High-complexity requests benefited most** (58.6 % F1 vs 38.1 %
+   for low), suggesting the evolved prompt helps with multi-step
+   routing where more agents need to be activated.
+4. **Investigative and approval-chain patterns** scored highest,
+   indicating the JSON-only instruction particularly aids structured
+   decision flows.
+
+**Run the benchmark yourself:**
+
+```bash
+uv run python examples/experiments/agent_routing/run_benchmark.py
+```
 
 ---
 

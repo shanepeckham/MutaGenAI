@@ -739,3 +739,139 @@ class TestCrossoverNoToolSchemas:
         mutated = _mutate_template(template, rng, mutation_rate=1.0,
                                    require_tool_schemas=False)
         assert isinstance(mutated, str)
+
+
+# ── _llm_describe_entities tests ─────────────────────────────────────────
+
+
+class TestLLMDescribeEntities:
+    def test_returns_rewritten_prompt(self):
+        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+
+        class FakeClient:
+            def complete(self, *, system_prompt, user_message, temperature, top_p):
+                return (
+                    "Route to the correct agent.\n"
+                    "auth_agent — Handles authentication.\n"
+                    "billing_agent — Processes billing."
+                )
+
+        template = "Route to the correct agent.\nauth_agent\nbilling_agent"
+        result = _llm_describe_entities(
+            template, FakeClient(), ProblemType.TOOL_ROUTING,
+            require_tool_schemas=False,
+        )
+        assert "auth_agent" in result
+        assert "billing_agent" in result
+        assert result != template  # Should have been rewritten
+
+    def test_returns_original_on_empty_response(self):
+        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+
+        class FakeClient:
+            def complete(self, **kw):
+                return ""
+
+        template = "Route to: agent_a, agent_b"
+        result = _llm_describe_entities(
+            template, FakeClient(), ProblemType.TOOL_ROUTING,
+            require_tool_schemas=False,
+        )
+        assert result == template
+
+    def test_returns_original_on_none_response(self):
+        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+
+        class FakeClient:
+            def complete(self, **kw):
+                return None
+
+        template = "Classify into: A, B, C"
+        result = _llm_describe_entities(
+            template, FakeClient(), ProblemType.CLASSIFICATION,
+            require_tool_schemas=False,
+        )
+        assert result == template
+
+    def test_strips_markdown_fences(self):
+        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+
+        class FakeClient:
+            def complete(self, **kw):
+                return "```\nRewritten prompt content\n```"
+
+        template = "Original prompt"
+        result = _llm_describe_entities(
+            template, FakeClient(), ProblemType.TOOL_ROUTING,
+            require_tool_schemas=False,
+        )
+        assert "```" not in result
+        assert "Rewritten prompt content" in result
+
+    def test_preserves_tool_schemas_placeholder(self):
+        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+
+        class FakeClient:
+            def complete(self, **kw):
+                return "Rewritten without placeholder"
+
+        template = "Route to agents.\n{tool_schemas}"
+        result = _llm_describe_entities(
+            template, FakeClient(), ProblemType.TOOL_ROUTING,
+            require_tool_schemas=True,
+        )
+        assert "{tool_schemas}" in result
+
+    def test_classification_problem_type(self):
+        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+
+        captured = {}
+
+        class FakeClient:
+            def complete(self, *, system_prompt, user_message, **kw):
+                captured["user_message"] = user_message
+                return "Rewritten classification prompt"
+
+        template = "Classify: Agent, Task, Tool"
+        _llm_describe_entities(
+            template, FakeClient(), ProblemType.CLASSIFICATION,
+            require_tool_schemas=False,
+        )
+        assert "category label" in captured["user_message"]
+
+
+# ── _has_entity_descriptions tests ───────────────────────────────────────
+
+
+class TestHasEntityDescriptions:
+    def test_detects_described_template(self):
+        from prompture.prompt_evolver import _has_entity_descriptions
+
+        template = (
+            "Route to the correct agent.\n"
+            "auth_agent — Handles authentication.\n"
+            "billing_agent — Processes billing.\n"
+            "support_agent — Customer support."
+        )
+        assert _has_entity_descriptions(template) is True
+
+    def test_rejects_undescribed_template(self):
+        from prompture.prompt_evolver import _has_entity_descriptions
+
+        template = "Route to: auth_agent, billing_agent, support_agent"
+        assert _has_entity_descriptions(template) is False
+
+    def test_boundary_two_descriptions(self):
+        from prompture.prompt_evolver import _has_entity_descriptions
+
+        template = (
+            "auth_agent — Handles auth.\n"
+            "billing_agent — Handles billing."
+        )
+        assert _has_entity_descriptions(template) is False
+
+    def test_regular_dash_not_counted(self):
+        from prompture.prompt_evolver import _has_entity_descriptions
+
+        template = "Use the right tool - pick carefully - be precise."
+        assert _has_entity_descriptions(template) is False

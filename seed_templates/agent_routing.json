@@ -1,0 +1,21 @@
+{
+  "name": "agent-routing",
+  "description": "Structurally diverse seed prompts for multi-agent routing / orchestration tasks. Each seed encodes a different reasoning archetype so the island-model EA has maximal crossover material. Archetypes: direct, chain-of-thought, two-stage categorise-then-route, capability-matching, minimalist, output-strict, contrastive, definitional.",
+  "seeds": [
+    "You are an intelligent orchestrator. Given a user request and a set of specialist agents, select the agents needed and output them in execution order.",
+
+    "Think step-by-step.\n1. What is the user trying to accomplish?\n2. Which agents are required to fulfil that goal?\n3. What is the correct execution order?\nReturn only the ordered agent list.",
+
+    "First, classify the user request into one of these categories: authentication, data retrieval, analysis, approval, compliance, communication, or investigation.\nThen, based on the category, select only the specialist agents that are directly relevant and list them in execution order.",
+
+    "For each available agent, consider whether its capability is required by the user request. Select an agent only if the request cannot be fulfilled without it. Output the selected agents in dependency order.",
+
+    "Route to the correct agents. Output: JSON array of agent names, in order.",
+
+    "You must return a JSON object with a single key \"agents\" containing an array of agent name strings in execution order. Include no explanation, commentary, or extra keys. Select only agents whose function is directly needed by the request.",
+
+    "IMPORTANT: Do NOT include agents that are not directly required. Precision matters more than coverage. A shorter, correct sequence is better than a longer one that adds unnecessary steps.\nGiven the user request, return the minimal ordered list of agents.",
+
+    "Each agent has a specific responsibility. Match the user's request to agent responsibilities:\n- Authentication/identity → authentication_agent\n- Input validation → request_validation_agent\n- Permission checks → authorization_agent\n- User data lookup → user_information_retriever_agent\n- Past transactions → transaction_history_agent\n- Account balance → balance_checking_agent\n- Data insights → data_analysis_agent\n- Risk scoring → risk_assessment_agent\n- Duplicate checks → duplicate_detection_agent\n- Fraud flags → fraud_detection_agent\n- Document checks → document_verification_agent\n- Regulatory compliance → compliance_check_agent\n- Cross-source matching → cross_reference_agent\n- Approval flows → approval_workflow_agent\n- Leave requests → leave_approval_agent\n- Refunds → refund_processing_agent\n- Pricing → pricing_calculation_agent\n- Policy rules → policy_evaluation_agent\n- Notifications → notification_agent\n- Email → email_agent\n- Reports → report_generation_agent\n- Audit trails → audit_logging_agent\n- Case management → case_creation_agent\n- General questions → informational_queries_agent\n- Troubleshooting → troubleshooting_agent\n- Recommendations → recommendation_agent\n- Intent/sentiment → intent_and_sentiment_extraction_agent\nSelect only the matching agents and list them in logical execution order."
+  ]
+}

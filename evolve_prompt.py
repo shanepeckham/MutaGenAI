@@ -8,6 +8,7 @@ Run:  uv run python evolve_prompt.py
 from __future__ import annotations
 
 import json
+import logging
 import os
 import sys
 import textwrap
@@ -17,6 +18,12 @@ from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(name)s %(levelname)s  %(message)s",
+    datefmt="%H:%M:%S",
+)
+
 
 from prompture.prompt_evolver import (
     LLMBackend,
@@ -24,6 +31,8 @@ from prompture.prompt_evolver import (
     PromptCandidate,
     PromptEvolverConfig,
 )
+
+from prompture.seed_loader import load_seed_templates
 
 from prompture.strategies import (
     CompositeScorer,
@@ -46,14 +55,7 @@ BACKEND = LLMBackend.AZURE_OPENAI
 MODEL = os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4.1")
 
 
-SEED_TEMPLATES = [
-    "\"You are an intelligent orchestrator. Route the user request to the correct specialist agents in the appropriate sequence. Available Agents: authentication_agent, request_validation_agent, authorization_agent, user_information_retriever_agent, transaction_history_agent, balance_checking_agent, data_analysis_agent, risk_assessment_agent, duplicate_detection_agent, fraud_detection_agent, document_verification_agent, compliance_check_agent, cross_reference_agent, approval_workflow_agent, leave_approval_agent, refund_processing_agent, pricing_calculation_agent, policy_evaluation_agent, notification_agent, email_agent, report_generation_agent, audit_logging_agent, case_creation_agent, informational_queries_agent, troubleshooting_agent, recommendation_agent, intent_and_sentiment_extraction_agent\"",
-    "\"You are an intelligent orchestrator. Route the user request to the correct specialist agents in the appropriate sequence. Available Agents: authentication_agent, request_validation_agent, authorization_agent, user_information_retriever_agent, transaction_history_agent, balance_checking_agent, data_analysis_agent, risk_assessment_agent, duplicate_detection_agent, fraud_detection_agent, document_verification_agent, compliance_check_agent, cross_reference_agent, approval_workflow_agent, leave_approval_agent, refund_processing_agent, pricing_calculation_agent, policy_evaluation_agent, notification_agent, email_agent, report_generation_agent, audit_logging_agent, case_creation_agent, informational_queries_agent, troubleshooting_agent, recommendation_agent, intent_and_sentiment_extraction_agent\"\n\nThink step-by-step about which actions are needed before responding.",
-    "Respond with JSON only. No explanation.\n\n\"You are an intelligent orchestrator. Route the user request to the correct specialist agents in the appropriate sequence. Available Agents: authentication_agent, request_validation_agent, authorization_agent, user_information_retriever_agent, transaction_history_agent, balance_checking_agent, data_analysis_agent, risk_assessment_agent, duplicate_detection_agent, fraud_detection_agent, document_verification_agent, compliance_check_agent, cross_reference_agent, approval_workflow_agent, leave_approval_agent, refund_processing_agent, pricing_calculation_agent, policy_evaluation_agent, notification_agent, email_agent, report_generation_agent, audit_logging_agent, case_creation_agent, informational_queries_agent, troubleshooting_agent, recommendation_agent, intent_and_sentiment_extraction_agent\"",
-    "\"You are an intelligent orchestrator.",
-    "\"You are an intelligent orchestrator. Route the user request to the correct specialist agents in the appropriate sequence. Available Agents: authentication_agent, request_validation_agent, authorization_agent, user_information_retriever_agent, transaction_history_agent, balance_checking_agent, data_analysis_agent, risk_assessment_agent, duplicate_detection_agent, fraud_detection_agent, document_verification_agent, compliance_check_agent, cross_reference_agent, approval_workflow_agent, leave_approval_agent, refund_processing_agent, pricing_calculation_agent, policy_evaluation_agent, notification_agent, email_agent, report_generation_agent, audit_logging_agent, case_creation_agent, informational_queries_agent, troubleshooting_agent, recommendation_agent, intent_and_sentiment_extraction_agent\"\n\nDo NOT include unnecessary steps. Select ONLY what is relevant.",
-    "You are a precise workflow engine.\n\n\"You are an intelligent orchestrator. Route the user request to the correct specialist agents in the appropriate sequence. Available Agents: authentication_agent, request_validation_agent, authorization_agent, user_information_retriever_agent, transaction_history_agent, balance_checking_agent, data_analysis_agent, risk_assessment_agent, duplicate_detection_agent, fraud_detection_agent, document_verification_agent, compliance_check_agent, cross_reference_agent, approval_workflow_agent, leave_approval_agent, refund_processing_agent, pricing_calculation_agent, policy_evaluation_agent, notification_agent, email_agent, report_generation_agent, audit_logging_agent, case_creation_agent, informational_queries_agent, troubleshooting_agent, recommendation_agent, intent_and_sentiment_extraction_agent\"\n\nEmit the execution plan concisely.",
-]
+SEED_TEMPLATES = load_seed_templates("agent_routing")
 
 
 TEST_INPUTS = [
@@ -83,6 +85,8 @@ DOMAIN_MUTATIONS = [
     "Add edge-case handling rules",
     "Rewrite in imperative voice",
     "Add output validation step",
+    "For each agent, include a brief description of its purpose and when to use it",
+    "Describe what each agent does so the routing decision is grounded in capability, not name",
 ]
 
 
@@ -152,6 +156,7 @@ if __name__ == "__main__":
         problem_type=ProblemType.TOOL_ROUTING,
         adaptive_mutations=True,
         llm_mutation_rate=0.3,
+        describe_entities=True,
         refine_after_splice=True,
         backend=BACKEND,
     )
@@ -236,4 +241,29 @@ if __name__ == "__main__":
     lineage_path = Path("evolution_lineage.json")
     lineage_path.write_text(json.dumps(lineage, indent=2))
     print(f"  Lineage saved to {lineage_path} ({len(lineage)} candidates)")
+
+    # LLM usage and cost report
+    llm_client = evolver._client
+    total_tokens = llm_client.total_input_tokens + llm_client.total_output_tokens
+    # Azure OpenAI GPT-4.1 Global Standard pricing (per 1M tokens)
+    COST_PER_1M_INPUT = 2.00
+    COST_PER_1M_OUTPUT = 8.00
+    input_cost = llm_client.total_input_tokens * COST_PER_1M_INPUT / 1_000_000
+    output_cost = llm_client.total_output_tokens * COST_PER_1M_OUTPUT / 1_000_000
+    total_cost = input_cost + output_cost
+    print()
+    print("  " + "─" * 58)
+    print("  LLM USAGE REPORT")
+    print("  " + "─" * 58)
+    print(f"    Total LLM calls:     {llm_client.call_count}")
+    print(f"    Input tokens:        {llm_client.total_input_tokens:,}")
+    print(f"    Output tokens:       {llm_client.total_output_tokens:,}")
+    print(f"    Total tokens:        {total_tokens:,}")
+    print(f"    Est. cost (input):   ${input_cost:.4f}")
+    print(f"    Est. cost (output):  ${output_cost:.4f}")
+    print(f"    Est. total cost:     ${total_cost:.4f}")
+    print(f"    Model:               {MODEL}")
+    print(f"    Pricing:             ${COST_PER_1M_INPUT}/1M input, ${COST_PER_1M_OUTPUT}/1M output")
+    print("  " + "─" * 58)
+
     print("  Done.")

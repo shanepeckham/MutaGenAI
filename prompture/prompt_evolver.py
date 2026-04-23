@@ -168,6 +168,13 @@ class PromptEvolverConfig:
         llm_mutation_rate:  Probability of applying an LLM-assisted rewrite
                             instead of random snippet mutation during
                             breeding.  ``0.0`` disables.  Default ``0.0``.
+        describe_entities:  If ``True``, the describe-entities LLM rewrite
+                            is added to the mutation pool.  During breeding,
+                            a candidate may be randomly selected for
+                            expansion of bare agent/category names into
+                            ``name — description`` format.  This lets
+                            evolution discover whether descriptions help.
+                            Default ``False``.
     """
 
     iterations: int = 30
@@ -195,6 +202,7 @@ class PromptEvolverConfig:
     refine_after_splice: bool = False
     adaptive_mutations: bool = False
     llm_mutation_rate: float = 0.0
+    describe_entities: bool = False
 
     def __post_init__(self) -> None:
         # Auto-detect from environment variables
@@ -243,6 +251,17 @@ class LLMClient:
         self._azure_credential: Any = None
         self._azure_token: Optional[str] = None
         self._azure_token_expires: float = 0.0
+        # Usage tracking
+        self.call_count: int = 0
+        self.total_input_tokens: int = 0
+        self.total_output_tokens: int = 0
+
+    def _record_usage(self, response_data: dict[str, Any]) -> None:
+        """Accumulate token usage from an OpenAI-compatible response."""
+        self.call_count += 1
+        usage = response_data.get("usage", {})
+        self.total_input_tokens += usage.get("prompt_tokens", 0)
+        self.total_output_tokens += usage.get("completion_tokens", 0)
 
     def is_available(self) -> bool:
         """Check if the configured backend is reachable."""
@@ -344,7 +363,12 @@ class LLMClient:
             timeout=self.config.timeout,
         )
         if resp.status_code == 200:
-            content: str = resp.json().get("message", {}).get("content", "")
+            data = resp.json()
+            # Ollama returns eval_count / prompt_eval_count
+            self.call_count += 1
+            self.total_input_tokens += data.get("prompt_eval_count", 0)
+            self.total_output_tokens += data.get("eval_count", 0)
+            content: str = data.get("message", {}).get("content", "")
             return content
         return None
 
@@ -425,7 +449,9 @@ class LLMClient:
         if resp.status_code != 200:
             logger.debug("Azure status=%d body=%s", resp.status_code, resp.text[:500])
         if resp.status_code == 200:
-            choices = resp.json().get("choices", [])
+            data = resp.json()
+            self._record_usage(data)
+            choices = data.get("choices", [])
             if choices:
                 content: str = choices[0].get("message", {}).get("content", "")
                 return content
@@ -458,7 +484,9 @@ class LLMClient:
             timeout=self.config.timeout,
         )
         if resp.status_code == 200:
-            choices = resp.json().get("choices", [])
+            data = resp.json()
+            self._record_usage(data)
+            choices = data.get("choices", [])
             if choices:
                 content: str = choices[0].get("message", {}).get("content", "")
                 return content
@@ -686,6 +714,9 @@ _TOOL_ROUTING_MUTATIONS: list[str] = [
     "If a required parameter is unclear, infer it from context.",
     "Be precise — ambiguous queries should still resolve to one tool.",
     "The parameters object must contain string values only.",
+    "For each agent/tool, include a brief description of its purpose and when to use it.",
+    "Describe what each agent does so the routing decision is grounded in capability, not name.",
+    "Annotate each agent with its responsibility to disambiguate similar-sounding agents.",
 ]
 
 _CLASSIFICATION_MUTATIONS: list[str] = [
@@ -703,6 +734,9 @@ _CLASSIFICATION_MUTATIONS: list[str] = [
     "When in doubt, re-read the input and look for decisive cues.",
     "Be consistent — similar inputs should always get the same label.",
     "Output must be a single word or short phrase matching a valid category.",
+    "For each category, include a brief description of its meaning and when it applies.",
+    "Describe what each category represents so the classification is grounded in semantics, not label names.",
+    "Annotate each category with its definition to disambiguate overlapping labels.",
 ]
 
 # Legacy alias for backward compatibility
@@ -887,6 +921,89 @@ _LLM_MUTATE_SYSTEM_TOOL_ROUTING = textwrap.dedent("""\
     - Return ONLY the rewritten prompt — no commentary, no markdown fences.
 """)
 
+
+# ---------------------------------------------------------------------------
+# LLM-assisted "describe entities" mutation
+# ---------------------------------------------------------------------------
+
+
+_DESCRIBE_ENTITIES_SYSTEM = textwrap.dedent("""\
+    You are a prompt-engineering expert.  You will receive a system prompt that
+    contains a list of agent names (or category labels).  Your job is to rewrite
+    the prompt so that each agent/category is accompanied by a concise one-line
+    description of its purpose and when it should be selected.
+
+    Guidelines:
+    - Keep each description to ONE sentence (≤ 20 words).
+    - Ground descriptions in the agent/category NAME — infer the purpose from
+      the name itself (e.g. ``fraud_detection_agent`` → "Detects and flags
+      potentially fraudulent transactions or account activity.").
+    - Format each entry as: ``agent_name — Description of what it does.``
+    - Preserve ALL existing instructions and structure.  Only expand the
+      agent/category list section.
+    - Do NOT add or remove agents/categories.
+    - Do NOT change the overall prompt intent or add new instructions.
+    - Return ONLY the rewritten prompt — no commentary, no markdown fences.
+""")
+
+
+def _has_entity_descriptions(template: str) -> bool:
+    """Heuristic: return True if the template already contains entity descriptions.
+
+    Detects the ``name \u2014 description`` pattern produced by
+    :func:`_llm_describe_entities`.  If 3+ such patterns are found the
+    template is considered already described.
+    """
+    return template.count(" \u2014 ") >= 3
+
+
+def _llm_describe_entities(
+    template: str,
+    client: "LLMClient",
+    problem_type: ProblemType,
+    require_tool_schemas: bool = True,
+) -> str:
+    """Rewrite a prompt to add verbose descriptions to each agent/category.
+
+    Uses an LLM call to expand bare entity names (agents or class labels)
+    into ``name — description`` format.  This gives the routing/classification
+    model better semantic grounding for its decisions.
+
+    Returns the rewritten prompt, or the original on failure.
+    """
+    if problem_type is ProblemType.CLASSIFICATION:
+        entity_kind = "category labels"
+    else:
+        entity_kind = "agent names"
+
+    user_message = (
+        f"The following system prompt contains {entity_kind} that need "
+        f"descriptions added.  Rewrite the prompt so each {entity_kind.rstrip('s')} "
+        f"has a concise purpose description.\n\n"
+        f"```\n{template}\n```"
+    )
+
+    rewritten = client.complete(
+        system_prompt=_DESCRIBE_ENTITIES_SYSTEM,
+        user_message=user_message,
+        temperature=0.4,
+        top_p=0.95,
+    )
+
+    if not rewritten or not rewritten.strip():
+        return template
+
+    cleaned = rewritten.strip()
+    # Strip markdown fences if the LLM added them
+    if cleaned.startswith("```"):
+        lines = cleaned.splitlines()
+        lines = [l for l in lines if not l.strip().startswith("```")]
+        cleaned = "\n".join(lines).strip()
+
+    if require_tool_schemas and "{tool_schemas}" in template and "{tool_schemas}" not in cleaned:
+        cleaned += "\n\nAvailable tools:\n{tool_schemas}"
+
+    return cleaned if cleaned else template
 
 def _llm_mutate_template(
     template: str,
@@ -1208,6 +1325,15 @@ class PromptEvolver:
         """Run the evolutionary prompt optimisation loop."""
         t0 = time.perf_counter()
 
+        logger.info(
+            "Starting evolution: %d generations, population=%d, "
+            "islands=%d, backend=%s",
+            self.config.iterations,
+            self.config.population_size,
+            self.config.num_islands,
+            self.config.backend.value,
+        )
+
         if not self._client.is_available():
             logger.warning(
                 "LLM backend %s not available — running in mock mode "
@@ -1220,6 +1346,7 @@ class PromptEvolver:
             [] for _ in range(self.config.num_islands)
         ]
 
+        logger.info("Seeding %d templates across %d islands", len(_SEED_TEMPLATES), self.config.num_islands)
         for i, template in enumerate(_SEED_TEMPLATES):
             assigned_island = i % self.config.num_islands
             candidate = PromptCandidate(
@@ -1235,10 +1362,19 @@ class PromptEvolver:
             candidate.score = self._evaluate_candidate(candidate)
             islands[assigned_island].append(candidate)
             self._all_candidates.append(candidate)
+            logger.info(
+                "  Seed %d → island %d  score=%.1f%%  template=%.60s...",
+                i, assigned_island, candidate.score,
+                template.replace('\n', ' '),
+            )
 
         best_overall = max(self._all_candidates, key=lambda c: c.score)
+        logger.info("Seed evaluation complete — best seed score=%.1f%%", best_overall.score)
 
         for gen in range(1, self.config.iterations + 1):
+            gen_t0 = time.perf_counter()
+            logger.info("── Generation %d/%d ──", gen, self.config.iterations)
+
             # Reset error tracking per generation for adaptive mutations
             if self.config.adaptive_mutations or self.config.llm_mutation_rate > 0:
                 self._error_profile = ErrorProfile()
@@ -1256,6 +1392,17 @@ class PromptEvolver:
                     child.score = self._evaluate_candidate(child)
                     new_candidates.append(child)
                     self._all_candidates.append(child)
+                    logger.debug(
+                        "  Island %d: child op=%-20s score=%.1f%%",
+                        island_id, child.operation, child.score,
+                    )
+
+                island_best = max(new_candidates, key=lambda c: c.score)
+                logger.info(
+                    "  Island %d: bred %d candidates, best=%.1f%% (op=%s)",
+                    island_id, len(new_candidates),
+                    island_best.score, island_best.operation,
+                )
 
                 # Merge and select elite
                 combined = island + new_candidates
@@ -1273,6 +1420,11 @@ class PromptEvolver:
                     ProblemType.TOOL_ROUTING,
                     self._client,
                 )
+                logger.info(
+                    "  Adaptive mutations: %d hints from %d error categories",
+                    len(self._adaptive_pool),
+                    len(self._error_profile.worst_categories()),
+                )
             else:
                 self._adaptive_pool = []
 
@@ -1281,10 +1433,27 @@ class PromptEvolver:
                 (c for isl in islands for c in isl),
                 key=lambda c: c.score,
             )
-            if gen_best.score > best_overall.score:
+            improved = gen_best.score > best_overall.score
+            if improved:
                 best_overall = gen_best
 
             self._history.append((gen, best_overall.score))
+
+            gen_elapsed = time.perf_counter() - gen_t0
+            logger.info(
+                "  Gen %d summary: best=%.1f%% %stemp=%.3f  "
+                "top_p=%.3f  candidates=%d  elapsed=%.1fs  "
+                "LLM calls=%d  tokens_in=%d  tokens_out=%d",
+                gen, best_overall.score,
+                "▲ NEW BEST  " if improved else "",
+                best_overall.temperature,
+                best_overall.top_p,
+                len(self._all_candidates),
+                gen_elapsed,
+                self._client.call_count,
+                self._client.total_input_tokens,
+                self._client.total_output_tokens,
+            )
 
             if self.verbose:
                 print(
@@ -1295,6 +1464,17 @@ class PromptEvolver:
                 )
 
         wall_time = time.perf_counter() - t0
+
+        logger.info(
+            "Evolution complete: best=%.1f%%  wall_time=%.1fs  "
+            "total_candidates=%d  LLM calls=%d  "
+            "tokens_in=%d  tokens_out=%d",
+            best_overall.score, wall_time,
+            len(self._all_candidates),
+            self._client.call_count,
+            self._client.total_input_tokens,
+            self._client.total_output_tokens,
+        )
 
         return PromptEvolverResult(
             best_prompt=best_overall.template.replace(
@@ -1373,6 +1553,22 @@ class PromptEvolver:
                 mutations=mutations,
             )
 
+        # Describe-entities mutation: randomly expand bare entity names
+        if (
+            self.config.describe_entities
+            and self._client.is_available()
+            and self._rng.random() < self.config.mutation_rate * 0.15
+            and not _has_entity_descriptions(child_template)
+        ):
+            child_template = _llm_describe_entities(
+                child_template,
+                self._client,
+                ProblemType.TOOL_ROUTING,
+                require_tool_schemas=self._require_tool_schemas,
+            )
+            operation = "describe_entities"
+            logger.debug("Breed: applied describe_entities mutation")
+
         # Optional LLM-based clarity refinement
         if self.config.refine_after_splice:
             child_template = _refine_template(
@@ -1412,6 +1608,7 @@ class PromptEvolver:
         n = len(islands)
         if n < 2:
             return
+        logger.info("  Migration: sharing elite candidates across %d islands", n)
         for src in range(n):
             if not islands[src]:
                 continue
