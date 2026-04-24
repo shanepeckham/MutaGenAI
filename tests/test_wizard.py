@@ -470,7 +470,8 @@ class TestRunWizard:
         ])
 
         confirm_calls = iter([
-            False,  # no extra strategy
+            False,  # no custom rubric
+            False,  # no fitness penalties
             False,  # no domain mutations
             False,  # no seed templates
         ])

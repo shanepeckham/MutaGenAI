@@ -116,6 +116,7 @@ class PromptCandidate:
     island_id: int = -1
     operation: str = "seed"
     parent_hashes: list[str] = field(default_factory=list)
+    penalty_violations: int = 0
 
     def __post_init__(self) -> None:
         if not self.hash:
@@ -957,6 +958,26 @@ def _has_entity_descriptions(template: str) -> bool:
     return template.count(" \u2014 ") >= 3
 
 
+def _extract_entity_names(template: str) -> list[str]:
+    """Extract entity names (agent names or category labels) from a prompt.
+
+    Looks for ``word_word_agent`` patterns first.  Falls back to
+    underscore-joined identifiers of 2+ parts (e.g. ``fraud_detection``).
+    Returns a deduplicated list in order of first appearance.
+    """
+    # Agent-style names: foo_bar_agent
+    agents = re.findall(r"\b(\w+_agent)\b", template)
+    if agents:
+        return list(dict.fromkeys(agents))  # dedupe, preserve order
+
+    # Fallback: any multi-part underscore identifier (≥2 segments)
+    identifiers = re.findall(r"\b([a-z][a-z0-9]*(?:_[a-z][a-z0-9]*)+)\b", template)
+    if identifiers:
+        return list(dict.fromkeys(identifiers))
+
+    return []
+
+
 def _llm_describe_entities(
     template: str,
     client: "LLMClient",
@@ -968,6 +989,11 @@ def _llm_describe_entities(
     Uses an LLM call to expand bare entity names (agents or class labels)
     into ``name — description`` format.  This gives the routing/classification
     model better semantic grounding for its decisions.
+
+    A completeness guard ensures that ALL entities receive descriptions.
+    If the LLM only describes a subset, a follow-up call is made asking
+    it to complete the missing descriptions.  If the retry still leaves
+    gaps, the original template is returned unchanged.
 
     Returns the rewritten prompt, or the original on failure.
     """
@@ -1003,7 +1029,75 @@ def _llm_describe_entities(
     if require_tool_schemas and "{tool_schemas}" in template and "{tool_schemas}" not in cleaned:
         cleaned += "\n\nAvailable tools:\n{tool_schemas}"
 
-    return cleaned if cleaned else template
+    if not cleaned:
+        return template
+
+    # ── Completeness guard ──────────────────────────────────
+    # If some entities were described but not all, retry with an
+    # explicit list of the missing ones so every entity gets a
+    # description or the mutation is discarded.
+    entities = _extract_entity_names(template)
+    if entities:
+        described = [e for e in entities if f"{e} —" in cleaned or f"{e} —" in cleaned]
+        missing = [e for e in entities if e not in described]
+        if missing and described:
+            logger.info(
+                "describe_entities: partial result (%d/%d described) "
+                "— retrying for %d missing entities",
+                len(described), len(entities), len(missing),
+            )
+            missing_list = ", ".join(missing)
+            retry_message = (
+                f"The following prompt has descriptions for some "
+                f"{entity_kind} but is missing descriptions for: "
+                f"{missing_list}\n\n"
+                f"Add a concise one-line description for each missing "
+                f"entity using the same ``name — description`` format.  "
+                f"Keep all existing content and descriptions unchanged.  "
+                f"Return ONLY the complete rewritten prompt.\n\n"
+                f"```\n{cleaned}\n```"
+            )
+            retry_result = client.complete(
+                system_prompt=_DESCRIBE_ENTITIES_SYSTEM,
+                user_message=retry_message,
+                temperature=0.3,
+                top_p=0.95,
+            )
+            if retry_result and retry_result.strip():
+                retry_cleaned = retry_result.strip()
+                if retry_cleaned.startswith("```"):
+                    rlines = retry_cleaned.splitlines()
+                    rlines = [l for l in rlines if not l.strip().startswith("```")]
+                    retry_cleaned = "\n".join(rlines).strip()
+
+                if require_tool_schemas and "{tool_schemas}" in template and "{tool_schemas}" not in retry_cleaned:
+                    retry_cleaned += "\n\nAvailable tools:\n{tool_schemas}"
+
+                # Verify the retry actually covered the gaps
+                still_missing = [
+                    e for e in entities
+                    if f"{e} —" not in retry_cleaned and f"{e} —" not in retry_cleaned
+                ]
+                if not still_missing:
+                    logger.info(
+                        "describe_entities: retry succeeded — all %d entities described",
+                        len(entities),
+                    )
+                    return retry_cleaned
+                else:
+                    logger.info(
+                        "describe_entities: retry still missing %d/%d entities "
+                        "— returning original",
+                        len(still_missing), len(entities),
+                    )
+                    return template
+            else:
+                logger.info(
+                    "describe_entities: retry returned empty — returning original"
+                )
+                return template
+
+    return cleaned
 
 def _llm_mutate_template(
     template: str,
@@ -1274,6 +1368,18 @@ class PromptEvolverResult:
 # ---------------------------------------------------------------------------
 
 
+def _feasibility_key(candidate: PromptCandidate) -> tuple[int, float]:
+    """Sort key implementing feasibility-first ordering.
+
+    Candidates with zero ``penalty_violations`` always rank above those
+    with any violations.  Within the same feasibility tier, higher
+    ``score`` wins.  Returns a tuple suitable for ``max(..., key=)``
+    and ``sorted(..., reverse=True)``.
+    """
+    feasible = 1 if candidate.penalty_violations == 0 else 0
+    return (feasible, candidate.score)
+
+
 class PromptEvolver:
     """Evolutionary prompt optimiser for zero-shot tool classification.
 
@@ -1404,9 +1510,9 @@ class PromptEvolver:
                     island_best.score, island_best.operation,
                 )
 
-                # Merge and select elite
+                # Merge and select elite (feasibility-first)
                 combined = island + new_candidates
-                combined.sort(key=lambda c: c.score, reverse=True)
+                combined.sort(key=_feasibility_key, reverse=True)
                 islands[island_id] = combined[: self.config.elite_size]
 
             # Migration: share best across islands every 5 generations
@@ -1428,12 +1534,14 @@ class PromptEvolver:
             else:
                 self._adaptive_pool = []
 
-            # Track best
+            # Track best (feasibility-first)
             gen_best = max(
                 (c for isl in islands for c in isl),
-                key=lambda c: c.score,
+                key=_feasibility_key,
             )
-            improved = gen_best.score > best_overall.score
+            improved = (
+                _feasibility_key(gen_best) > _feasibility_key(best_overall)
+            )
             if improved:
                 best_overall = gen_best
 
@@ -1597,11 +1705,15 @@ class PromptEvolver:
     def _tournament_select(
         self, island: list[PromptCandidate], k: int = 3
     ) -> PromptCandidate:
-        """Tournament selection: pick the best of k random candidates."""
+        """Tournament selection: feasibility-first, then best score.
+
+        A candidate with zero penalty violations always beats one with
+        any violations, regardless of raw fitness.
+        """
         k = min(k, len(island))
         indices = self._rng.choice(len(island), size=k, replace=False)
         contestants = [island[int(i)] for i in indices]
-        return max(contestants, key=lambda c: c.score)
+        return max(contestants, key=_feasibility_key)
 
     def _migrate(self, islands: list[list[PromptCandidate]]) -> None:
         """Copy the best candidate from each island to a random neighbour."""

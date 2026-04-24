@@ -46,6 +46,7 @@ from prompture.prompt_evolver import (
     evolve_prompt_with_cmaes,
     generate_adaptive_mutations,
     get_mutations_for_problem_type,
+    _feasibility_key,
 )
 from prompture.strategies import (
     NoEvalPromptEvolver,
@@ -63,8 +64,17 @@ from prompture.strategies import (
     PreferencePair,
     HumanTournament,
     CompositeScorer,
+    PenaltyScaler,
 )
-from prompture.seed_loader import load_seed_templates, list_seed_templates
+from prompture.seed_loader import (
+    Penalty,
+    SeedTemplateConfig,
+    load_seed_templates,
+    load_seed_template_config,
+    list_seed_templates,
+    penalties_to_proxy_checks,
+    register_penalty_condition,
+)
 from prompture.wizard import run_wizard
 
 __all__ = [
@@ -98,9 +108,15 @@ __all__ = [
     "PreferencePair",
     "HumanTournament",
     "CompositeScorer",
+    "PenaltyScaler",
     # Seed templates
+    "Penalty",
+    "SeedTemplateConfig",
     "load_seed_templates",
+    "load_seed_template_config",
     "list_seed_templates",
+    "penalties_to_proxy_checks",
+    "register_penalty_condition",
     # Wizard
     "run_wizard",
 ]
