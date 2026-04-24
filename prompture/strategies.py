@@ -645,15 +645,36 @@ class ProxyMetricsScorer(Scorer):
         output: str,
         client: LLMClient,
     ) -> float:
+        s, _ = self.score_with_violations(output)
+        return s
+
+    def score_with_violations(self, output: str) -> tuple[float, int]:
+        """Score *output* and return ``(score, penalty_violation_count)``.
+
+        A penalty violation is a negative-weight check whose ``check_fn``
+        returns ``True`` (i.e. the penalty condition fired).
+        """
         if not self.checks:
-            return 0.5
-        total_weight = sum(c.weight for c in self.checks)
+            return 0.5, 0
+        total_weight = sum(abs(c.weight) for c in self.checks)
         if total_weight == 0:
-            return 0.5
-        passed_weight = sum(
-            c.weight for c in self.checks if c.check_fn(output)
-        )
-        return passed_weight / total_weight
+            return 0.5, 0
+        earned = 0.0
+        violations = 0
+        for c in self.checks:
+            passed = c.check_fn(output)
+            if c.weight >= 0:
+                # Positive check: earn weight when passing
+                if passed:
+                    earned += c.weight
+            else:
+                # Negative check: earn abs(weight) when NOT passing
+                if not passed:
+                    earned += abs(c.weight)
+                else:
+                    # check_fn returned True → penalty fired
+                    violations += 1
+        return max(0.0, min(1.0, earned / total_weight)), violations
 
     @staticmethod
     def common_checks() -> list[ProxyCheck]:
@@ -676,6 +697,95 @@ def _is_valid_json(text: str) -> bool:
         return True
     except (json.JSONDecodeError, ValueError):
         return False
+
+
+def _feasibility_key(candidate: PromptCandidate) -> tuple[int, float]:
+    """Sort key implementing feasibility-first ordering.
+
+    Candidates with zero ``penalty_violations`` always rank above those
+    with any violations.  Within the same feasibility tier, higher
+    ``score`` wins.  Returns a tuple suitable for ``max(..., key=)``
+    and ``sorted(..., reverse=True)``.
+    """
+    feasible = 1 if candidate.penalty_violations == 0 else 0
+    return (feasible, candidate.score)
+
+
+class PenaltyScaler:
+    """Adaptive penalty weight scaling.
+
+    Tracks how often each negative-weight :class:`ProxyCheck` fires
+    across a generation.  After each generation call :meth:`end_generation`:
+    any penalty whose trigger frequency exceeds *threshold* has its
+    weight multiplied by *growth_factor*.
+
+    Parameters
+    ----------
+    checks : list[ProxyCheck]
+        The checks to monitor (only negative-weight checks are tracked).
+    threshold : float
+        Fraction of evaluations above which a penalty is considered
+        too frequent (default ``0.5`` = fires on more than half of
+        evaluations).
+    growth_factor : float
+        Multiplier applied to ``abs(weight)`` each generation the
+        penalty exceeds the threshold (default ``1.5``).
+    """
+
+    def __init__(
+        self,
+        checks: list[ProxyCheck],
+        *,
+        threshold: float = 0.5,
+        growth_factor: float = 1.5,
+    ) -> None:
+        if not 0.0 < threshold <= 1.0:
+            raise ValueError("threshold must be in (0, 1]")
+        if growth_factor < 1.0:
+            raise ValueError("growth_factor must be >= 1.0")
+        self.checks = checks
+        self.threshold = threshold
+        self.growth_factor = growth_factor
+        # Only track negative-weight checks
+        self._penalty_names: list[str] = [
+            c.name for c in checks if c.weight < 0
+        ]
+        self._fire_counts: dict[str, int] = {n: 0 for n in self._penalty_names}
+        self._eval_count: int = 0
+
+    def record(self, output: str) -> None:
+        """Record one evaluation, tallying which penalties fire."""
+        self._eval_count += 1
+        for c in self.checks:
+            if c.weight >= 0:
+                continue
+            if c.check_fn(output):
+                self._fire_counts[c.name] = self._fire_counts.get(c.name, 0) + 1
+
+    def end_generation(self) -> dict[str, float]:
+        """Scale weights for high-frequency penalties and reset counters.
+
+        Returns a dict mapping penalty name → new weight for every
+        penalty that was scaled this generation.
+        """
+        scaled: dict[str, float] = {}
+        if self._eval_count == 0:
+            return scaled
+        for c in self.checks:
+            if c.weight >= 0:
+                continue
+            freq = self._fire_counts.get(c.name, 0) / self._eval_count
+            if freq > self.threshold:
+                c.weight = -(abs(c.weight) * self.growth_factor)
+                scaled[c.name] = c.weight
+                logger.info(
+                    "  Penalty '%s' fired %.0f%% — weight scaled to %.2f",
+                    c.name, freq * 100, c.weight,
+                )
+        # Reset for next generation
+        self._fire_counts = {n: 0 for n in self._penalty_names}
+        self._eval_count = 0
+        return scaled
 
 
 # ---------------------------------------------------------------------------
@@ -1010,6 +1120,14 @@ class NoEvalPromptEvolver:
         self._failure_examples: list[tuple[str, str, str]] = []
         self._adaptive_pool: list[str] = []
 
+        # Adaptive penalty scaling: auto-create when scorer has negative
+        # weight checks (i.e. penalty checks from seed template config).
+        self._penalty_scaler: Optional[PenaltyScaler] = None
+        if isinstance(self.scorer, ProxyMetricsScorer):
+            neg = [c for c in self.scorer.checks if c.weight < 0]
+            if neg:
+                self._penalty_scaler = PenaltyScaler(self.scorer.checks)
+
     def run(self) -> PromptEvolverResult:
         """Run the evolutionary loop.  Returns :class:`PromptEvolverResult`."""
         t0 = time.perf_counter()
@@ -1116,12 +1234,16 @@ class NoEvalPromptEvolver:
                 )
 
                 combined = island + new_candidates
-                combined.sort(key=lambda c: c.score, reverse=True)
+                combined.sort(key=_feasibility_key, reverse=True)
                 islands[island_id] = combined[: self.config.elite_size]
 
             # Migration
             if gen % self.config.migration_interval == 0:
                 self._migrate(islands)
+
+            # Adaptive penalty scaling: grow weights for frequent penalties
+            if self._penalty_scaler is not None:
+                self._penalty_scaler.end_generation()
 
             # Generate adaptive mutations for the next generation
             if self.config.adaptive_mutations and self._error_profile.worst_categories():
@@ -1139,9 +1261,12 @@ class NoEvalPromptEvolver:
                 self._adaptive_pool = []
 
             gen_best = max(
-                (c for isl in islands for c in isl), key=lambda c: c.score
+                (c for isl in islands for c in isl),
+                key=_feasibility_key,
             )
-            improved = gen_best.score > best_overall.score
+            improved = (
+                _feasibility_key(gen_best) > _feasibility_key(best_overall)
+            )
             if improved:
                 best_overall = gen_best
 
@@ -1218,6 +1343,7 @@ class NoEvalPromptEvolver:
     def _evaluate(self, candidate: PromptCandidate) -> float:
         """Evaluate a candidate using the scorer strategy."""
         scores = []
+        total_violations = 0
         for test_input in self.test_inputs:
             output = self._client.complete(
                 system_prompt=candidate.template,
@@ -1230,9 +1356,16 @@ class NoEvalPromptEvolver:
                 scores.append(float(self._rng.uniform(0, 0.5)))
                 continue
 
-            s = self.scorer.score(
-                candidate.template, test_input, output, self._client
-            )
+            # Use score_with_violations when scorer supports it
+            if isinstance(self.scorer, ProxyMetricsScorer):
+                s, violations = self.scorer.score_with_violations(output)
+                total_violations += violations
+                if self._penalty_scaler is not None:
+                    self._penalty_scaler.record(output)
+            else:
+                s = self.scorer.score(
+                    candidate.template, test_input, output, self._client
+                )
             scores.append(s)
 
             # Track error profile for adaptive mutations / LLM mutation
@@ -1249,6 +1382,7 @@ class NoEvalPromptEvolver:
                             (test_input, predicted_cat or output[:80], expected_cat)
                         )
 
+        candidate.penalty_violations = total_violations
         return (statistics.mean(scores) * 100.0) if scores else 0.0
 
     def _breed(
@@ -1352,9 +1486,8 @@ class NoEvalPromptEvolver:
     ) -> PromptCandidate:
         k = min(k, len(island))
         indices = self._rng.choice(len(island), size=k, replace=False)
-        return max(
-            (island[int(i)] for i in indices), key=lambda c: c.score
-        )
+        contestants = [island[int(i)] for i in indices]
+        return max(contestants, key=_feasibility_key)
 
     def _migrate(self, islands: list[list[PromptCandidate]]) -> None:
         n = len(islands)

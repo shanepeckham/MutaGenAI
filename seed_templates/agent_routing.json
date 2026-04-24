@@ -17,5 +17,28 @@
     "IMPORTANT: Do NOT include agents that are not directly required. Precision matters more than coverage. A shorter, correct sequence is better than a longer one that adds unnecessary steps.\nGiven the user request, return the minimal ordered list of agents.",
 
     "Each agent has a specific responsibility. Match the user's request to agent responsibilities:\n- Authentication/identity → authentication_agent\n- Input validation → request_validation_agent\n- Permission checks → authorization_agent\n- User data lookup → user_information_retriever_agent\n- Past transactions → transaction_history_agent\n- Account balance → balance_checking_agent\n- Data insights → data_analysis_agent\n- Risk scoring → risk_assessment_agent\n- Duplicate checks → duplicate_detection_agent\n- Fraud flags → fraud_detection_agent\n- Document checks → document_verification_agent\n- Regulatory compliance → compliance_check_agent\n- Cross-source matching → cross_reference_agent\n- Approval flows → approval_workflow_agent\n- Leave requests → leave_approval_agent\n- Refunds → refund_processing_agent\n- Pricing → pricing_calculation_agent\n- Policy rules → policy_evaluation_agent\n- Notifications → notification_agent\n- Email → email_agent\n- Reports → report_generation_agent\n- Audit trails → audit_logging_agent\n- Case management → case_creation_agent\n- General questions → informational_queries_agent\n- Troubleshooting → troubleshooting_agent\n- Recommendations → recommendation_agent\n- Intent/sentiment → intent_and_sentiment_extraction_agent\nSelect only the matching agents and list them in logical execution order."
+  ],
+  "penalties": [
+    {
+      "name": "over_selection",
+      "description": "Penalise agent sequences longer than 6 — pushes precision up",
+      "condition": "json_array_length_gt",
+      "threshold": 6,
+      "weight": -3.0
+    },
+    {
+      "name": "under_selection",
+      "description": "Penalise empty or single-agent responses for multi-step tasks",
+      "condition": "json_array_length_lt",
+      "threshold": 1,
+      "weight": -2.0
+    },
+    {
+      "name": "verbose_output",
+      "description": "Penalise outputs over 1000 chars — agent lists should be concise",
+      "condition": "output_length_gt",
+      "threshold": 1000,
+      "weight": -1.5
+    }
   ]
 }

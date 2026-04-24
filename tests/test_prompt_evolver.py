@@ -19,6 +19,7 @@ from prompture.prompt_evolver import (
     parse_tool_response,
     score_response,
 )
+from prompture.prompt_evolver import _feasibility_key
 
 
 # ── Tools / dataset fixtures ──────────────────────────────────────────────
@@ -875,3 +876,190 @@ class TestHasEntityDescriptions:
 
         template = "Use the right tool - pick carefully - be precise."
         assert _has_entity_descriptions(template) is False
+
+
+# ── _extract_entity_names tests ──────────────────────────────────────────
+
+
+class TestExtractEntityNames:
+    def test_extracts_agent_names(self):
+        from prompture.prompt_evolver import _extract_entity_names
+
+        template = "Route to: auth_agent, billing_agent, support_agent"
+        result = _extract_entity_names(template)
+        assert result == ["auth_agent", "billing_agent", "support_agent"]
+
+    def test_deduplicates(self):
+        from prompture.prompt_evolver import _extract_entity_names
+
+        template = "auth_agent handles auth. auth_agent is important."
+        result = _extract_entity_names(template)
+        assert result == ["auth_agent"]
+
+    def test_no_entities(self):
+        from prompture.prompt_evolver import _extract_entity_names
+
+        template = "Route the user request to the correct handler."
+        result = _extract_entity_names(template)
+        assert result == []
+
+    def test_fallback_to_underscore_identifiers(self):
+        from prompture.prompt_evolver import _extract_entity_names
+
+        template = "Categories: fraud_detection, risk_assessment, data_analysis"
+        result = _extract_entity_names(template)
+        assert "fraud_detection" in result
+        assert "risk_assessment" in result
+
+    def test_agent_names_take_priority(self):
+        from prompture.prompt_evolver import _extract_entity_names
+
+        template = "Use fraud_detection_agent for fraud_detection tasks"
+        result = _extract_entity_names(template)
+        assert result == ["fraud_detection_agent"]
+
+
+# ── describe_entities completeness guard tests ───────────────────────────
+
+
+class TestDescribeEntitiesCompletenessGuard:
+    def test_partial_triggers_retry_and_succeeds(self):
+        from unittest.mock import MagicMock, call
+
+        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+
+        client = MagicMock()
+        # First call: LLM only describes 1 out of 3
+        partial = (
+            "Route to the correct agents.\n"
+            "sales_agent — Handles sales inquiries."
+        )
+        # Retry call: LLM completes all 3
+        complete = (
+            "Route to the correct agents.\n"
+            "sales_agent — Handles sales inquiries.\n"
+            "billing_agent — Processes billing.\n"
+            "support_agent — Customer support."
+        )
+        client.complete.side_effect = [partial, complete]
+        original = "Route to: sales_agent, billing_agent, support_agent"
+        result = _llm_describe_entities(
+            original, client, ProblemType.TOOL_ROUTING, require_tool_schemas=False
+        )
+        assert client.complete.call_count == 2
+        assert "billing_agent —" in result or "billing_agent —" in result
+        assert "support_agent —" in result or "support_agent —" in result
+
+    def test_partial_retry_still_incomplete_returns_original(self):
+        from unittest.mock import MagicMock
+
+        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+
+        client = MagicMock()
+        # First call: partial
+        partial = (
+            "Route to the correct agents.\n"
+            "sales_agent — Handles sales inquiries."
+        )
+        # Retry call: still only 2 out of 3
+        still_partial = (
+            "Route to the correct agents.\n"
+            "sales_agent — Handles sales inquiries.\n"
+            "billing_agent — Processes billing."
+        )
+        client.complete.side_effect = [partial, still_partial]
+        original = "Route to: sales_agent, billing_agent, support_agent"
+        result = _llm_describe_entities(
+            original, client, ProblemType.TOOL_ROUTING, require_tool_schemas=False
+        )
+        assert result == original  # falls back after failed retry
+
+    def test_partial_retry_empty_returns_original(self):
+        from unittest.mock import MagicMock
+
+        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+
+        client = MagicMock()
+        partial = (
+            "Route to the correct agents.\n"
+            "sales_agent — Handles sales inquiries."
+        )
+        client.complete.side_effect = [partial, ""]
+        original = "Route to: sales_agent, billing_agent, support_agent"
+        result = _llm_describe_entities(
+            original, client, ProblemType.TOOL_ROUTING, require_tool_schemas=False
+        )
+        assert result == original
+
+    def test_full_description_accepted(self):
+        from unittest.mock import MagicMock
+
+        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+
+        client = MagicMock()
+        client.complete.return_value = (
+            "Route to the correct agents.\n"
+            "sales_agent — Handles sales inquiries.\n"
+            "billing_agent — Processes billing.\n"
+            "support_agent — Customer support."
+        )
+        original = "Route to: sales_agent, billing_agent, support_agent"
+        result = _llm_describe_entities(
+            original, client, ProblemType.TOOL_ROUTING, require_tool_schemas=False
+        )
+        assert result != original
+        assert "sales_agent" in result
+        assert "billing_agent" in result
+
+    def test_no_descriptions_passthrough(self):
+        from unittest.mock import MagicMock
+
+        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+
+        client = MagicMock()
+        # LLM returns a rewrite with no " — " patterns at all
+        client.complete.return_value = (
+            "Select agents from: sales_agent, billing_agent, support_agent"
+        )
+        original = "Route to: sales_agent, billing_agent, support_agent"
+        result = _llm_describe_entities(
+            original, client, ProblemType.TOOL_ROUTING, require_tool_schemas=False
+        )
+        # 0 described — not a partial result, so accepted
+        assert result != original
+
+    def test_empty_response_returns_original(self):
+        from unittest.mock import MagicMock
+
+        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+
+        client = MagicMock()
+        client.complete.return_value = ""
+        original = "Route to: sales_agent, billing_agent, support_agent"
+        result = _llm_describe_entities(
+            original, client, ProblemType.TOOL_ROUTING, require_tool_schemas=False
+        )
+        assert result == original
+
+
+# ---------------------------------------------------------------------------
+# _feasibility_key tests (prompt_evolver copy)
+# ---------------------------------------------------------------------------
+
+
+class TestFeasibilityKeyPromptEvolver:
+    """Tests for _feasibility_key in prompt_evolver module."""
+
+    def test_zero_violations_beats_any(self):
+        feasible = PromptCandidate(template="a", score=10.0, penalty_violations=0)
+        infeasible = PromptCandidate(template="b", score=99.0, penalty_violations=1)
+        assert _feasibility_key(feasible) > _feasibility_key(infeasible)
+
+    def test_same_feasibility_uses_score(self):
+        a = PromptCandidate(template="a", score=80.0, penalty_violations=0)
+        b = PromptCandidate(template="b", score=60.0, penalty_violations=0)
+        assert _feasibility_key(a) > _feasibility_key(b)
+
+    def test_penalty_violations_default_zero(self):
+        c = PromptCandidate(template="t", score=50.0)
+        assert c.penalty_violations == 0

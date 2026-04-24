@@ -21,7 +21,10 @@ from prompture.strategies import (
     ToolResult,
     ToolSuccessScorer,
     _is_valid_json,
+    _feasibility_key,
+    PenaltyScaler,
 )
+from prompture.prompt_evolver import PromptCandidate
 
 
 # ---------------------------------------------------------------------------
@@ -325,6 +328,57 @@ class TestProxyMetricsScorer:
         json_check = next(c for c in checks if c.name == "valid_json")
         assert json_check.check_fn(valid) is True
 
+    def test_negative_weight_bad_output(self, mock_client):
+        """Negative-weight check: score drops when check passes (bad output)."""
+        checks = [
+            ProxyCheck("good", lambda o: True, weight=2.0),
+            ProxyCheck("penalty", lambda o: True, weight=-1.0),  # fires
+        ]
+        scorer = ProxyMetricsScorer(checks=checks)
+        result = scorer.score("p", "i", "x", mock_client([]))
+        # total_weight = 3.0, earned = 2.0 (good passes) + 0 (penalty fires)
+        assert result == pytest.approx(2.0 / 3.0)
+
+    def test_negative_weight_good_output(self, mock_client):
+        """Negative-weight check: no deduction when check fails (good output)."""
+        checks = [
+            ProxyCheck("good", lambda o: True, weight=2.0),
+            ProxyCheck("penalty", lambda o: False, weight=-1.0),  # does not fire
+        ]
+        scorer = ProxyMetricsScorer(checks=checks)
+        result = scorer.score("p", "i", "x", mock_client([]))
+        # total_weight = 3.0, earned = 2.0 + 1.0 = 3.0
+        assert result == pytest.approx(1.0)
+
+    def test_score_clamped_to_zero_one(self, mock_client):
+        """Score is always in [0, 1] regardless of weight configuration."""
+        checks = [
+            ProxyCheck("always", lambda o: True, weight=1.0),
+        ]
+        scorer = ProxyMetricsScorer(checks=checks)
+        result = scorer.score("p", "i", "x", mock_client([]))
+        assert 0.0 <= result <= 1.0
+
+    def test_all_negative_all_fire(self, mock_client):
+        """All negative-weight checks fire → score 0."""
+        checks = [
+            ProxyCheck("pen1", lambda o: True, weight=-1.0),
+            ProxyCheck("pen2", lambda o: True, weight=-2.0),
+        ]
+        scorer = ProxyMetricsScorer(checks=checks)
+        result = scorer.score("p", "i", "x", mock_client([]))
+        assert result == pytest.approx(0.0)
+
+    def test_all_negative_none_fire(self, mock_client):
+        """All negative-weight checks don't fire → score 1."""
+        checks = [
+            ProxyCheck("pen1", lambda o: False, weight=-1.0),
+            ProxyCheck("pen2", lambda o: False, weight=-2.0),
+        ]
+        scorer = ProxyMetricsScorer(checks=checks)
+        result = scorer.score("p", "i", "x", mock_client([]))
+        assert result == pytest.approx(1.0)
+
 
 class TestIsValidJson:
     def test_valid(self):
@@ -576,3 +630,138 @@ class TestNoEvalPromptEvolver:
         )
         result = evolver.run()
         assert result.iterations_run == 3
+
+
+# ---------------------------------------------------------------------------
+# _feasibility_key tests
+# ---------------------------------------------------------------------------
+
+
+class TestFeasibilityKey:
+    """Tests for _feasibility_key in strategies module."""
+
+    def test_zero_violations_beats_any_violations(self):
+        feasible = PromptCandidate(template="a", score=50.0, penalty_violations=0)
+        infeasible = PromptCandidate(template="b", score=90.0, penalty_violations=3)
+        assert _feasibility_key(feasible) > _feasibility_key(infeasible)
+
+    def test_same_feasibility_uses_score(self):
+        a = PromptCandidate(template="a", score=80.0, penalty_violations=0)
+        b = PromptCandidate(template="b", score=60.0, penalty_violations=0)
+        assert _feasibility_key(a) > _feasibility_key(b)
+
+    def test_both_infeasible_uses_score(self):
+        a = PromptCandidate(template="a", score=70.0, penalty_violations=1)
+        b = PromptCandidate(template="b", score=40.0, penalty_violations=5)
+        assert _feasibility_key(a) > _feasibility_key(b)
+
+    def test_max_selects_feasible(self):
+        candidates = [
+            PromptCandidate(template="a", score=90.0, penalty_violations=2),
+            PromptCandidate(template="b", score=30.0, penalty_violations=0),
+        ]
+        winner = max(candidates, key=_feasibility_key)
+        assert winner.template == "b"
+
+
+# ---------------------------------------------------------------------------
+# ProxyMetricsScorer.score_with_violations tests
+# ---------------------------------------------------------------------------
+
+
+class TestScoreWithViolations:
+    """Tests for score_with_violations method."""
+
+    def test_no_penalties_zero_violations(self):
+        checks = [ProxyCheck("positive", lambda o: True, weight=1.0)]
+        scorer = ProxyMetricsScorer(checks)
+        score, violations = scorer.score_with_violations("test")
+        assert violations == 0
+        assert score == 1.0
+
+    def test_penalty_fires_counted(self):
+        checks = [
+            ProxyCheck("ok", lambda o: True, weight=1.0),
+            ProxyCheck("bad", lambda o: True, weight=-0.5),
+        ]
+        scorer = ProxyMetricsScorer(checks)
+        score, violations = scorer.score_with_violations("test")
+        assert violations == 1
+
+    def test_penalty_not_fired_zero_violations(self):
+        checks = [
+            ProxyCheck("ok", lambda o: True, weight=1.0),
+            ProxyCheck("bad", lambda o: False, weight=-0.5),
+        ]
+        scorer = ProxyMetricsScorer(checks)
+        score, violations = scorer.score_with_violations("test")
+        assert violations == 0
+
+    def test_score_delegates_to_score_with_violations(self):
+        checks = [ProxyCheck("c", lambda o: True, weight=2.0)]
+        scorer = ProxyMetricsScorer(checks)
+        assert scorer.score("p", "i", "x", None) == scorer.score_with_violations("x")[0]
+
+
+# ---------------------------------------------------------------------------
+# PenaltyScaler tests
+# ---------------------------------------------------------------------------
+
+
+class TestPenaltyScaler:
+    """Tests for PenaltyScaler adaptive weight scaling."""
+
+    def test_init_validates_threshold(self):
+        checks = [ProxyCheck("p", lambda o: True, weight=-1.0)]
+        with pytest.raises(ValueError):
+            PenaltyScaler(checks, threshold=0.0)
+        with pytest.raises(ValueError):
+            PenaltyScaler(checks, threshold=1.5)
+
+    def test_init_validates_growth_factor(self):
+        checks = [ProxyCheck("p", lambda o: True, weight=-1.0)]
+        with pytest.raises(ValueError):
+            PenaltyScaler(checks, growth_factor=0.5)
+
+    def test_no_negative_checks_noop(self):
+        checks = [ProxyCheck("ok", lambda o: True, weight=1.0)]
+        scaler = PenaltyScaler(checks)
+        scaler.record("test")
+        result = scaler.end_generation()
+        assert result == {}
+
+    def test_scales_when_above_threshold(self):
+        check = ProxyCheck("bad", lambda o: True, weight=-1.0)
+        scaler = PenaltyScaler([check], threshold=0.5, growth_factor=2.0)
+        # 3 evals, all fire -> frequency = 1.0 > 0.5
+        for _ in range(3):
+            scaler.record("x")
+        result = scaler.end_generation()
+        assert "bad" in result
+        assert check.weight == -2.0
+
+    def test_no_scale_when_below_threshold(self):
+        fired = False
+
+        def sometimes(o):
+            nonlocal fired
+            fired = not fired
+            return fired
+
+        check = ProxyCheck("maybe", sometimes, weight=-1.0)
+        scaler = PenaltyScaler([check], threshold=0.8, growth_factor=2.0)
+        # 4 evals, 2 fire -> frequency = 0.5 < 0.8
+        for _ in range(4):
+            scaler.record("x")
+        result = scaler.end_generation()
+        assert result == {}
+        assert check.weight == -1.0
+
+    def test_resets_after_end_generation(self):
+        check = ProxyCheck("p", lambda o: True, weight=-1.0)
+        scaler = PenaltyScaler([check], threshold=0.5, growth_factor=1.5)
+        scaler.record("x")
+        scaler.end_generation()
+        # After reset, no evals recorded
+        result = scaler.end_generation()
+        assert result == {}

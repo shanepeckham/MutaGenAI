@@ -32,7 +32,7 @@ from prompture.prompt_evolver import (
     PromptEvolverConfig,
 )
 
-from prompture.seed_loader import load_seed_templates
+from prompture.seed_loader import load_seed_template_config, penalties_to_proxy_checks
 
 from prompture.strategies import (
     CompositeScorer,
@@ -55,7 +55,9 @@ BACKEND = LLMBackend.AZURE_OPENAI
 MODEL = os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4.1")
 
 
-SEED_TEMPLATES = load_seed_templates("agent_routing")
+_SEED_CONFIG = load_seed_template_config("agent_routing")
+SEED_TEMPLATES = _SEED_CONFIG.seeds
+_PENALTY_CHECKS = penalties_to_proxy_checks(_SEED_CONFIG.penalties)
 
 
 TEST_INPUTS = [
@@ -131,6 +133,8 @@ def build_scorer(client: LLMClient) -> Scorer:
             weight=1.0,
         ),
     ]
+    # Append penalty checks from seed template config
+    checks.extend(_PENALTY_CHECKS)
     proxy = ProxyMetricsScorer(checks=checks)
 
     return CompositeScorer([
@@ -151,8 +155,8 @@ if __name__ == "__main__":
 
     config = NoEvalConfig(
         iterations=8,
-        population_size=8,
-        num_islands=2,
+        population_size=6,
+        num_islands=3,
         problem_type=ProblemType.TOOL_ROUTING,
         adaptive_mutations=True,
         llm_mutation_rate=0.3,

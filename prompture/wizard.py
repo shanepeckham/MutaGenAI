@@ -13,6 +13,8 @@ Usage::
 from __future__ import annotations
 
 import json
+
+from prompture.seed_loader import Penalty
 import os
 import sys
 import textwrap
@@ -112,6 +114,9 @@ class WizardState:
     strategies: list[str] = field(default_factory=list)  # selected scorers
     llm_judge_rubric: str = ""
     proxy_checks: list[str] = field(default_factory=list)
+
+    # Penalties (structural checks penalising undesirable output)
+    penalties: list[Penalty] = field(default_factory=list)
 
     # Domain mutations
     has_domain_mutations: bool = False
@@ -333,6 +338,87 @@ def _show_strategy_picker(state: WizardState) -> None:
         else:
             idxs = [int(x.strip()) - 1 for x in raw.split(",") if x.strip().isdigit()]
             state.proxy_checks = [checks[i][0] for i in idxs if 0 <= i < len(checks)]
+
+    # Fitness penalties
+    _collect_penalties(state)
+
+
+# ── Penalty collection ───────────────────────────────────────────────────
+
+_PENALTY_CONDITIONS = [
+    ("json_array_length_gt", "JSON array has more than N elements (over-selection)"),
+    ("json_array_length_lt", "JSON array has fewer than N elements (under-selection)"),
+    ("output_length_gt", "Output longer than N characters (verbosity)"),
+    ("output_length_lt", "Output shorter than N characters (too terse)"),
+    ("contains", "Output contains a specific substring"),
+    ("not_contains", "Output must NOT contain a substring"),
+    ("regex_match", "Output matches a regex pattern"),
+    ("regex_no_match", "Output does NOT match a regex pattern"),
+]
+
+
+def _collect_penalties(state: WizardState) -> None:
+    """Collect optional fitness penalties from the user."""
+    _print("\n  [bold]Fitness Penalties[/bold] — penalise undesirable outputs?" if _HAS_RICH
+           else "\n  Fitness Penalties — penalise undesirable outputs?")
+    _print("  Penalties are negative-weight checks that reduce fitness when triggered.")
+    _print("  Examples: penalise agent sequences > 6, penalise verbose outputs.\n")
+
+    want = _confirm("  Add fitness penalties?", default=False)
+    if not want:
+        return
+
+    _print("\n  Available penalty conditions:\n")
+    if _HAS_RICH:
+        for i, (_, desc) in enumerate(_PENALTY_CONDITIONS, 1):
+            _print(f"    {i}. {desc}")
+    else:
+        for i, (_, desc) in enumerate(_PENALTY_CONDITIONS, 1):
+            print(f"    {i}. {desc}")
+
+    _print("\n  Enter penalties one at a time. Type 'done' when finished.\n")
+    while True:
+        raw = _ask("  Condition # (or 'done')")
+        if raw.lower() == "done":
+            break
+        try:
+            idx = int(raw) - 1
+        except ValueError:
+            _print("  Please enter a number." if not _HAS_RICH else
+                   "  [red]Please enter a number.[/red]")
+            continue
+        if idx < 0 or idx >= len(_PENALTY_CONDITIONS):
+            _print(f"  Pick 1-{len(_PENALTY_CONDITIONS)}.")
+            continue
+
+        cond_key, cond_desc = _PENALTY_CONDITIONS[idx]
+        name = _ask("  Penalty name (short label)", default=cond_key)
+        description = _ask("  Description", default=cond_desc)
+
+        threshold = None
+        pattern = None
+        if cond_key in ("json_array_length_gt", "json_array_length_lt",
+                         "output_length_gt", "output_length_lt"):
+            threshold = _ask_int("  Threshold value", default=6)
+        elif cond_key in ("contains", "not_contains",
+                           "regex_match", "regex_no_match"):
+            pattern = _ask("  Pattern/substring")
+
+        weight = float(_ask("  Weight (negative, e.g. -3.0)", default="-2.0"))
+        if weight > 0:
+            weight = -weight  # enforce negative
+
+        state.penalties.append(Penalty(
+            name=name,
+            description=description,
+            condition=cond_key,
+            threshold=threshold,
+            pattern=pattern,
+            weight=weight,
+        ))
+        _print(f"  ✓ Added penalty: {name} ({cond_key}, weight={weight})\n")
+
+    _print(f"  Collected {len(state.penalties)} penalties.")
 
 
 def _step_mutations(state: WizardState) -> None:
@@ -605,6 +691,59 @@ def _proxy_checks_for_problem_type(problem_type: str) -> list[str]:
     return lines
 
 
+def _penalty_proxy_check_lines(penalties: list[Penalty]) -> list[str]:
+    """Generate ProxyCheck code lines for penalty entries.
+
+    Each penalty becomes a positive-weight ``ProxyCheck`` whose
+    ``check_fn`` returns ``True`` when the output is **acceptable**
+    (the penalty does NOT fire).  This follows the same convention as
+    regular proxy checks.
+    """
+    lines: list[str] = ["    # Penalty checks (reward acceptable output)"]
+
+    for p in penalties:
+        cond = p.condition
+        name = p.name.replace('"', '\\"')
+        weight = abs(p.weight) if p.weight != 0 else 1.0
+
+        if cond == "json_array_length_gt":
+            t = int(p.threshold or 6)
+            fn_code = f"lambda x: (_n := _json_array_len(x)) is None or _n <= {t}"
+        elif cond == "json_array_length_lt":
+            t = int(p.threshold or 1)
+            fn_code = f"lambda x: (_n := _json_array_len(x)) is None or _n >= {t}"
+        elif cond == "output_length_gt":
+            t = int(p.threshold or 500)
+            fn_code = f"lambda x: len(x) <= {t}"
+        elif cond == "output_length_lt":
+            t = int(p.threshold or 10)
+            fn_code = f"lambda x: len(x) >= {t}"
+        elif cond == "contains":
+            pat = (p.pattern or "").replace('"', '\\"')
+            fn_code = f'lambda x: "{pat}" not in x'
+        elif cond == "not_contains":
+            pat = (p.pattern or "").replace('"', '\\"')
+            fn_code = f'lambda x: "{pat}" in x'
+        elif cond == "regex_match":
+            pat = (p.pattern or "").replace("\\", "\\\\").replace('"', '\\"')
+            fn_code = f'lambda x: not re.search(r"{pat}", x)'
+        elif cond == "regex_no_match":
+            pat = (p.pattern or "").replace("\\", "\\\\").replace('"', '\\"')
+            fn_code = f'lambda x: bool(re.search(r"{pat}", x))'
+        else:
+            continue
+
+        lines.extend([
+            "    checks.append(ProxyCheck(",
+            f'        name="{name}",',
+            f"        check_fn={fn_code},",
+            f"        weight={weight},",
+            "    ))",
+        ])
+
+    return lines
+
+
 # ── Script generation ────────────────────────────────────────────────────
 
 def _generate_script(state: WizardState) -> str:
@@ -624,6 +763,7 @@ def _generate_script(state: WizardState) -> str:
 
         import json
         import os
+        import re
         import sys
         import textwrap
         import time
@@ -822,6 +962,14 @@ def _build_scorer_setup(state: WizardState) -> str:
         "    except (json.JSONDecodeError, ValueError):",
         "        return False",
         "",
+        "def _json_array_len(text: str) -> int | None:",
+        '    """Return length of JSON array, or None if not a JSON array."""',
+        "    try:",
+        "        parsed = json.loads(text)",
+        "        return len(parsed) if isinstance(parsed, list) else None",
+        "    except (json.JSONDecodeError, ValueError):",
+        "        return None",
+        "",
         "def build_scorer(client: LLMClient) -> Scorer:",
         '    """Build the scoring strategy for prompt evaluation."""',
     ]
@@ -843,6 +991,9 @@ def _build_scorer_setup(state: WizardState) -> str:
     if "proxy_metrics" in state.strategies or "composite" in state.strategies:
         proxy_lines = _proxy_checks_for_problem_type(state.problem_type)
         lines.extend(proxy_lines)
+        # Add penalty checks as positive-weight inverted ProxyCheck entries
+        if state.penalties:
+            lines.extend(_penalty_proxy_check_lines(state.penalties))
         lines.append("    proxy = ProxyMetricsScorer(checks=checks)")
         scorers_with_weights.append(("proxy", 0.35))
 
@@ -1107,6 +1258,9 @@ def _show_summary(state: WizardState) -> None:
         tbl.add_row("Seed templates",
                      f"{len(state.seed_templates)} custom" if state.seed_templates
                      else "auto-generated")
+        tbl.add_row("Penalties",
+                     f"{len(state.penalties)} custom" if state.penalties
+                     else "none")
         tbl.add_row("Backend", f"{state.backend} ({state.model})")
         tbl.add_row("Config",
                      f"{state.config_preset} ({state.iterations} gen, "
@@ -1119,6 +1273,7 @@ def _show_summary(state: WizardState) -> None:
         print(f"  Ground truth: {state.has_ground_truth}")
         print(f"  Strategies:   {', '.join(state.strategies)}")
         print(f"  Human eval:   {state.human_eval}")
+        print(f"  Penalties:    {len(state.penalties) if state.penalties else 'none'}")
         print(f"  Backend:      {state.backend} ({state.model})")
         print(f"  Config:       {state.config_preset}")
 
