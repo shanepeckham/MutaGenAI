@@ -39,6 +39,13 @@
       "condition": "output_length_gt",
       "threshold": 1000,
       "weight": -1.5
+    },
+    {
+      "name": "invalid_agent_names",
+      "description": "Penalise outputs containing agent names not in the valid set — prevents hallucinated agents",
+      "condition": "json_array_items_not_subset",
+      "pattern": "authentication_agent|request_validation_agent|authorization_agent|user_information_retriever_agent|transaction_history_agent|balance_checking_agent|data_analysis_agent|risk_assessment_agent|duplicate_detection_agent|fraud_detection_agent|document_verification_agent|compliance_check_agent|cross_reference_agent|approval_workflow_agent|leave_approval_agent|refund_processing_agent|pricing_calculation_agent|policy_evaluation_agent|notification_agent|email_agent|report_generation_agent|audit_logging_agent|case_creation_agent|informational_queries_agent|troubleshooting_agent|recommendation_agent|intent_and_sentiment_extraction_agent",
+      "weight": -5.0
     }
   ]
 }
