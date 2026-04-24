@@ -79,6 +79,12 @@ class Penalty:
     ``regex_no_match``
         Fires when *pattern* (regex) does NOT match anywhere in the
         output.
+    ``json_array_items_not_subset``
+        Fires when any item in a JSON array is **not** in the allowed
+        set.  *pattern* is a pipe-separated list of valid values
+        (e.g. ``"a|b|c"``).  If the output is a JSON object, the
+        first list-valued field is used.  Non-JSON output does not
+        fire the penalty (use a separate ``valid_json`` check).
 
     Custom conditions can be added via :func:`register_penalty_condition`.
 
@@ -274,6 +280,33 @@ def _cond_regex_no_match(penalty: Penalty) -> Callable[[str], bool]:
     return lambda output, _r=compiled: not _r.search(output)
 
 
+def _cond_json_array_items_not_subset(penalty: Penalty) -> Callable[[str], bool]:
+    """Fire when any array item is not in the pipe-separated allowed set."""
+    allowed = set((penalty.pattern or "").split("|"))
+
+    def _check(output: str, _allowed: set[str] = allowed) -> bool:
+        try:
+            parsed = json.loads(output)
+        except (json.JSONDecodeError, ValueError):
+            return False
+
+        items: list[Any] | None = None
+        if isinstance(parsed, list):
+            items = parsed
+        elif isinstance(parsed, dict):
+            for v in parsed.values():
+                if isinstance(v, list):
+                    items = v
+                    break
+
+        if items is None:
+            return False
+
+        return any(str(item) not in _allowed for item in items)
+
+    return _check
+
+
 # Register all built-in conditions
 for _name, _factory in [
     ("json_array_length_gt", _cond_json_array_length_gt),
@@ -284,6 +317,7 @@ for _name, _factory in [
     ("not_contains", _cond_not_contains),
     ("regex_match", _cond_regex_match),
     ("regex_no_match", _cond_regex_no_match),
+    ("json_array_items_not_subset", _cond_json_array_items_not_subset),
 ]:
     register_penalty_condition(_name, _factory)
 

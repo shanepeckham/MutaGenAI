@@ -39,8 +39,8 @@ MODEL = os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4.1")
 HF_DATASET = "V1rtucious/multi-step-agent-routing"
 TRAIN_SAMPLE_SIZE = 100
 TEST_SAMPLE_SIZE = 100
-TEMPERATURE = 0.1
-TOP_P = 0.95
+TEMPERATURE = 0.009
+TOP_P = 0.83
 
 STATIC_PROMPT = (
     "You are an intelligent orchestrator. Route the user request to the "
@@ -59,41 +59,34 @@ STATIC_PROMPT = (
 )
 
 EVOLVED_PROMPT = (
-    "Respond with JSON only. No explanation.\n"
-    "You are an intelligent orchestrator. Route the user request to the "
-    "correct specialist agents in the appropriate sequence.\n"
-    "\n"
-    "Available Agents: authentication_agent \u2014 Verifies user identity and "
-    "credentials before granting access., request_validation_agent \u2014 Checks "
-    "incoming requests for completeness and correctness., authorization_agent "
-    "\u2014 Determines if a user has permission to perform a specific action., "
-    "user_information_retriever_agent \u2014 Fetches detailed information about a "
-    "user., transaction_history_agent \u2014 Retrieves past transaction records "
-    "for a user or account., balance_checking_agent \u2014 Provides the current "
-    "balance of a user\u2019s account., data_analysis_agent \u2014 Analyzes data to "
-    "extract insights or patterns., risk_assessment_agent \u2014 Evaluates the "
-    "risk associated with a user or transaction., duplicate_detection_agent "
-    "\u2014 Identifies and flags duplicate entries or actions., "
-    "fraud_detection_agent \u2014 Detects and flags potentially fraudulent "
-    "transactions or account activity., document_verification_agent \u2014 "
-    "Confirms the authenticity and validity of submitted documents., "
-    "compliance_check_agent \u2014 Ensures actions comply with relevant laws and "
-    "regulations., cross_reference_agent \u2014 Matches and verifies data across "
-    "multiple sources., approval_workflow_agent \u2014 Manages and tracks the "
-    "approval process for requests., leave_approval_agent \u2014 Handles "
-    "requests and approvals for employee leave., refund_processing_agent "
-    "\u2014 Processes and tracks user refund requests., "
-    "pricing_calculation_agent \u2014 Computes pricing based on rules and "
-    "conditions., policy_evaluation_agent \u2014 Assesses policies applicable "
-    "to a request., notification_agent \u2014 Sends notifications to users., "
-    "email_agent \u2014 Sends email communications., report_generation_agent "
-    "\u2014 Generates reports from data., audit_logging_agent \u2014 Logs actions "
-    "for audit trails., case_creation_agent \u2014 Creates support or "
-    "investigation cases., informational_queries_agent \u2014 Answers general "
-    "information questions., troubleshooting_agent \u2014 Diagnoses and resolves "
-    "issues., recommendation_agent \u2014 Provides recommendations based on "
-    "analysis., intent_and_sentiment_extraction_agent \u2014 Extracts user "
-    "intent and sentiment from input."
+    "Each agent has a specific responsibility. Match the user's request to agent responsibilities:\n"
+    "- Authentication/identity → authentication_agent\n"
+    "- Input validation → request_validation_agent\n"
+    "- Permission checks → authorization_agent\n"
+    "- User data lookup → user_information_retriever_agent\n"
+    "- Past transactions → transaction_history_agent\n"
+    "- Account balance → balance_checking_agent\n"
+    "- Data insights → data_analysis_agent\n"
+    "- Risk scoring → risk_assessment_agent\n"
+    "- Duplicate checks → duplicate_detection_agent\n"
+    "- Fraud flags → fraud_detection_agent\n"
+    "- Document checks → document_verification_agent\n"
+    "- Regulatory compliance → compliance_check_agent\n"
+    "- Cross-source matching → cross_reference_agent\n"
+    "- Leave requests → leave_approval_agent\n"
+    "- Refunds → refund_processing_agent\n"
+    "- Pricing → pricing_calculation_agent\n"
+    "- Policy rules → policy_evaluation_agent\n"
+    "- Notifications → notification_agent\n"
+    "- Email → email_agent\n"
+    "- Reports → report_generation_agent\n"
+    "- Audit trails → audit_logging_agent\n"
+    "- Case management → case_creation_agent\n"
+    "- General questions → informational_queries_agent\n"
+    "- Troubleshooting → troubleshooting_agent\n"
+    "- Recommendations → recommendation_agent\n"
+    "- Intent/sentiment → intent_and_sentiment_extraction_agent\n"
+    "Select only the matching agents and list them in logical execution order."
 )
 
 STEP_KEYS = ["step_1", "step_2", "step_3", "step_4", "step_5", "step_6"]

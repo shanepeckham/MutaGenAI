@@ -1,9 +1,9 @@
 {
   "task": "\"You are an intelligent orchestrator. Route the user request to the correct specialist agents in the appropriate sequence. Available Agents: authentication_agent, request_validation_agent, authorization_agent, user_information_retriever_agent, transaction_history_agent, balance_checking_agent, data_analysis_agent, risk_assessment_agent, duplicate_detection_agent, fraud_detection_agent, document_verification_agent, compliance_check_agent, cross_reference_agent, approval_workflow_agent, leave_approval_agent, refund_processing_agent, pricing_calculation_agent, policy_evaluation_agent, notification_agent, email_agent, report_generation_agent, audit_logging_agent, case_creation_agent, informational_queries_agent, troubleshooting_agent, recommendation_agent, intent_and_sentiment_extraction_agent\"",
-  "best_prompt": "Add edge-case handling rules and route to the correct agents. Output a JSON array of agent names in order. sales_agent addresses sales inquiries and helps with product or service purchases.",
-  "best_score": 97.22222222222221,
-  "best_temperature": 0.2858932707290518,
-  "best_top_p": 0.9396017374619082,
-  "wall_time": 14517.302445173264,
+  "best_prompt": "Each agent has a specific responsibility. Match the user's request to agent responsibilities:\n- Authentication/identity \u2192 authentication_agent\n- Input validation \u2192 request_validation_agent\n- Permission checks \u2192 authorization_agent\n- User data lookup \u2192 user_information_retriever_agent\n- Past transactions \u2192 transaction_history_agent\n- Account balance \u2192 balance_checking_agent\n- Data insights \u2192 data_analysis_agent\n- Risk scoring \u2192 risk_assessment_agent\n- Duplicate checks \u2192 duplicate_detection_agent\n- Fraud flags \u2192 fraud_detection_agent\n- Document checks \u2192 document_verification_agent\n- Regulatory compliance \u2192 compliance_check_agent\n- Cross-source matching \u2192 cross_reference_agent\n- Leave requests \u2192 leave_approval_agent\n- Refunds \u2192 refund_processing_agent\n- Pricing \u2192 pricing_calculation_agent\n- Policy rules \u2192 policy_evaluation_agent\n- Notifications \u2192 notification_agent\n- Email \u2192 email_agent\n- Reports \u2192 report_generation_agent\n- Audit trails \u2192 audit_logging_agent\n- Case management \u2192 case_creation_agent\n- General questions \u2192 informational_queries_agent\n- Troubleshooting \u2192 troubleshooting_agent\n- Recommendations \u2192 recommendation_agent\n- Intent/sentiment \u2192 intent_and_sentiment_extraction_agent\nSelect only the matching agents and list them in logical execution order.",
+  "best_score": 84.89379739786244,
+  "best_temperature": 0.40108436762291577,
+  "best_top_p": 0.764185705990113,
+  "wall_time": 10841.702274084091,
   "iterations": 8
 }
