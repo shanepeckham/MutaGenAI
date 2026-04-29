@@ -61,6 +61,7 @@ _PENALTY_CHECKS = penalties_to_proxy_checks(_SEED_CONFIG.penalties)
 
 
 TEST_INPUTS = [
+    # Original diverse queries
     "Analyze the sentiment of the last 50 support tickets from client 'Acme Corp' and provide a summary of their satisfaction.",
     "Verify my address using the utility bill I uploaded.",
     "I need to complete KYC for my new account.",
@@ -70,6 +71,16 @@ TEST_INPUTS = [
     "Investigate the sudden spike in login failures from IP block 192.168.x.x. Check if these match any known botnets and block them if necessary.",
     "Run credit risk analysis for customer 77669.",
     "Process my employment verification documents.",
+    # Minimal-agent queries (tests precision — should NOT trigger boilerplate agents)
+    "What is the company refund policy?",
+    "Send an email to the customer confirming their appointment.",
+    "How do I reset my password?",
+    # Approval-chain patterns (worst-performing routing pattern)
+    "My manager needs to approve the budget reallocation of $12,000 from marketing to engineering.",
+    # Conditional branching
+    "Check if the customer's account balance is sufficient for the transfer, and if not, flag it for review.",
+    # Data enrichment
+    "Pull the transaction history for account 55321 and cross-reference with the fraud watchlist.",
 ]
 
 
@@ -89,6 +100,12 @@ DOMAIN_MUTATIONS = [
     "Add output validation step",
     "For each agent, include a brief description of its purpose and when to use it",
     "Describe what each agent does so the routing decision is grounded in capability, not name",
+    # Precision-focused mutations (address over-selection)
+    "Add explicit rule: do NOT include request_validation_agent, authorization_agent, or user_information_retriever_agent unless the request specifically requires input validation, permission checks, or user data lookup",
+    "Add instruction: select the MINIMUM set of agents needed. Every agent must be justified by a specific phrase in the user request",
+    "Add constraint: most requests need 2-5 agents. Only genuinely complex multi-step workflows should use 6+",
+    "Add negative examples showing what NOT to route — e.g. a simple informational query should not trigger authentication or validation agents",
+    "Rewrite to emphasise precision over recall: a missing agent is better than an unnecessary one",
 ]
 
 
@@ -104,7 +121,7 @@ def _is_valid_json(text: str) -> bool:
 
 def build_scorer(client: LLMClient) -> Scorer:
     """Build the scoring strategy for prompt evaluation."""
-    judge = LLMJudge(rubric="You are evaluating an agent routing output for the task: \"You are an intelligent orchestrator. Route the user request to the correct specialist agents in the appropriate sequenc. Score 0-10 on these criteria: (1) Are the selected agents relevant to the user request? (2) Are they in a logical execution order? (3) Are unnecessary agents excluded (precision)? (4) Is the output valid, well-structured JSON?")
+    judge = LLMJudge(rubric="You are evaluating an agent routing output. Score 0-10 with these weighted criteria:\n(1) PRECISION (40%): Are ONLY the truly necessary agents included? Deduct heavily if generic agents like request_validation_agent, authorization_agent, or user_information_retriever_agent are included without clear justification from the user request. A shorter correct sequence is always better than a longer one with unnecessary steps.\n(2) RECALL (25%): Are all agents that are essential for the request included?\n(3) ORDER (20%): Are the agents in a logical dependency/execution order?\n(4) FORMAT (15%): Is the output valid, well-structured JSON (array or object with sequence key)?\nKey rule: most requests need 2-5 agents. Sequences with 6+ agents should be rare and only for genuinely complex multi-step workflows.")
     consistency = SelfConsistencyScorer(num_samples=3)
     checks = [
         ProxyCheck(
@@ -132,15 +149,20 @@ def build_scorer(client: LLMClient) -> Scorer:
             check_fn=lambda x: len(x.strip()) > 10,
             weight=1.0,
         ),
+        ProxyCheck(
+            name="compact_selection",
+            check_fn=lambda x: x.count("_agent") <= 6,
+            weight=2.0,
+        ),
     ]
     # Append penalty checks from seed template config
     checks.extend(_PENALTY_CHECKS)
     proxy = ProxyMetricsScorer(checks=checks)
 
     return CompositeScorer([
-        (judge, 0.35),
-        (consistency, 0.3),
-        (proxy, 0.35),
+        (judge, 0.40),
+        (consistency, 0.20),
+        (proxy, 0.40),
     ])
 
 
@@ -154,12 +176,12 @@ if __name__ == "__main__":
     print()
 
     config = NoEvalConfig(
-        iterations=8,
-        population_size=6,
+        iterations=10,
+        population_size=8,
         num_islands=3,
         problem_type=ProblemType.TOOL_ROUTING,
         adaptive_mutations=True,
-        llm_mutation_rate=0.3,
+        llm_mutation_rate=0.4,
         describe_entities=True,
         refine_after_splice=True,
         backend=BACKEND,
