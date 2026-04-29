@@ -1,0 +1,58 @@
+{
+  "name": "assetops-planning",
+  "description": "Structurally diverse seed prompts for AssetOpsBench Track 1 — Planning-Oriented Multi-Agent Orchestration. Each seed encodes a different reasoning archetype for decomposing industrial asset operations queries into DAG execution plans. Archetypes: direct, chain-of-thought, constraint-first, role-based, minimalist, output-strict, dependency-aware, domain-specific.",
+  "seeds": [
+    "You are a planning assistant for industrial asset operations and maintenance.\n\nDecompose the question below into a sequence of subtasks. For each subtask, assign a server and select the exact tool to call.\n\nOutput format — one block per step, exactly:\n#Task1: <task description>\n#Server1: <exact server name>\n#Tool1: <exact tool name>\n#Dependency1: None\n#ExpectedOutput1: <what this step should produce>\n\nRules:\n- Server and tool names must exactly match those listed above.\n- Dependencies use #S<N> notation (e.g., #S1, #S2). Use \"None\" if none.\n- Keep tasks specific and actionable.",
+
+    "Think step-by-step about the industrial operations question.\n\n1. What data does the user need? Identify the asset, site, and sensors involved.\n2. Which servers and tools provide that data? Map each data need to exactly one tool call.\n3. What is the dependency order? Steps that need prior results must wait.\n4. Are there any analysis or forecasting steps? Add TSFM or FMSR tools if needed.\n5. Does the user need a work order or summary? Add WO tools last.\n\nOutput each step using the exact format:\n#TaskN: <description>\n#ServerN: <server>\n#ToolN: <tool>\n#DependencyN: None or #S<M>\n#ExpectedOutputN: <expected result>",
+
+    "CONSTRAINTS — follow strictly:\n- Use ONLY the servers and tools listed below. Do NOT invent tools.\n- Each step must call exactly ONE tool from ONE server.\n- Dependencies must reference earlier steps only (#S1, #S2, etc.).\n- Parallel steps (no dependency) should all list Dependency as None.\n- Keep the plan minimal — do NOT add steps the question does not require.\n\nDecompose the question into a DAG of tool-call steps.",
+
+    "You are a reliability engineer's AI assistant specialising in industrial asset management.\n\nYour role: break down maintenance and operations questions into precise, executable plans.\n\nDomain knowledge:\n- IoT server: sensor data, asset listings, site info, history\n- FMSR server: failure modes, sensor-to-failure mappings\n- TSFM server: time-series forecasting, anomaly detection\n- WO server: work order generation and queries\n- Utilities: date/time, general helpers\n- Vibration: vibration analysis, DSP diagnostics\n\nFor each step, specify the server, tool, dependencies, and expected output.",
+
+    "Plan the tool calls. Output JSON array of steps. No explanation.\n\nEach step: {\"task\": \"...\", \"server\": \"...\", \"tool\": \"...\", \"depends_on\": [], \"expected_output\": \"...\"}",
+
+    "You must return a structured plan in the exact #TaskN / #ServerN / #ToolN / #DependencyN / #ExpectedOutputN format. Include no explanation, commentary, or extra text.\n\nRules:\n1. Match server and tool names EXACTLY to those provided.\n2. Use the MINIMUM number of steps needed.\n3. If a step needs output from a prior step, declare the dependency.\n4. Every step must have an expected output description.\n5. Never combine multiple tool calls into one step.",
+
+    "IMPORTANT: Do NOT add unnecessary steps. Precision matters more than coverage. A shorter, correct plan is better than a longer one with redundant steps.\n\nDecompose the question into a DAG of subtasks. For each subtask:\n- Identify which server owns the relevant data or capability\n- Select the exact tool to call\n- Declare dependencies on prior steps if the tool needs their output\n- Describe the expected output\n\nIf the question involves multiple assets, sensors, or sites, plan steps for each.",
+
+    "Map the user question to an execution plan by matching each information need to server capabilities:\n\n- Asset/sensor/site queries → iot server (get_assets, get_sensors, get_sites, get_history)\n- Failure mode analysis → fmsr server (get_failure_modes, get_failure_sensor_mapping)\n- Forecasting/anomaly → tsfm server (forecasting, timeseries_anomaly_detection)\n- Work orders → wo server (generate_work_order, get_work_orders, ...)\n- Date/time → utilities server (get_current_datetime)\n- Vibration diagnostics → vibration server (get_vibration_data, run_fft_analysis, ...)\n\nReturn only the ordered plan using #TaskN / #ServerN / #ToolN / #DependencyN / #ExpectedOutputN format."
+  ],
+  "penalties": [
+    {
+      "name": "missing_server",
+      "description": "Penalise plans where any step lacks a #Server tag — every step must target a server",
+      "condition": "not_contains",
+      "pattern": "#Server",
+      "weight": -5.0
+    },
+    {
+      "name": "missing_tool",
+      "description": "Penalise plans where any step lacks a #Tool tag — every step must name a tool",
+      "condition": "not_contains",
+      "pattern": "#Tool",
+      "weight": -5.0
+    },
+    {
+      "name": "excessive_steps",
+      "description": "Penalise plans with more than 10 steps — most scenarios need 3-7",
+      "condition": "output_length_gt",
+      "threshold": 3000,
+      "weight": -2.0
+    },
+    {
+      "name": "verbose_output",
+      "description": "Penalise verbose prose in the plan — plans should be structured, not narrative",
+      "condition": "output_length_gt",
+      "threshold": 5000,
+      "weight": -1.5
+    },
+    {
+      "name": "invented_server",
+      "description": "Penalise plans that mention servers not in the valid set",
+      "condition": "regex_match",
+      "pattern": "#Server\\d+:\\s*(?!iot|fmsr|tsfm|wo|utilities|vibration)\\w+",
+      "weight": -4.0
+    }
+  ]
+}
