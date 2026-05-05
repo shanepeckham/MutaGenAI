@@ -1,0 +1,165 @@
+{
+  "name": "mutagenai",
+  "displayName": "MutaGenAI — Evolutionary Prompt Optimiser",
+  "description": "Evolve LLM system prompts using evolutionary search. Real-time lineage visualisation, early stopping, and zero context switching.",
+  "version": "0.1.0",
+  "publisher": "mutagenai",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Machine Learning",
+    "Other"
+  ],
+  "icon": "media/icon.png",
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "mutagenai.evolvePrompt",
+        "title": "MutaGenAI: Evolve Prompt",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "mutagenai.stopEvolution",
+        "title": "MutaGenAI: Stop Evolution",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "mutagenai.showDashboard",
+        "title": "MutaGenAI: Show Dashboard"
+      },
+      {
+        "command": "mutagenai.openSeedTemplate",
+        "title": "MutaGenAI: Open Seed Template"
+      },
+      {
+        "command": "mutagenai.runWizard",
+        "title": "MutaGenAI: Run Wizard",
+        "icon": "$(wand)"
+      },
+      {
+        "command": "mutagenai.testWebview",
+        "title": "MutaGenAI: Test Webview Scripts"
+      },
+      {
+        "command": "mutagenai.evolveFromWizard",
+        "title": "MutaGenAI: Evolve from Wizard"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "mutagenai",
+          "title": "MutaGenAI",
+          "icon": "$(beaker)"
+        }
+      ]
+    },
+    "views": {
+      "mutagenai": [
+        {
+          "id": "mutagenai.templates",
+          "name": "Seed Templates"
+        },
+        {
+          "id": "mutagenai.runs",
+          "name": "Evolution Runs"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "MutaGenAI",
+      "properties": {
+        "mutagenai.pythonPath": {
+          "type": "string",
+          "default": "python3",
+          "description": "Path to the Python interpreter with MutaGenAI installed."
+        },
+        "mutagenai.backend": {
+          "type": "string",
+          "enum": [
+            "ollama",
+            "openai",
+            "azure_openai"
+          ],
+          "default": "ollama",
+          "description": "LLM backend for evolution."
+        },
+        "mutagenai.model": {
+          "type": "string",
+          "default": "llama3.2",
+          "description": "Model name (e.g. llama3.2, gpt-4o-mini)."
+        },
+        "mutagenai.iterations": {
+          "type": "number",
+          "default": 5,
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Number of evolutionary generations."
+        },
+        "mutagenai.populationSize": {
+          "type": "number",
+          "default": 6,
+          "minimum": 2,
+          "maximum": 50,
+          "description": "Candidates per generation."
+        },
+        "mutagenai.numIslands": {
+          "type": "number",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 10,
+          "description": "Number of diversity islands."
+        },
+        "mutagenai.earlyStopThreshold": {
+          "type": "number",
+          "default": 100,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Stop early when best score reaches this percentage."
+        },
+        "mutagenai.earlyStopPatience": {
+          "type": "number",
+          "default": 3,
+          "minimum": 1,
+          "maximum": 20,
+          "description": "Stop after this many generations without improvement."
+        },
+        "mutagenai.seedTemplatesDir": {
+          "type": "string",
+          "default": "",
+          "description": "Custom directory for seed template JSON files (default: workspace seed_templates/)."
+        }
+      }
+    },
+    "menus": {
+      "editor/title": [
+        {
+          "command": "mutagenai.evolvePrompt",
+          "when": "resourceExtname == .txt || resourceExtname == .md || resourceExtname == .prompt || resourceExtname == .json",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "mutagenai.evolvePrompt",
+          "when": "resourceExtname == .txt || resourceExtname == .md || resourceExtname == .prompt || resourceExtname == .json",
+          "group": "mutagenai"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.0"
+  }
+}

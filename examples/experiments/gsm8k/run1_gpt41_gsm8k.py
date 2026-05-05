@@ -9,7 +9,7 @@ The standard metric is **exact-match on the final numerical answer**.
 
 This is the gold-standard reasoning benchmark — cited in virtually
 every major LLM paper (GPT-4, Llama, Gemini, Claude, etc.).  Running
-Prompture on it demonstrates that evolutionary prompt optimisation
+MutaGenAI on it demonstrates that evolutionary prompt optimisation
 improves **mathematical reasoning**, not just tool selection.
 
 **Design**:
@@ -54,13 +54,13 @@ from dotenv import load_dotenv
 
 load_dotenv(os.path.join(_root, ".env"))
 
-from prompture.prompt_evolver import (
+from MutaGenAI.prompt_evolver import (
     LLMBackend,
     LLMClient,
     ProblemType,
     PromptEvolverConfig,
 )
-from prompture.strategies import (
+from MutaGenAI.strategies import (
     CompositeScorer,
     LLMJudge,
     NoEvalConfig,
@@ -348,7 +348,7 @@ def main() -> None:
 
     banner = r"""
     ╔══════════════════════════════════════════════════════════════════╗
-    ║  Prompture × GSM8K — Run 1: GPT-4.1 via Azure AI Foundry       ║
+    ║  MutaGenAI × GSM8K — Run 1: GPT-4.1 via Azure AI Foundry       ║
     ║  Grade School Math · Evolved vs Default Prompt                  ║
     ╚══════════════════════════════════════════════════════════════════╝
     """
@@ -545,7 +545,7 @@ def main() -> None:
     print(f"\n  {'Prompt':<30} {'Accuracy':>10} {'Correct':>10} "
           f"{'Total':>8} {'Time':>10}")
     print(f"  {'─' * 70}")
-    print(f"  {'Evolved (Prompture)':<30} "
+    print(f"  {'Evolved (MutaGenAI)':<30} "
           f"{evolved_results['accuracy']:9.2f}% "
           f"{evolved_results['correct']:>10} "
           f"{evolved_results['total']:>8} "

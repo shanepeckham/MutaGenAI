@@ -1,11 +1,11 @@
-"""Tests for prompture.prompt_evolver — prompt evolution engine."""
+"""Tests for MutaGenAI.prompt_evolver — prompt evolution engine."""
 from __future__ import annotations
 
 
 import numpy as np
 import pytest
 
-from prompture.prompt_evolver import (
+from MutaGenAI.prompt_evolver import (
     EvalSample,
     LLMBackend,
     LLMClient,
@@ -19,7 +19,7 @@ from prompture.prompt_evolver import (
     parse_tool_response,
     score_response,
 )
-from prompture.prompt_evolver import _feasibility_key
+from MutaGenAI.prompt_evolver import _feasibility_key
 
 
 # ── Tools / dataset fixtures ──────────────────────────────────────────────
@@ -380,7 +380,7 @@ class TestLLMBackend:
 
 class TestErrorProfile:
     def test_record_and_worst_categories(self):
-        from prompture.prompt_evolver import ErrorProfile
+        from MutaGenAI.prompt_evolver import ErrorProfile
 
         ep = ErrorProfile()
         ep.record("Agent", True)
@@ -399,13 +399,13 @@ class TestErrorProfile:
         assert worst[1][1] == pytest.approx(1 / 3)
 
     def test_empty_profile(self):
-        from prompture.prompt_evolver import ErrorProfile
+        from MutaGenAI.prompt_evolver import ErrorProfile
 
         ep = ErrorProfile()
         assert ep.worst_categories() == []
 
     def test_no_errors(self):
-        from prompture.prompt_evolver import ErrorProfile
+        from MutaGenAI.prompt_evolver import ErrorProfile
 
         ep = ErrorProfile()
         ep.record("Agent", True)
@@ -418,7 +418,7 @@ class TestErrorProfile:
 
 class TestAdaptiveMutations:
     def test_generate_adaptive_mutations_fallback_classification(self):
-        from prompture.prompt_evolver import (
+        from MutaGenAI.prompt_evolver import (
             ErrorProfile,
             ProblemType,
             generate_adaptive_mutations,
@@ -443,7 +443,7 @@ class TestAdaptiveMutations:
         assert any("Human" in h for h in hints)
 
     def test_generate_adaptive_mutations_fallback_tool_routing(self):
-        from prompture.prompt_evolver import (
+        from MutaGenAI.prompt_evolver import (
             ErrorProfile,
             ProblemType,
             generate_adaptive_mutations,
@@ -465,7 +465,7 @@ class TestAdaptiveMutations:
         assert any("get_weather" in h for h in hints)
 
     def test_generate_adaptive_empty_profile(self):
-        from prompture.prompt_evolver import (
+        from MutaGenAI.prompt_evolver import (
             ErrorProfile,
             ProblemType,
             generate_adaptive_mutations,
@@ -482,7 +482,7 @@ class TestAdaptiveMutations:
 
 class TestLLMMutateTemplate:
     def test_returns_original_on_empty_failures(self):
-        from prompture.prompt_evolver import ProblemType, _llm_mutate_template
+        from MutaGenAI.prompt_evolver import ProblemType, _llm_mutate_template
 
         cfg = PromptEvolverConfig(
             backend=LLMBackend.OLLAMA,
@@ -497,7 +497,7 @@ class TestLLMMutateTemplate:
         assert result == template
 
     def test_returns_original_on_llm_failure(self):
-        from prompture.prompt_evolver import ProblemType, _llm_mutate_template
+        from MutaGenAI.prompt_evolver import ProblemType, _llm_mutate_template
 
         cfg = PromptEvolverConfig(
             backend=LLMBackend.OLLAMA,
@@ -524,14 +524,14 @@ class TestNewConfigFields:
         assert cfg.llm_mutation_rate == 0.0
 
     def test_noeval_config_new_defaults(self):
-        from prompture.strategies import NoEvalConfig
+        from MutaGenAI.strategies import NoEvalConfig
 
         cfg = NoEvalConfig()
         assert cfg.adaptive_mutations is False
         assert cfg.llm_mutation_rate == 0.0
 
     def test_noeval_config_custom_values(self):
-        from prompture.strategies import NoEvalConfig
+        from MutaGenAI.strategies import NoEvalConfig
 
         cfg = NoEvalConfig(adaptive_mutations=True, llm_mutation_rate=0.3)
         assert cfg.adaptive_mutations is True
@@ -671,7 +671,7 @@ class TestLLMClientAzureRBAC:
 
 class TestErrorProfileDecay:
     def test_decay_halves_counts(self):
-        from prompture.prompt_evolver import ErrorProfile
+        from MutaGenAI.prompt_evolver import ErrorProfile
 
         ep = ErrorProfile()
         ep.record("A", False)
@@ -686,7 +686,7 @@ class TestErrorProfileDecay:
         assert ep.errors["A"] == 1
 
     def test_decay_removes_zeroed_categories(self):
-        from prompture.prompt_evolver import ErrorProfile
+        from MutaGenAI.prompt_evolver import ErrorProfile
 
         ep = ErrorProfile()
         ep.record("X", False)
@@ -699,21 +699,21 @@ class TestErrorProfileDecay:
 
 class TestProblemTypeMutations:
     def test_tool_routing_mutations(self):
-        from prompture.prompt_evolver import ProblemType, get_mutations_for_problem_type
+        from MutaGenAI.prompt_evolver import ProblemType, get_mutations_for_problem_type
 
         mutations = get_mutations_for_problem_type(ProblemType.TOOL_ROUTING)
         assert len(mutations) > 0
         assert all(isinstance(m, str) for m in mutations)
 
     def test_classification_mutations(self):
-        from prompture.prompt_evolver import ProblemType, get_mutations_for_problem_type
+        from MutaGenAI.prompt_evolver import ProblemType, get_mutations_for_problem_type
 
         mutations = get_mutations_for_problem_type(ProblemType.CLASSIFICATION)
         assert len(mutations) > 0
         assert all(isinstance(m, str) for m in mutations)
 
     def test_different_pools(self):
-        from prompture.prompt_evolver import ProblemType, get_mutations_for_problem_type
+        from MutaGenAI.prompt_evolver import ProblemType, get_mutations_for_problem_type
 
         tool_muts = get_mutations_for_problem_type(ProblemType.TOOL_ROUTING)
         class_muts = get_mutations_for_problem_type(ProblemType.CLASSIFICATION)
@@ -747,7 +747,7 @@ class TestCrossoverNoToolSchemas:
 
 class TestLLMDescribeEntities:
     def test_returns_rewritten_prompt(self):
-        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+        from MutaGenAI.prompt_evolver import ProblemType, _llm_describe_entities
 
         class FakeClient:
             def complete(self, *, system_prompt, user_message, temperature, top_p):
@@ -767,7 +767,7 @@ class TestLLMDescribeEntities:
         assert result != template  # Should have been rewritten
 
     def test_returns_original_on_empty_response(self):
-        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+        from MutaGenAI.prompt_evolver import ProblemType, _llm_describe_entities
 
         class FakeClient:
             def complete(self, **kw):
@@ -781,7 +781,7 @@ class TestLLMDescribeEntities:
         assert result == template
 
     def test_returns_original_on_none_response(self):
-        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+        from MutaGenAI.prompt_evolver import ProblemType, _llm_describe_entities
 
         class FakeClient:
             def complete(self, **kw):
@@ -795,7 +795,7 @@ class TestLLMDescribeEntities:
         assert result == template
 
     def test_strips_markdown_fences(self):
-        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+        from MutaGenAI.prompt_evolver import ProblemType, _llm_describe_entities
 
         class FakeClient:
             def complete(self, **kw):
@@ -810,7 +810,7 @@ class TestLLMDescribeEntities:
         assert "Rewritten prompt content" in result
 
     def test_preserves_tool_schemas_placeholder(self):
-        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+        from MutaGenAI.prompt_evolver import ProblemType, _llm_describe_entities
 
         class FakeClient:
             def complete(self, **kw):
@@ -824,7 +824,7 @@ class TestLLMDescribeEntities:
         assert "{tool_schemas}" in result
 
     def test_classification_problem_type(self):
-        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+        from MutaGenAI.prompt_evolver import ProblemType, _llm_describe_entities
 
         captured = {}
 
@@ -846,7 +846,7 @@ class TestLLMDescribeEntities:
 
 class TestHasEntityDescriptions:
     def test_detects_described_template(self):
-        from prompture.prompt_evolver import _has_entity_descriptions
+        from MutaGenAI.prompt_evolver import _has_entity_descriptions
 
         template = (
             "Route to the correct agent.\n"
@@ -857,13 +857,13 @@ class TestHasEntityDescriptions:
         assert _has_entity_descriptions(template) is True
 
     def test_rejects_undescribed_template(self):
-        from prompture.prompt_evolver import _has_entity_descriptions
+        from MutaGenAI.prompt_evolver import _has_entity_descriptions
 
         template = "Route to: auth_agent, billing_agent, support_agent"
         assert _has_entity_descriptions(template) is False
 
     def test_boundary_two_descriptions(self):
-        from prompture.prompt_evolver import _has_entity_descriptions
+        from MutaGenAI.prompt_evolver import _has_entity_descriptions
 
         template = (
             "auth_agent — Handles auth.\n"
@@ -872,7 +872,7 @@ class TestHasEntityDescriptions:
         assert _has_entity_descriptions(template) is False
 
     def test_regular_dash_not_counted(self):
-        from prompture.prompt_evolver import _has_entity_descriptions
+        from MutaGenAI.prompt_evolver import _has_entity_descriptions
 
         template = "Use the right tool - pick carefully - be precise."
         assert _has_entity_descriptions(template) is False
@@ -883,28 +883,28 @@ class TestHasEntityDescriptions:
 
 class TestExtractEntityNames:
     def test_extracts_agent_names(self):
-        from prompture.prompt_evolver import _extract_entity_names
+        from MutaGenAI.prompt_evolver import _extract_entity_names
 
         template = "Route to: auth_agent, billing_agent, support_agent"
         result = _extract_entity_names(template)
         assert result == ["auth_agent", "billing_agent", "support_agent"]
 
     def test_deduplicates(self):
-        from prompture.prompt_evolver import _extract_entity_names
+        from MutaGenAI.prompt_evolver import _extract_entity_names
 
         template = "auth_agent handles auth. auth_agent is important."
         result = _extract_entity_names(template)
         assert result == ["auth_agent"]
 
     def test_no_entities(self):
-        from prompture.prompt_evolver import _extract_entity_names
+        from MutaGenAI.prompt_evolver import _extract_entity_names
 
         template = "Route the user request to the correct handler."
         result = _extract_entity_names(template)
         assert result == []
 
     def test_fallback_to_underscore_identifiers(self):
-        from prompture.prompt_evolver import _extract_entity_names
+        from MutaGenAI.prompt_evolver import _extract_entity_names
 
         template = "Categories: fraud_detection, risk_assessment, data_analysis"
         result = _extract_entity_names(template)
@@ -912,7 +912,7 @@ class TestExtractEntityNames:
         assert "risk_assessment" in result
 
     def test_agent_names_take_priority(self):
-        from prompture.prompt_evolver import _extract_entity_names
+        from MutaGenAI.prompt_evolver import _extract_entity_names
 
         template = "Use fraud_detection_agent for fraud_detection tasks"
         result = _extract_entity_names(template)
@@ -926,7 +926,7 @@ class TestDescribeEntitiesCompletenessGuard:
     def test_partial_triggers_retry_and_succeeds(self):
         from unittest.mock import MagicMock, call
 
-        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+        from MutaGenAI.prompt_evolver import ProblemType, _llm_describe_entities
 
         client = MagicMock()
         # First call: LLM only describes 1 out of 3
@@ -953,7 +953,7 @@ class TestDescribeEntitiesCompletenessGuard:
     def test_partial_retry_still_incomplete_returns_original(self):
         from unittest.mock import MagicMock
 
-        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+        from MutaGenAI.prompt_evolver import ProblemType, _llm_describe_entities
 
         client = MagicMock()
         # First call: partial
@@ -977,7 +977,7 @@ class TestDescribeEntitiesCompletenessGuard:
     def test_partial_retry_empty_returns_original(self):
         from unittest.mock import MagicMock
 
-        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+        from MutaGenAI.prompt_evolver import ProblemType, _llm_describe_entities
 
         client = MagicMock()
         partial = (
@@ -994,7 +994,7 @@ class TestDescribeEntitiesCompletenessGuard:
     def test_full_description_accepted(self):
         from unittest.mock import MagicMock
 
-        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+        from MutaGenAI.prompt_evolver import ProblemType, _llm_describe_entities
 
         client = MagicMock()
         client.complete.return_value = (
@@ -1014,7 +1014,7 @@ class TestDescribeEntitiesCompletenessGuard:
     def test_no_descriptions_passthrough(self):
         from unittest.mock import MagicMock
 
-        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+        from MutaGenAI.prompt_evolver import ProblemType, _llm_describe_entities
 
         client = MagicMock()
         # LLM returns a rewrite with no " — " patterns at all
@@ -1031,7 +1031,7 @@ class TestDescribeEntitiesCompletenessGuard:
     def test_empty_response_returns_original(self):
         from unittest.mock import MagicMock
 
-        from prompture.prompt_evolver import ProblemType, _llm_describe_entities
+        from MutaGenAI.prompt_evolver import ProblemType, _llm_describe_entities
 
         client = MagicMock()
         client.complete.return_value = ""

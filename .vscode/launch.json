@@ -10,6 +10,17 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal"
+        },
+        {
+            "name": "Run MutaGenAI Extension",
+            "type": "extensionHost",
+            "request": "launch",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}/vscode-mutagenai"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/vscode-mutagenai/out/**/*.js"
+            ]
         }
     ]
 }

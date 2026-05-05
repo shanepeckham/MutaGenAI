@@ -1,4 +1,4 @@
-"""Tests for prompture.dashboard — visualisation module."""
+"""Tests for MutaGenAI.dashboard — visualisation module."""
 from __future__ import annotations
 
 import json
@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from prompture.dashboard import (
+from MutaGenAI.dashboard import (
     _has_matplotlib,
     _has_plotly,
     _in_notebook,
@@ -42,13 +42,13 @@ class TestBackendDetection:
     def test_has_plotly_import_error(self):
         with patch.dict("sys.modules", {"plotly": None}):
             # Force ImportError for plotly
-            import prompture.dashboard as dash
+            import MutaGenAI.dashboard as dash
             # Direct call to the function
             assert isinstance(dash._has_plotly(), bool)
 
     def test_has_matplotlib_import_error(self):
         with patch.dict("sys.modules", {"matplotlib": None}):
-            import prompture.dashboard as dash
+            import MutaGenAI.dashboard as dash
             assert isinstance(dash._has_matplotlib(), bool)
 
 

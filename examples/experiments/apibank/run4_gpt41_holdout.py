@@ -49,7 +49,7 @@ from dotenv import load_dotenv
 
 load_dotenv(os.path.join(_root, ".env"))
 
-from prompture.prompt_evolver import (
+from MutaGenAI.prompt_evolver import (
     LLMBackend,
     LLMClient,
     PromptEvolverConfig,
@@ -249,7 +249,7 @@ def build_holdout_split(
 def main() -> None:
     banner = r"""
     ╔══════════════════════════════════════════════════════════════════╗
-    ║  Prompture × API-Bank — Run 4: GPT-4.1 Holdout Evaluation      ║
+    ║  MutaGenAI × API-Bank — Run 4: GPT-4.1 Holdout Evaluation      ║
     ║  Evolved prompt vs Default prompt on unseen holdout cases       ║
     ╚══════════════════════════════════════════════════════════════════╝
     """

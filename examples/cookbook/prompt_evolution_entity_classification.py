@@ -62,14 +62,14 @@ from dotenv import load_dotenv
 
 load_dotenv(os.path.join(_here, "..", "..", ".env"))
 
-from prompture.prompt_evolver import (
+from MutaGenAI.prompt_evolver import (
     LLMBackend,
     LLMClient,
     PromptCandidate,
     PromptEvolverConfig,
 )
-from prompture.seed_loader import load_seed_templates
-from prompture.strategies import (
+from MutaGenAI.seed_loader import load_seed_templates
+from MutaGenAI.strategies import (
     NoEvalConfig,
     NoEvalPromptEvolver,
     Scorer,

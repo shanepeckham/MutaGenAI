@@ -36,7 +36,7 @@ jobs:
           MPLBACKEND: Agg
         run: |
           uv run python -m pytest tests/ \
-            --cov=prompture \
+            --cov=MutaGenAI \
             --cov-report=term-missing \
             --cov-fail-under=70 \
             -q
