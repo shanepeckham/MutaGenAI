@@ -31,7 +31,7 @@ if _env_path.exists():
 
 os.environ.setdefault("AZURE_OPENAI_USE_RBAC", "true")
 
-from prompture.prompt_evolver import LLMBackend, LLMClient, PromptEvolverConfig
+from MutaGenAI.prompt_evolver import LLMBackend, LLMClient, PromptEvolverConfig
 
 # ── Configuration ─────────────────────────────────────────
 BACKEND = LLMBackend.AZURE_OPENAI

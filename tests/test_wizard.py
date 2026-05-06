@@ -1,11 +1,11 @@
-"""Tests for prompture.wizard — interactive wizard and script generation."""
+"""Tests for MutaGenAI.wizard — interactive wizard and script generation."""
 from __future__ import annotations
 
 from pathlib import Path
 from unittest.mock import patch
 
 
-from prompture.wizard import (
+from MutaGenAI.wizard import (
     WizardState,
     _ask,
     _ask_int,
@@ -117,13 +117,13 @@ class TestIOHelpers:
 class TestWizardSteps:
     def test_step_problem_type(self):
         state = WizardState()
-        with patch("prompture.wizard._ask", return_value="classification"):
+        with patch("MutaGenAI.wizard._ask", return_value="classification"):
             _step_problem_type(state)
         assert state.problem_type == "classification"
 
     def test_step_task(self):
         state = WizardState()
-        with patch("prompture.wizard._ask", return_value="You classify text."):
+        with patch("MutaGenAI.wizard._ask", return_value="You classify text."):
             _step_task(state)
         assert state.task_description == "You classify text."
 
@@ -138,20 +138,20 @@ class TestWizardSteps:
                 return ""
             return "Real task"
 
-        with patch("prompture.wizard._ask", side_effect=fake_ask):
+        with patch("MutaGenAI.wizard._ask", side_effect=fake_ask):
             _step_task(state)
         assert state.task_description == "Real task"
 
     def test_step_ground_truth_no(self):
         state = WizardState()
-        with patch("prompture.wizard._ask", return_value="no"):
+        with patch("MutaGenAI.wizard._ask", return_value="no"):
             _step_ground_truth(state)
         assert state.has_ground_truth == "no"
 
     def test_step_ground_truth_yes_file(self):
         state = WizardState()
         calls = iter(["yes", "file", "/data/eval.json"])
-        with patch("prompture.wizard._ask", side_effect=lambda *a, **kw: next(calls)):
+        with patch("MutaGenAI.wizard._ask", side_effect=lambda *a, **kw: next(calls)):
             _step_ground_truth(state)
         assert state.has_ground_truth == "yes"
         assert state.eval_file == "/data/eval.json"
@@ -159,7 +159,7 @@ class TestWizardSteps:
     def test_step_ground_truth_yes_interactive(self):
         state = WizardState()
         calls = iter(["yes", "interactive", "hello", "world", "done"])
-        with patch("prompture.wizard._ask", side_effect=lambda *a, **kw: next(calls)):
+        with patch("MutaGenAI.wizard._ask", side_effect=lambda *a, **kw: next(calls)):
             _step_ground_truth(state)
         assert len(state.eval_examples) == 1
         assert state.eval_examples[0]["input"] == "hello"
@@ -167,20 +167,20 @@ class TestWizardSteps:
     def test_step_test_inputs_interactive(self):
         state = WizardState()
         calls = iter(["interactive", "input1", "input2", "done"])
-        with patch("prompture.wizard._ask", side_effect=lambda *a, **kw: next(calls)):
+        with patch("MutaGenAI.wizard._ask", side_effect=lambda *a, **kw: next(calls)):
             _step_test_inputs(state)
         assert state.test_inputs == ["input1", "input2"]
 
     def test_step_test_inputs_file(self):
         state = WizardState()
         calls = iter(["file", "/data/inputs.txt"])
-        with patch("prompture.wizard._ask", side_effect=lambda *a, **kw: next(calls)):
+        with patch("MutaGenAI.wizard._ask", side_effect=lambda *a, **kw: next(calls)):
             _step_test_inputs(state)
         assert state.test_input_file == "/data/inputs.txt"
 
     def test_step_scoring_ground_truth(self):
         state = WizardState(has_ground_truth="yes")
-        with patch("prompture.wizard._confirm", return_value=False):
+        with patch("MutaGenAI.wizard._confirm", return_value=False):
             _step_scoring(state)
         assert state.strategies == ["ground_truth"]
 
@@ -188,15 +188,15 @@ class TestWizardSteps:
         state = WizardState(has_ground_truth="no")
         calls = iter(["7", "no", "all"])  # composite, no custom rubric, all checks
         with (
-            patch("prompture.wizard._ask", side_effect=lambda *a, **kw: next(calls)),
-            patch("prompture.wizard._confirm", return_value=False),
+            patch("MutaGenAI.wizard._ask", side_effect=lambda *a, **kw: next(calls)),
+            patch("MutaGenAI.wizard._confirm", return_value=False),
         ):
             _step_scoring(state)
         assert "composite" in state.strategies
 
     def test_step_mutations_no(self):
         state = WizardState()
-        with patch("prompture.wizard._confirm", return_value=False):
+        with patch("MutaGenAI.wizard._confirm", return_value=False):
             _step_mutations(state)
         assert state.has_domain_mutations is False
 
@@ -204,21 +204,21 @@ class TestWizardSteps:
         state = WizardState()
         calls = iter(["Add CoT", "Enforce JSON", "done"])
         with (
-            patch("prompture.wizard._confirm", return_value=True),
-            patch("prompture.wizard._ask", side_effect=lambda *a, **kw: next(calls)),
+            patch("MutaGenAI.wizard._confirm", return_value=True),
+            patch("MutaGenAI.wizard._ask", side_effect=lambda *a, **kw: next(calls)),
         ):
             _step_mutations(state)
         assert len(state.domain_mutations) == 2
 
     def test_step_human_eval(self):
         state = WizardState()
-        with patch("prompture.wizard._ask", return_value="no"):
+        with patch("MutaGenAI.wizard._ask", return_value="no"):
             _step_human_eval(state)
         assert state.human_eval == "no"
 
     def test_step_seeds_no(self):
         state = WizardState()
-        with patch("prompture.wizard._confirm", return_value=False):
+        with patch("MutaGenAI.wizard._confirm", return_value=False):
             _step_seeds(state)
         assert state.has_seed_templates is False
 
@@ -226,8 +226,8 @@ class TestWizardSteps:
         state = WizardState()
         calls = iter(["Seed 1", "Seed 2", "done"])
         with (
-            patch("prompture.wizard._confirm", return_value=True),
-            patch("prompture.wizard._ask", side_effect=lambda *a, **kw: next(calls)),
+            patch("MutaGenAI.wizard._confirm", return_value=True),
+            patch("MutaGenAI.wizard._ask", side_effect=lambda *a, **kw: next(calls)),
         ):
             _step_seeds(state)
         assert len(state.seed_templates) == 2
@@ -235,7 +235,7 @@ class TestWizardSteps:
     def test_step_backend_ollama(self):
         state = WizardState()
         calls = iter(["ollama", "llama3.2"])
-        with patch("prompture.wizard._ask", side_effect=lambda *a, **kw: next(calls)):
+        with patch("MutaGenAI.wizard._ask", side_effect=lambda *a, **kw: next(calls)):
             _step_backend(state)
         assert state.backend == "ollama"
         assert state.model == "llama3.2"
@@ -243,20 +243,20 @@ class TestWizardSteps:
     def test_step_backend_openai(self):
         state = WizardState()
         calls = iter(["openai", "gpt-4o-mini"])
-        with patch("prompture.wizard._ask", side_effect=lambda *a, **kw: next(calls)):
+        with patch("MutaGenAI.wizard._ask", side_effect=lambda *a, **kw: next(calls)):
             _step_backend(state)
         assert state.backend == "openai"
 
     def test_step_backend_azure(self):
         state = WizardState()
         calls = iter(["azure", "gpt-4o"])
-        with patch("prompture.wizard._ask", side_effect=lambda *a, **kw: next(calls)):
+        with patch("MutaGenAI.wizard._ask", side_effect=lambda *a, **kw: next(calls)):
             _step_backend(state)
         assert state.backend == "azure"
 
     def test_step_config_standard(self):
         state = WizardState()
-        with patch("prompture.wizard._ask", return_value="standard"):
+        with patch("MutaGenAI.wizard._ask", return_value="standard"):
             _step_config(state)
         assert state.iterations == 5
         assert state.population_size == 6
@@ -264,7 +264,7 @@ class TestWizardSteps:
 
     def test_step_config_deep(self):
         state = WizardState()
-        with patch("prompture.wizard._ask", return_value="deep"):
+        with patch("MutaGenAI.wizard._ask", return_value="deep"):
             _step_config(state)
         assert state.iterations == 10
         assert state.population_size == 8
@@ -273,8 +273,8 @@ class TestWizardSteps:
     def test_step_config_custom(self):
         state = WizardState()
         with (
-            patch("prompture.wizard._ask", return_value="custom"),
-            patch("prompture.wizard._ask_int", side_effect=[10, 8, 4]),
+            patch("MutaGenAI.wizard._ask", return_value="custom"),
+            patch("MutaGenAI.wizard._ask_int", side_effect=[10, 8, 4]),
         ):
             _step_config(state)
         assert state.iterations == 10
@@ -303,7 +303,7 @@ class TestScriptGeneration:
     def test_generate_script_runs(self):
         state = self._base_state()
         script = _generate_script(state)
-        assert "from prompture" in script
+        assert "from MutaGenAI" in script
         assert "Route queries to tools" in script
         assert "LLMBackend.OLLAMA" in script
 
@@ -428,7 +428,7 @@ class TestShowSummary:
 
 class TestRunWizard:
     def test_full_run_aborted(self):
-        from prompture.wizard import run_wizard
+        from MutaGenAI.wizard import run_wizard
 
         step_answers = iter([
             "tool_routing",         # step 1
@@ -445,14 +445,14 @@ class TestRunWizard:
         ])
 
         with (
-            patch("prompture.wizard._ask", side_effect=lambda *a, **kw: next(step_answers)),
-            patch("prompture.wizard._confirm", return_value=False),  # abort
+            patch("MutaGenAI.wizard._ask", side_effect=lambda *a, **kw: next(step_answers)),
+            patch("MutaGenAI.wizard._confirm", return_value=False),  # abort
         ):
             result = run_wizard()
         assert result == ""
 
     def test_full_run_generates_script(self, tmp_path: Path):
-        from prompture.wizard import run_wizard
+        from MutaGenAI.wizard import run_wizard
 
         output_path = tmp_path / "generated.py"
         step_answers = iter([
@@ -477,16 +477,16 @@ class TestRunWizard:
         ])
 
         with (
-            patch("prompture.wizard._ask", side_effect=lambda *a, **kw: next(step_answers, "no")),
-            patch("prompture.wizard._ask_int", side_effect=[3, 4, 2]),
-            patch("prompture.wizard._confirm", side_effect=lambda *a, **kw: next(confirm_calls, True)),
+            patch("MutaGenAI.wizard._ask", side_effect=lambda *a, **kw: next(step_answers, "no")),
+            patch("MutaGenAI.wizard._ask_int", side_effect=[3, 4, 2]),
+            patch("MutaGenAI.wizard._confirm", side_effect=lambda *a, **kw: next(confirm_calls, True)),
         ):
             result = run_wizard(output=str(output_path))
 
         if result:
             assert output_path.exists()
             content = output_path.read_text()
-            assert "from prompture" in content
+            assert "from MutaGenAI" in content
 
 
 # ---------------------------------------------------------------------------

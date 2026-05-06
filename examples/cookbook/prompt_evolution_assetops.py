@@ -73,7 +73,7 @@ from dotenv import load_dotenv
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
 
-from prompture.prompt_evolver import (
+from MutaGenAI.prompt_evolver import (
     LLMBackend,
     LLMClient,
     PromptCandidate,
@@ -982,7 +982,7 @@ def run_assetops_no_eval(
     Uses LLMJudge + ProxyMetrics + SelfConsistency — no ground truth needed.
     Designed for Phase 2 where scenarios are from unseen asset classes.
     """
-    from prompture.strategies import (
+    from MutaGenAI.strategies import (
         CompositeScorer,
         LLMJudge,
         NoEvalConfig,

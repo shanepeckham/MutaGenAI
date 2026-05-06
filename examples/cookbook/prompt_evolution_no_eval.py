@@ -50,7 +50,7 @@ from dotenv import load_dotenv
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
 
-from prompture.strategies import (
+from MutaGenAI.strategies import (
     CompositeScorer,
     HumanTournament,
     LLMJudge,
@@ -67,7 +67,7 @@ from prompture.strategies import (
     ToolResult,
     ToolSuccessScorer,
 )
-from prompture.prompt_evolver import LLMBackend, LLMClient, PromptEvolverConfig
+from MutaGenAI.prompt_evolver import LLMBackend, LLMClient, PromptEvolverConfig
 
 # ─────────────────────────────────────────────────────────────────────────
 # Shared task: Customer-service agent (no eval labels needed)

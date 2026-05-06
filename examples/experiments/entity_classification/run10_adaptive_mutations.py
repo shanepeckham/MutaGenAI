@@ -24,15 +24,15 @@ sys.path.insert(0, _root)
 from dotenv import load_dotenv
 load_dotenv(os.path.join(_root, ".env"))
 
-from prompture.prompt_evolver import (
+from MutaGenAI.prompt_evolver import (
     LLMBackend,
     LLMClient,
     ProblemType,
     PromptCandidate,
     PromptEvolverConfig,
 )
-from prompture.seed_loader import load_seed_templates
-from prompture.strategies import (
+from MutaGenAI.seed_loader import load_seed_templates
+from MutaGenAI.strategies import (
     NoEvalConfig,
     NoEvalPromptEvolver,
 )

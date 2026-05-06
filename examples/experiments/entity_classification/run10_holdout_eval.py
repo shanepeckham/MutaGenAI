@@ -23,7 +23,7 @@ sys.path.insert(0, _root)
 from dotenv import load_dotenv
 load_dotenv(os.path.join(_root, ".env"))
 
-from prompture.prompt_evolver import LLMBackend, LLMClient, PromptEvolverConfig
+from MutaGenAI.prompt_evolver import LLMBackend, LLMClient, PromptEvolverConfig
 
 from examples.experiments.entity_classification import (
     ENTITY_TYPES,

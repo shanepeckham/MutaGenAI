@@ -32,15 +32,15 @@ from dotenv import load_dotenv
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
 
-from prompture import (
+from MutaGenAI import (
     LLMBackend,
     LLMClient,
     PromptCandidate,
     PromptEvolver,
     PromptEvolverConfig,
 )
-from prompture.prompt_evolver import EvalSample, Tool
-import prompture.prompt_evolver as _pe
+from MutaGenAI.prompt_evolver import EvalSample, Tool
+import MutaGenAI.prompt_evolver as _pe
 
 # Re-use helpers from the existing ToolBench recipe
 from prompt_evolution_toolbench import (

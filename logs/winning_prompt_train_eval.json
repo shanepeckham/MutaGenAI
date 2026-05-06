@@ -1,0 +1,45 @@
+{
+  "prompt": "You are an AI assistant.\n\n## Task\nYou are an agent that classifies inbound text into one of Agent, Task, Tool, Input, Output, Human\n\n## Output\nProvide a clear, direct response.",
+  "temperature": 0.7,
+  "top_p": 0.95,
+  "split": "train",
+  "eval_size": 200,
+  "accuracy": 40.5,
+  "correct": 81,
+  "total": 200,
+  "per_class_acc": {
+    "Agent": 41.18,
+    "Task": 19.61,
+    "Tool": 58.93,
+    "Input": 38.46,
+    "Output": 57.14,
+    "Human": 0.0
+  },
+  "per_class_counts": {
+    "Agent": {
+      "correct": 7,
+      "total": 17
+    },
+    "Task": {
+      "correct": 10,
+      "total": 51
+    },
+    "Tool": {
+      "correct": 33,
+      "total": 56
+    },
+    "Input": {
+      "correct": 15,
+      "total": 39
+    },
+    "Output": {
+      "correct": 16,
+      "total": 28
+    },
+    "Human": {
+      "correct": 0,
+      "total": 9
+    }
+  },
+  "elapsed_seconds": 65.7
+}

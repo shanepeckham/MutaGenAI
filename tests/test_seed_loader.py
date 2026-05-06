@@ -1,4 +1,4 @@
-"""Tests for prompture.seed_loader — seed template loading."""
+"""Tests for MutaGenAI.seed_loader — seed template loading."""
 from __future__ import annotations
 
 import json
@@ -7,7 +7,7 @@ from typing import Callable
 
 import pytest
 
-from prompture.seed_loader import (
+from MutaGenAI.seed_loader import (
     Penalty,
     SeedTemplateConfig,
     _build_check_fn,
@@ -18,7 +18,7 @@ from prompture.seed_loader import (
     penalties_to_proxy_checks,
     register_penalty_condition,
 )
-from prompture.strategies import ProxyCheck
+from MutaGenAI.strategies import ProxyCheck
 
 
 @pytest.fixture

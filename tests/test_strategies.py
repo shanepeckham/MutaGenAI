@@ -1,10 +1,10 @@
-"""Tests for prompture.strategies — no-eval prompt evolution strategies."""
+"""Tests for MutaGenAI.strategies — no-eval prompt evolution strategies."""
 from __future__ import annotations
 
 
 import pytest
 
-from prompture.strategies import (
+from MutaGenAI.strategies import (
     CompositeScorer,
     HumanTournament,
     LLMJudge,
@@ -24,7 +24,7 @@ from prompture.strategies import (
     _feasibility_key,
     PenaltyScaler,
 )
-from prompture.prompt_evolver import PromptCandidate
+from MutaGenAI.prompt_evolver import PromptCandidate
 
 
 # ---------------------------------------------------------------------------

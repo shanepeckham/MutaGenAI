@@ -26,14 +26,14 @@ if _env_path.exists():
 # Use managed identity (DefaultAzureCredential), not API keys
 os.environ.setdefault("AZURE_OPENAI_USE_RBAC", "true")
 
-from prompture.prompt_evolver import (
+from MutaGenAI.prompt_evolver import (
     LLMBackend,
     LLMClient,
     PromptCandidate,
     PromptEvolverConfig,
 )
 
-from prompture.strategies import (
+from MutaGenAI.strategies import (
     CompositeScorer,
     LLMJudge,
     NoEvalConfig,
@@ -143,7 +143,7 @@ def build_scorer(client: LLMClient) -> Scorer:
 if __name__ == "__main__":
     print()
     print("=" * 60)
-    print("  Prompture Prompt Evolution")
+    print("  MutaGenAI Prompt Evolution")
     print("  Task: ""You are an intelligent orchestrator. Route the u...")
     print("=" * 60)
     print()
@@ -167,7 +167,7 @@ if __name__ == "__main__":
     print()
 
     # Build LLM client and scorer
-    from prompture.prompt_evolver import LLMClient, PromptEvolverConfig
+    from MutaGenAI.prompt_evolver import LLMClient, PromptEvolverConfig
     _llm_cfg = PromptEvolverConfig(
         backend=BACKEND,
         azure_deployment=MODEL,

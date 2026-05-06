@@ -143,7 +143,7 @@ def select_holdout_samples(
 
 
 try:
-    from prompture.strategies import Scorer
+    from MutaGenAI.strategies import Scorer
 
     class ClassificationAccuracyScorer(Scorer):
         """Scorer that checks entity classification accuracy against a label map."""
