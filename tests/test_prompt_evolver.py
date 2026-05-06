@@ -924,7 +924,7 @@ class TestExtractEntityNames:
 
 class TestDescribeEntitiesCompletenessGuard:
     def test_partial_triggers_retry_and_succeeds(self):
-        from unittest.mock import MagicMock, call
+        from unittest.mock import MagicMock
 
         from MutaGenAI.prompt_evolver import ProblemType, _llm_describe_entities
 
