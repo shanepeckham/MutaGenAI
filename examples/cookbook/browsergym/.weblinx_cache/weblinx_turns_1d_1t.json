@@ -1,0 +1,21 @@
+[
+  {
+    "turn_id": "jxjdjkh_t48",
+    "demo_name": "jxjdjkh",
+    "goal": "Can you show me the main course menu with the price?",
+    "chat_history": [
+      {
+        "role": "user",
+        "content": "Can you show me the main course menu with the price?"
+      }
+    ],
+    "axtree_snapshot": "(uid = 41fa2161-b22f-47b7) [[tag]] a [[xpath]] /html/body/...[2]/a [[text]] Menu [[bbox]] x=277.4 y=93 width=41.7 height=20 [[attributes]] data-webtasks-...45/menu' \n(uid = 83c71267-d0d7-409f) [[tag]] div [[xpath]] /html/body.../div[1] [[bbox]] x=155.6 y=-654 width=813.3 height=2385 [[attributes]] class='sc-...409f' [[children]] script script \n(uid = 4366da45-5b81-4a0a) [[tag]] a [[xpath]] /html/body/...[1]/a [[text]] About [[bbox]] x=171.6 y=93 width=45.8 height=20 [[attributes]] data-webtasks-...445' \n(uid = 4e3d0f95-72a3-40e0) [[tag]] span [[xpath]] /html/body.../span[1] [[text]] Riemergasse 16 [[bbox]] x=211.6 y=350.6 width=115.7 height=20 [[attributes]] data-webtasks-...0e0' [[children]] br \n(uid = 43df22c9-8321-43b7) [[tag]] h2 [[xpath]] /html/body...]/div/h2 [[text]] About Restaurant Jonathan & Sieglinde [[bbox]] x=171.6 y=149 width=781.3 height=32 [[attributes]] font-weight='bold...heading.3' \n(uid = 420814df-34bc-4ea8) [[tag]] a [[xpath]] /html/body/...[3]/a [[text]] Photos [[bbox]] x=379.1 y=93 width=51.4 height=20 [[attributes]] data-webtasks-...5/photos' \n(uid = 2b5d6875-f35c-4a34) [[tag]] input [[xpath]] /html/body/...[1]/input [[bbox]] x=217 y=14.6 width=320 height=39.6 [[attributes]] value='' elevation... or cuisines' \n(uid = a8d76bc3-6cb4-42af) [[tag]] div [[xpath]] /html/body/...]/div/div [[bbox]] x=171.6 y=205 width=781.3 height=969.6 [[attributes]] data-webtasks-...kbUh' [[children]] div div \n(uid = 9c572e74-91c6-4b47) [[tag]] div [[xpath]] /html/body/...[3]/div [[bbox]] x=171.6 y=149 width=781.3 height=1025.6 [[attributes]] data-webtasks... khwxpm' [[children]] h2 div \n(uid = cd99bf78-012b-4b01) [[tag]] div [[xpath]] /html/body/...[1]/div [[bbox]] x=171.6 y=205 width=781.3 height=224 [[attributes]] data-webtasks-...zGa' [[children]] div div",
+    "url": "",
+    "action_type": "click",
+    "action_args": {
+      "uid": "41fa2161-b22f-47b7"
+    },
+    "action_raw": "click(uid=\"41fa2161-b22f-47b7\")",
+    "category": "click"
+  }
+]
