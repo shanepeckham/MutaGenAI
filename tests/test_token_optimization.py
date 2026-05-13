@@ -8,15 +8,13 @@ from __future__ import annotations
 
 import sys
 import os
-from unittest.mock import patch
 
-import numpy as np
 import pytest
 
 # Ensure repo root on path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from MutaGenAI.prompt_evolver import PromptCandidate, PromptEvolverConfig
+from MutaGenAI.prompt_evolver import PromptCandidate
 
 
 # ─── Helpers ──────────────────────────────────────────────────────────────
