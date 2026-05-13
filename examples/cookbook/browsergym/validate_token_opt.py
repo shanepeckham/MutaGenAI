@@ -23,8 +23,9 @@ sys.stdout.reconfigure(line_buffering=True)  # type: ignore[attr-defined]
 # Force Ollama backend and token optimization ON
 os.environ.setdefault("MUTAGENAI_BACKEND", "ollama")
 os.environ.setdefault("MUTAGENAI_MINIMIZE_TOKENS", "1")
-os.environ.setdefault("MUTAGENAI_TOKEN_WEIGHT", "0.15")
-os.environ.setdefault("MUTAGENAI_MAX_PROMPT_TOKENS", "500")
+os.environ.setdefault("MUTAGENAI_TOKEN_WEIGHT", "0.10")
+os.environ.setdefault("MUTAGENAI_EFFICIENCY_CAP", "2.0")
+os.environ.setdefault("MUTAGENAI_ACCURACY_BAND", "2.0")
 os.environ.setdefault("OLLAMA_MODEL", "qwen3:8b")
 
 from dotenv import load_dotenv
@@ -36,7 +37,8 @@ from prompt_evolution_browsergym import (
     MODEL,
     MINIMIZE_TOKENS,
     TOKEN_WEIGHT,
-    MAX_PROMPT_TOKENS,
+    EFFICIENCY_CAP,
+    ACCURACY_BAND,
     _count_prompt_tokens,
     _DEFAULT_PROMPT,
     BrowserGymEvolver,
@@ -63,7 +65,8 @@ def main() -> None:
     print(f"  Model:            {MODEL}")
     print(f"  MINIMIZE_TOKENS:  {MINIMIZE_TOKENS}")
     print(f"  TOKEN_WEIGHT:     {TOKEN_WEIGHT}")
-    print(f"  MAX_PROMPT_TOKENS:{MAX_PROMPT_TOKENS}")
+    print(f"  EFFICIENCY_CAP:   {EFFICIENCY_CAP}")
+    print(f"  ACCURACY_BAND:    {ACCURACY_BAND}")
     print()
 
     # Token counting sanity check
@@ -94,15 +97,15 @@ def main() -> None:
     print(f"  Verbose prompt tokens:  {verbose_tokens}")
     print()
 
-    # Demonstrate the scoring difference
+    # Demonstrate the scoring difference (baseline-relative efficiency)
     print("  Scoring impact (assuming same accuracy of 60%):")
     raw_accuracy = 60.0
     for label, tokens in [("baseline", baseline_tokens), ("verbose", verbose_tokens)]:
-        length_ratio = min(tokens / MAX_PROMPT_TOKENS, 1.0)
-        brevity_bonus = (1.0 - length_ratio) * 100.0
-        blended = raw_accuracy * (1 - TOKEN_WEIGHT) + brevity_bonus * TOKEN_WEIGHT
-        print(f"    {label:10s}: tokens={tokens:3d}  brevity_bonus={brevity_bonus:5.1f}  "
-              f"blended_score={blended:.1f}  (vs raw {raw_accuracy:.1f})")
+        efficiency = baseline_tokens / max(tokens, 1)
+        efficiency_bonus = min(efficiency, EFFICIENCY_CAP) / EFFICIENCY_CAP * 100.0
+        blended = raw_accuracy * (1 - TOKEN_WEIGHT) + efficiency_bonus * TOKEN_WEIGHT
+        print(f"    {label:10s}: tokens={tokens:3d}  efficiency={efficiency:.2f}x  "
+              f"bonus={efficiency_bonus:5.1f}  blended={blended:.1f}  (vs raw {raw_accuracy:.1f})")
     print()
 
     # Load a small dataset
@@ -174,7 +177,7 @@ def main() -> None:
     _pe._SEED_TEMPLATES = list(SEED_TEMPLATES)
 
     t0 = time.perf_counter()
-    evolver = BrowserGymEvolver(evo_cfg, all_turns[:10], client)
+    evolver = BrowserGymEvolver(evo_cfg, all_turns[:10], client, baseline_tokens=baseline_tokens)
     result = evolver.run()
     wall_time = time.perf_counter() - t0
 

@@ -899,12 +899,24 @@ else:
     MODEL = os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4.1")
 
 # ── Token minimization (optional) ────────────────────────────────────────
-# When enabled, shorter prompts receive a bonus during evolution.
-# The final score is: accuracy * (1 - TOKEN_WEIGHT) + brevity_bonus * TOKEN_WEIGHT
-# Set TOKEN_WEIGHT=0.0 to disable (pure accuracy optimisation).
+# When enabled, two complementary mechanisms drive evolution toward shorter
+# prompts without sacrificing accuracy:
+#
+#   (A) Baseline-relative efficiency score — blended into fitness:
+#       efficiency = baseline_tokens / prompt_tokens   (>1 = shorter)
+#       blended = accuracy * (1 - w) + efficiency_bonus * w
+#       No fixed token cap needed; the baseline is the natural reference.
+#
+#   (B) Lexicographic tournament tiebreaker — within an ACCURACY_BAND,
+#       the candidate with fewer tokens wins tournament selection.
+#       This compresses prompts even when accuracy plateaus.
+#
+# Set MUTAGENAI_MINIMIZE_TOKENS=1 to enable.  TOKEN_WEIGHT defaults to 0.10
+# (lower than before because the tiebreaker provides additional pressure).
 MINIMIZE_TOKENS: bool = bool(os.getenv("MUTAGENAI_MINIMIZE_TOKENS", "0") not in ("0", "", "false"))
-TOKEN_WEIGHT: float = float(os.getenv("MUTAGENAI_TOKEN_WEIGHT", "0.15"))
-MAX_PROMPT_TOKENS: int = int(os.getenv("MUTAGENAI_MAX_PROMPT_TOKENS", "500"))
+TOKEN_WEIGHT: float = float(os.getenv("MUTAGENAI_TOKEN_WEIGHT", "0.10"))
+EFFICIENCY_CAP: float = float(os.getenv("MUTAGENAI_EFFICIENCY_CAP", "2.0"))
+ACCURACY_BAND: float = float(os.getenv("MUTAGENAI_ACCURACY_BAND", "2.0"))
 
 
 def _count_prompt_tokens(text: str) -> int:
@@ -931,6 +943,7 @@ class BrowserGymEvolver(PromptEvolver):
         config: PromptEvolverConfig,
         turns: list[BrowsingTurn],
         client: LLMClient,
+        baseline_tokens: int = 0,
     ) -> None:
         super().__init__(tools=[], eval_dataset=[], config=config)
         self._turns = turns
@@ -938,6 +951,32 @@ class BrowserGymEvolver(PromptEvolver):
         self._bg_rng = np.random.default_rng(42)
         self._client = client
         self._require_tool_schemas = False
+        self._baseline_tokens = baseline_tokens
+
+    def _tournament_select(
+        self, island: list[PromptCandidate], k: int = 3,
+    ) -> PromptCandidate:
+        """Tournament selection with lexicographic token tiebreaker.
+
+        1. Feasibility-first (zero penalty_violations beats any violations).
+        2. Within the same ACCURACY_BAND, prefer fewer tokens.
+        3. Otherwise, higher score wins.
+        """
+        k = min(k, len(island))
+        indices = self._rng.choice(len(island), size=k, replace=False)
+        contestants = [island[int(i)] for i in indices]
+
+        if not (MINIMIZE_TOKENS and ACCURACY_BAND > 0):
+            return max(contestants, key=_feasibility_key)
+
+        def _token_aware_key(c: PromptCandidate) -> tuple:
+            feasible = 1 if c.penalty_violations == 0 else 0
+            bucket = int(c.score // ACCURACY_BAND)
+            tokens = _count_prompt_tokens(c.template)
+            # Higher feasibility, higher accuracy bucket, fewer tokens
+            return (feasible, bucket, -tokens)
+
+        return max(contestants, key=_token_aware_key)
 
     def _breed(
         self, island: list[PromptCandidate], generation: int,
@@ -1072,12 +1111,12 @@ class BrowserGymEvolver(PromptEvolver):
         n = len(eval_turns)
         raw_accuracy = (total / n * 100.0) if n else 0.0
 
-        # ── Token minimization bonus ─────────────────────────────────
-        if MINIMIZE_TOKENS and TOKEN_WEIGHT > 0:
+        # ── Token minimization: baseline-relative efficiency bonus ────
+        if MINIMIZE_TOKENS and TOKEN_WEIGHT > 0 and self._baseline_tokens > 0:
             prompt_tokens = _count_prompt_tokens(candidate.template)
-            length_ratio = min(prompt_tokens / MAX_PROMPT_TOKENS, 1.0)
-            brevity_bonus = (1.0 - length_ratio) * 100.0
-            return raw_accuracy * (1 - TOKEN_WEIGHT) + brevity_bonus * TOKEN_WEIGHT
+            efficiency = self._baseline_tokens / max(prompt_tokens, 1)
+            efficiency_bonus = min(efficiency, EFFICIENCY_CAP) / EFFICIENCY_CAP * 100.0
+            return raw_accuracy * (1 - TOKEN_WEIGHT) + efficiency_bonus * TOKEN_WEIGHT
 
         return raw_accuracy
 
@@ -1220,7 +1259,8 @@ def main() -> None:
     print(f"    Default prompt score: {baseline_score:.1f}%")
     print(f"    Default prompt tokens: {baseline_tokens}")
     if MINIMIZE_TOKENS:
-        print(f"    Token optimization: ON (weight={TOKEN_WEIGHT}, max={MAX_PROMPT_TOKENS})")
+        print(f"    Token optimization: ON (weight={TOKEN_WEIGHT}, "
+              f"efficiency_cap={EFFICIENCY_CAP}x, accuracy_band={ACCURACY_BAND})")
     else:
         print(f"    Token optimization: OFF")
 
@@ -1280,7 +1320,7 @@ def main() -> None:
 
     # Create and run
     t0 = time.perf_counter()
-    evolver = BrowserGymEvolver(config, all_turns, client)
+    evolver = BrowserGymEvolver(config, all_turns, client, baseline_tokens=baseline_tokens)
     result = evolver.run()
     wall_time = time.perf_counter() - t0
 
@@ -1332,6 +1372,11 @@ def main() -> None:
     print(f"    Prompt tokens:      {baseline_tokens} → {evolved_tokens} ({evolved_tokens - baseline_tokens:+d})")
     if MINIMIZE_TOKENS:
         print(f"    Token weight:       {TOKEN_WEIGHT}")
+        print(f"    Efficiency cap:     {EFFICIENCY_CAP}x baseline")
+        print(f"    Accuracy band:      {ACCURACY_BAND} (tiebreaker)")
+        efficiency_ratio = baseline_tokens / max(evolved_tokens, 1)
+        print(f"    Efficiency ratio:   {efficiency_ratio:.2f}x "
+              f"({'shorter' if efficiency_ratio > 1 else 'longer'} than baseline)")
         token_saving_pct = (1 - evolved_tokens / max(1, baseline_tokens)) * 100
         print(f"    Token saving:       {token_saving_pct:+.1f}%")
     print()
@@ -1341,8 +1386,14 @@ def main() -> None:
         print(f"    {line}")
     print("  " + "─" * 60)
 
-    # ── Export lineage ────────────────────────────────────────────────
+    # ── Export lineage (with token counts) ──────────────────────────
     lineage = result.lineage_json()
+    # Enrich each lineage entry with prompt_tokens and efficiency_ratio
+    for entry in lineage:
+        tpl = entry.get("template", "")
+        tokens = _count_prompt_tokens(tpl)
+        entry["prompt_tokens"] = tokens
+        entry["efficiency_ratio"] = round(baseline_tokens / max(tokens, 1), 3)
     LOG_DIR.mkdir(parents=True, exist_ok=True)
 
     lineage_path = LOG_DIR / "browsergym_lineage.json"
@@ -1410,11 +1461,19 @@ def main() -> None:
         "lineage_size": len(lineage),
         "token_optimization": {
             "enabled": MINIMIZE_TOKENS,
+            "strategy": "baseline_relative_efficiency + lexicographic_tiebreaker" if MINIMIZE_TOKENS else "disabled",
             "token_weight": TOKEN_WEIGHT,
-            "max_prompt_tokens": MAX_PROMPT_TOKENS,
+            "efficiency_cap": EFFICIENCY_CAP,
+            "accuracy_band": ACCURACY_BAND,
             "baseline_tokens": baseline_tokens,
             "evolved_tokens": evolved_tokens,
             "token_delta": evolved_tokens - baseline_tokens,
+            "efficiency_ratio": round(baseline_tokens / max(evolved_tokens, 1), 3),
+        },
+        "candidate_token_stats": {
+            "min_tokens": min(e["prompt_tokens"] for e in lineage) if lineage else 0,
+            "max_tokens": max(e["prompt_tokens"] for e in lineage) if lineage else 0,
+            "mean_tokens": round(sum(e["prompt_tokens"] for e in lineage) / max(len(lineage), 1), 1),
         },
     }
 
