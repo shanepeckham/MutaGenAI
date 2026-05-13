@@ -1,5 +1,46 @@
 # Agent Routing Evolution — Improvement Log
 
+## Token Optimization: Baseline-Relative Efficiency + Lexicographic Tiebreaker
+
+**Date**: 2025-01
+
+Replaced the fixed-cap token minimization approach (`MAX_PROMPT_TOKENS=500`) with a combined A+B strategy that requires no user-specified ceiling:
+
+### (A) Baseline-relative efficiency scoring
+
+```
+efficiency = baseline_tokens / prompt_tokens   (>1 means shorter)
+bonus = min(efficiency, EFFICIENCY_CAP) / EFFICIENCY_CAP * 100
+blended_score = accuracy * (1 - TOKEN_WEIGHT) + bonus * TOKEN_WEIGHT
+```
+
+- `TOKEN_WEIGHT` default: 0.10 (gentle pressure)
+- `EFFICIENCY_CAP` default: 2.0 (max bonus at half baseline length)
+- No fixed cap needed — the baseline is the natural reference
+
+### (B) Lexicographic tournament tiebreaker
+
+Within the same `ACCURACY_BAND` (default 2.0 points), tournament selection prefers fewer tokens. This compresses prompts even when accuracy plateaus.
+
+Selection key: `(feasible, accuracy_bucket, -prompt_tokens)`
+
+### Configuration
+
+```bash
+export MUTAGENAI_MINIMIZE_TOKENS=1      # Enable
+export MUTAGENAI_TOKEN_WEIGHT=0.10      # Blend weight
+export MUTAGENAI_EFFICIENCY_CAP=2.0     # Max efficiency ratio
+export MUTAGENAI_ACCURACY_BAND=2.0      # Tiebreaker band width
+```
+
+### Logging and lineage
+
+- Lineage JSON entries include `prompt_tokens` and `efficiency_ratio`
+- Experiment log includes `candidate_token_stats` (min/max/mean tokens)
+- Results summary shows efficiency ratio and token saving percentage
+
+---
+
 ## Error Analysis (Baseline)
 
 Before changes, the evolved prompt scored **F1=48.8%** on the test set (static baseline: 48.6%). Analysis of the benchmark detail revealed:

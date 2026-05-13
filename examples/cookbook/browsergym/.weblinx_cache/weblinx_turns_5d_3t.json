@@ -1,0 +1,257 @@
+[
+  {
+    "turn_id": "erkdgne_t7",
+    "demo_name": "erkdgne",
+    "goal": "Open the QuillBot website.",
+    "chat_history": [
+      {
+        "role": "user",
+        "content": "Open the QuillBot website."
+      },
+      {
+        "role": "user",
+        "content": "Click on Summarizer."
+      }
+    ],
+    "axtree_snapshot": "(uid = 790265bd-639c-4ff7) [[tag]] span [[xpath]] /html/body/div[1]/...]/a/div[3]/span [[text]] Summarizer [[bbox]] x=45 y=233 width=146 height=16 [[attributes]] data-webtasks-id='79...-primary css-gcmhi0' \n(uid = ab727dea-966e-4973) [[tag]] img [[xpath]] /html/body/div[1]/...]/a/div[2]/img [[bbox]] x=17.5 y=233.5 width=15 height=15 [[attributes]] alt='summarizer icon' data-.../summarizer-new.svg' \n(uid = 805a357c-3c11-4316) [[tag]] a [[xpath]] /html/body/div[1]/...[1]/div[5]/a [[bbox]] x=0 y=221 width=204 height=40 [[attributes]] href='/summarize' class...c11-4316' [[children]] div div \n(uid = 550a8fb5-979a-4566) [[tag]] img [[xpath]] /html/body/div[1]/...]/a/div[2]/img [[bbox]] x=17.5 y=193.5 width=15 height=15 [[attributes]] alt='co-writer icon' data-.../co-writer-new.svg' \n(uid = f5155d6a-ff61-41f2) [[tag]] div [[xpath]] /html/body/div[1]/...[1]/ul[2]/div [[bbox]] x=0 y=350 width=204 height=48 [[attributes]] tabindex='0' role='button'...-root css-44bzak' [[children]] a span \n(uid = 9672498c-1876-42b3) [[tag]] div [[xpath]] /html/body/div[1]/...[1]/div/div/div [[bbox]] x=210 y=53 width=1151 height=2082.5 [[attributes]] style='margin-right: 0px... css-j2l93x' [[children]] div div \n(uid = 77252c6f-38a5-461d) [[tag]] span [[xpath]] /html/body/div[1]/...]/a/div[3]/span [[text]] Co-Writer [[bbox]] x=45 y=193 width=146 height=16 [[attributes]] data-webtasks-id='77...-primary css-gcmhi0' \n(uid = 630a0b4a-1cbd-4656) [[tag]] span [[xpath]] /html/body/div[1]/...a/div[3]/span/span [[text]] Translator [[bbox]] x=45 y=313 width=146 height=16 [[attributes]] data-webtasks-id='6...:flex;align-items:center' \n(uid = dd7bd0be-7bc2-424c) [[tag]] span [[xpath]] /html/body/div[1]/...6]/a/div[3]/span [[text]] Citation Generator [[bbox]] x=45 y=273 width=146 height=16 [[attributes]] data-webtasks-id='dd7...-primary css-gcmhi0' \n(uid = a432bbf5-2df3-49b5) [[tag]] ul [[xpath]] /html/body/div[1.../div[1]/ul[2] [[bbox]] x=0 y=350 width=204 height=48 [[attributes]] style='padding:0' data-web...padding css-1ontqvh' [[children]] div",
+    "url": "",
+    "action_type": "click",
+    "action_args": {
+      "uid": "790265bd-639c-4ff7"
+    },
+    "action_raw": "click(uid=\"790265bd-639c-4ff7\")",
+    "category": "click"
+  },
+  {
+    "turn_id": "erkdgne_t14",
+    "demo_name": "erkdgne",
+    "goal": "Complete the browsing task in demo erkdgne",
+    "chat_history": [],
+    "axtree_snapshot": "(no candidates available)",
+    "url": "",
+    "action_type": "say",
+    "action_args": {
+      "speaker": "navigator",
+      "utterance": "Alright."
+    },
+    "action_raw": "say(speaker=\"navigator\", utterance=\"Alright.\")",
+    "category": "communicate"
+  },
+  {
+    "turn_id": "erkdgne_t22",
+    "demo_name": "erkdgne",
+    "goal": "Complete the browsing task in demo erkdgne",
+    "chat_history": [],
+    "axtree_snapshot": "(no candidates available)",
+    "url": "",
+    "action_type": "say",
+    "action_args": {
+      "speaker": "navigator",
+      "utterance": "Alright!"
+    },
+    "action_raw": "say(speaker=\"navigator\", utterance=\"Alright!\")",
+    "category": "communicate"
+  },
+  {
+    "turn_id": "qzhwzgd_t20",
+    "demo_name": "qzhwzgd",
+    "goal": "Open the 3rd option.",
+    "chat_history": [
+      {
+        "role": "user",
+        "content": "Open the 3rd option."
+      }
+    ],
+    "axtree_snapshot": "(uid = e583d9f9-5cf2-43a0) [[tag]] span [[xpath]] /html/body/div...[2]/span[3] [[text]] Hair & Nails [[bbox]] x=365.5 y=222.2 width=81.0 height=20 [[attributes]] data-testid='sty...: 20px;' \n(uid = 087ea612-e402-41be) [[tag]] div [[xpath]] /html/body/div.../div/div[2] [[bbox]] x=278.5 y=355.5 width=20 height=20 [[attributes]] class='react-toggle-...02-41be' \n(uid = 51a2dc23-c6fd-4aaa) [[tag]] div [[xpath]] /html/body/div.../div/div[2] [[bbox]] x=278.5 y=310.5 width=20 height=20 [[attributes]] class='react-toggle-th...fd-4aaa' \n(uid = 9bec8a98-a0ee-4edf) [[tag]] div [[xpath]] /html/body/div.../div/div[2] [[bbox]] x=278.5 y=400.5 width=20 height=20 [[attributes]] class='react-toggle-...0ee-4edf' \n(uid = 1faa0ffb-d62a-461a) [[tag]] span [[xpath]] /html/body/div[...]/a/div/span [[text]] All listings [[bbox]] x=152.5 y=125.5 width=70.8 height=24 [[attributes]] data-webtasks-id='...xb6m5' \n(uid = 7aff66b9-0bbc-4c32) [[tag]] span [[xpath]] /html/body/div...[2]/span[5] [[text]] Maytag Neptune Electric...er Dual Cabinets [[bbox]] x=1032.2 y=556.2 width=183.1 height=40 [[attributes]] data-testid='sty...: 20px;' \n(uid = 2de84f41-9297-4439) [[tag]] input [[xpath]] /html/body/div[.../div[2]/input [[bbox]] x=359.2 y=7 width=560 height=36 [[attributes]] placeholder='' value=''...1u8qly9' \n(uid = 299edd67-6b3d-46a1) [[tag]] span [[xpath]] /html/body/div...[2]/span[1] [[text]] FREE [[bbox]] x=587.8 y=202.2 width=32.4 height=20 [[attributes]] data-testid='sty...: 20px;' \n(uid = 050aec81-a3e9-472b) [[tag]] span [[xpath]] /html/body/div...[2]/span[1] [[text]] FREE [[bbox]] x=1032.2 y=202.2 width=32.4 height=20 [[attributes]] data-testid='sty...: 20px;' \n(uid = 107871fb-7fea-48e2) [[tag]] span [[xpath]] /html/body/div.../div/span[1] [[text]] Search [[bbox]] x=376.2 y=15 width=44.1 height=20 [[attributes]] data-testid='styled... 20px;'",
+    "url": "",
+    "action_type": "click",
+    "action_args": {
+      "uid": "9a745cbc-de2a-4d05"
+    },
+    "action_raw": "click(uid=\"9a745cbc-de2a-4d05\")",
+    "category": "click"
+  },
+  {
+    "turn_id": "qzhwzgd_t21",
+    "demo_name": "qzhwzgd",
+    "goal": "Complete the browsing task in demo qzhwzgd",
+    "chat_history": [],
+    "axtree_snapshot": "(no candidates available)",
+    "url": "",
+    "action_type": "say",
+    "action_args": {
+      "speaker": "navigator",
+      "utterance": "Here it is."
+    },
+    "action_raw": "say(speaker=\"navigator\", utterance=\"Here it is.\")",
+    "category": "communicate"
+  },
+  {
+    "turn_id": "qzhwzgd_t24",
+    "demo_name": "qzhwzgd",
+    "goal": "Open the 3rd option.",
+    "chat_history": [
+      {
+        "role": "user",
+        "content": "Open the 3rd option."
+      },
+      {
+        "role": "user",
+        "content": "Like & Bookmark this listing."
+      }
+    ],
+    "axtree_snapshot": "(uid = c2ca11e3-1a53-48b5) [[tag]] svg [[xpath]] /html/body/div[1]/div/...1]/div[6]/button/div/svg [[bbox]] x=934.5 y=315 width=20 height=20 [[attributes]] width='20' height='20' aria-...1 css-10o54qd' [[children]] path \n(uid = 6568854c-9b4f-4225) [[tag]] svg [[xpath]] /html/body/div[1]/div/...1]/div[5]/button[2]/svg [[bbox]] x=1131.5 y=251 width=24 height=24 [[attributes]] width='24' height='24' fill='...rgm2 css-1rmfb3p' [[children]] path \n(uid = 0df61f75-7278-473a) [[tag]] svg [[xpath]] /html/body/div[1]/div/...1]/div[5]/div/button/svg [[bbox]] x=1187.5 y=251 width=24 height=24 [[attributes]] width='24' height='24' fill...xrgm2 css-1rmfb3p' [[children]] path \n(uid = 687b5360-dcd3-40e4) [[tag]] svg [[xpath]] /html/body/div[1]/div/...div/div[2]/div/button/svg [[bbox]] x=947.5 y=370.9 width=17.1 height=17.1 [[attributes]] fill='none' aria-hidden='true' width='...0-dcd3-40e4' [[children]] path \n(uid = b87f1199-f501-4ac7) [[tag]] svg [[xpath]] /html/body/div[1]/div/div...div[1]/div[1]/button/svg [[bbox]] x=1066.9 y=370.9 width=17.1 height=17.1 [[attributes]] fill='none' aria-hidden='true' width='...9-f501-4ac7' [[children]] path \n(uid = 6f5a963a-215a-4fec) [[tag]] div [[xpath]] /html/body/div[1]/div/...div/div/div/div[2]/div [[bbox]] x=1025.5 y=365 width=100 height=100 [[attributes]] class='mapboxgl-marker ' data-webtasks..., 10px); cursor: auto;' [[children]] div \n(uid = 12c91e76-54df-49f6) [[tag]] div [[xpath]] /html/body/div[1]/div/...1]/div/button[1]/div/div [[text]] Like [[bbox]] x=1132.2 y=498 width=23.3 height=20 [[attributes]] data-webtasks-id='12c9...ygJ css-13kb93x' \n(uid = 2b3040fe-250d-4529) [[tag]] span [[xpath]] /html/body/div[1]/div/...1]/div/ul/li/a/span [[text]] Home [[bbox]] x=149.5 y=74.5 width=41.0 height=20 [[attributes]] data-testid='Home' data-webtasks...jgzf0g css-quama8' \n(uid = b39606d2-7355-4d71) [[tag]] path [[xpath]] /html/body/div[1]/div/div...div[2]/div/button/svg/path [[bbox]] x=948.9 y=373.0 width=14.3 height=12.9 [[attributes]] fill='currentColor' data-webtasks-id='...0 0 1-1-1Z' \n(uid = d8a758ea-c468-42d6) [[tag]] div [[xpath]] /html/body/div[1]/div/...]/div[3]/div/div[1] [[bbox]] x=359.5 y=23 width=523 height=460 [[attributes]] class='css-1i0dy17'...-c468-42d6' [[children]] div div",
+    "url": "",
+    "action_type": "click",
+    "action_args": {
+      "uid": "593c509f-0593-4ab6"
+    },
+    "action_raw": "click(uid=\"593c509f-0593-4ab6\")",
+    "category": "click"
+  },
+  {
+    "turn_id": "qnzgzxp_t15",
+    "demo_name": "qnzgzxp",
+    "goal": "[00:00] Hi [00:32] Please open Proton Mail. [01:17] Could you compose an email for me? [01:58] Compose a short email to inquire about the flight status. ;",
+    "chat_history": [],
+    "axtree_snapshot": "(uid = 43310d70-900d-4e8a) [[tag]] textarea [[xpath]] /html/body/chat...div[2]/textarea [[bbox]] x=405.8 y=553 width=736.5 height=24 [[attributes]] _ngcontent-ng-...ed ng-dirty' \n(uid = 9e58ebdd-21d3-4732) [[tag]] p [[xpath]] /html/body/chat...div/p[2] [[text]] Dear [Airline Name], [[bbox]] x=390 y=221 width=856 height=24 [[attributes]] data-webtasks-id...4732' \n(uid = 1cdfcded-3900-4e4a) [[tag]] recitations-gutter [[xpath]] /html/body/chat...]/recitations-gutter [[bbox]] x=342 y=201 width=48 height=592 [[attributes]] _ngcontent-ng-...-4e4a' [[children]] div \n(uid = aef5693e-c64d-48ae) [[tag]] p [[xpath]] /html/body/chat...div/p[3] [[text]] I am writing to inquire... [arrival time]. [[bbox]] x=390 y=269 width=856 height=48 [[attributes]] data-webtasks-id...-48ae' \n(uid = eef5f7e5-f350-4e82) [[tag]] p [[xpath]] /html/body/chat...div/p[6] [[text]] Sincerely, [Your Name] [[bbox]] x=390 y=461 width=856 height=48 [[attributes]] data-webtasks-...-4e82' \n(uid = c10c0c9b-c668-4421) [[tag]] chat-window [[xpath]] /html/body/chat...main/chat-window [[bbox]] x=258 y=64 width=1108 height=593 [[attributes]] _nghost-ng-...star-inserted' [[children]] div \n(uid = 75ea155c-c062-45ed) [[tag]] p [[xpath]] /html/body/chat...div/p[1] [[text]] Sure, here is a short... about the flight status: [[bbox]] x=390 y=173 width=856 height=24 [[attributes]] data-webtasks-id...-45ed' \n(uid = f5395bef-6ced-4f00) [[tag]] mat-sidenav [[xpath]] /html/body/chat...mat-sidenav [[bbox]] x=0 y=64 width=258 height=593 [[attributes]] _ngcontent-ng-...drawer-opened' [[children]] div \n(uid = 8d9f8e3c-7ed2-4c24) [[tag]] div [[xpath]] /html/body/chat...]/message-content/div [[bbox]] x=953 y=202 width=226 height=96 [[attributes]] _ngcontent-ng...-4c24' [[children]] p p \n(uid = 22e664b7-215e-49e0) [[tag]] div [[xpath]] /html/body/chat...]/message-content/div [[bbox]] x=677 y=202 width=226 height=96 [[attributes]] _ngcontent-ng-...49e0' [[children]] p p",
+    "url": "",
+    "action_type": "click",
+    "action_args": {
+      "uid": "9e58ebdd-21d3-4732"
+    },
+    "action_raw": "click(uid=\"9e58ebdd-21d3-4732\")",
+    "category": "click"
+  },
+  {
+    "turn_id": "qnzgzxp_t18",
+    "demo_name": "qnzgzxp",
+    "goal": "Complete the browsing task in demo qnzgzxp",
+    "chat_history": [],
+    "axtree_snapshot": "(no candidates available)",
+    "url": "",
+    "action_type": "say",
+    "action_args": {
+      "speaker": "navigator",
+      "utterance": "Please help me with the following details:\\n\\t1. Recipient email id.\\n\\t2. Recipient name\\n\\t3. Flight number\\n\\t4. origin airport\\n\\t5. departure date\\n\\t6. departure time\\n\\t7. destination airport\\n\\t8. arrival ..."
+    },
+    "action_raw": "say(speaker=\"navigator\", utterance=\"Please help me with the following details:\\n\\t1. Recipient email id.\\n\\t2. Recipient name\\n\\t3. Flight number\\n\\t4. origin airport\\n\\t5. departure date\\n\\t6. departure time\\n\\t7. destination airport\\n\\t8. arrival ...\")",
+    "category": "communicate"
+  },
+  {
+    "turn_id": "qnzgzxp_t26",
+    "demo_name": "qnzgzxp",
+    "goal": "Complete the browsing task in demo qnzgzxp",
+    "chat_history": [],
+    "axtree_snapshot": "(no candidates available)",
+    "url": "",
+    "action_type": "say",
+    "action_args": {
+      "speaker": "navigator",
+      "utterance": "Would you require any changes?"
+    },
+    "action_raw": "say(speaker=\"navigator\", utterance=\"Would you require any changes?\")",
+    "category": "communicate"
+  },
+  {
+    "turn_id": "jxjdjkh_t25",
+    "demo_name": "jxjdjkh",
+    "goal": "[-00:14] Hi [00:06] Please open the Quandoo website. [00:41] Can you find me a restaurant in Vienna, Austria with Austrian Cuisine ? ;",
+    "chat_history": [],
+    "axtree_snapshot": "(uid = 862a0408-3b90-47ee) [[tag]] a [[xpath]] /html/body/div[...[4]/div/a [[text]] Restaurant Jonathan & Sieglinde [[bbox]] x=442.9 y=448.6 width=887 height=156 [[attributes]] class='zt41a...-10445' \n(uid = 0d46d619-8058-44eb) [[tag]] a [[xpath]] /html/body/div[...[3]/div/a [[text]] DEVAL restaurant [[bbox]] x=442.9 y=268.6 width=887 height=156 [[attributes]] class='zt41a1...54086' \n(uid = 542eae93-0f72-44dc) [[tag]] a [[xpath]] /html/body/div[...[2]/div/a [[text]] Austrian Pub [[bbox]] x=442.9 y=88.6 width=887 height=156 [[attributes]] class='zt41a1...89054' \n(uid = fd24a002-3f71-4436) [[tag]] a [[xpath]] /html/body/div[...[5]/div/a [[text]] Casino Restaurant Wien [[bbox]] x=442.9 y=628.6 width=887 height=156 [[attributes]] class='zt41a1...10713' \n(uid = 7e69b8f0-5b23-4505) [[tag]] span [[xpath]] /html/body/div[...div/span[1] [[text]] Seafood [[bbox]] x=257.3 y=518.8 width=61.9 height=20 [[attributes]] data-webtasks-id='...-4505' \n(uid = baf417f2-41d3-49fb) [[tag]] span [[xpath]] /html/body/div[...div/span[1] [[text]] Pasta [[bbox]] x=257.3 y=454.8 width=41.8 height=20 [[attributes]] data-webtasks-id='...3-49fb' \n(uid = a4ad2b8d-2042-47d3) [[tag]] div [[xpath]] /html/body/div...]/div/div[2] [[bbox]] x=672.9 y=640.6 width=657 height=144 [[attributes]] data-qa='content'...w fLfGMw' [[children]] div div \n(uid = 86fa933a-73f8-4f2e) [[tag]] div [[xpath]] /html/body/div...]/div/div[2] [[bbox]] x=672.9 y=280.6 width=657 height=144 [[attributes]] data-qa='content'...w fLfGMw' [[children]] div div \n(uid = e334f351-d9b2-4b16) [[tag]] div [[xpath]] /html/body/div[...]/div[2]/div [[bbox]] x=221.3 y=-345.2 width=171.7 height=1088 [[attributes]] class='j2exl...2-4b16' [[children]] li li \n(uid = 8d5e5f10-0777-4567) [[tag]] span [[xpath]] /html/body/div[.../p/span/span [[text]] 12\u20ac [[bbox]] x=1005.6 y=179.4 width=21.7 height=17.6 [[attributes]] data-webtasks-id='...-4567'",
+    "url": "",
+    "action_type": "click",
+    "action_args": {
+      "uid": "50316d88-4883-4622"
+    },
+    "action_raw": "click(uid=\"50316d88-4883-4622\")",
+    "category": "click"
+  },
+  {
+    "turn_id": "jxjdjkh_t39",
+    "demo_name": "jxjdjkh",
+    "goal": "I want to find a reservation for 2nd June at 7:00 p.m",
+    "chat_history": [
+      {
+        "role": "user",
+        "content": "I want to find a reservation for 2nd June at 7:00 p.m"
+      }
+    ],
+    "axtree_snapshot": "(uid = 9f2bdabd-9e8f-475c) [[tag]] button [[xpath]] /html/body/div[1]/section...div[2]/div[3]/button [[text]] Reserve a table at 7:30 pm [[bbox]] x=984.9 y=550.1 width=374.7 height=58 [[attributes]] data-vwo='reservation-init'...-7 hFkzcL' \n(uid = 387a834d-6a29-425c) [[tag]] h1 [[xpath]] /html/body/div[1]/...1]/div/div[1]/h1 [[text]] Restaurant Jonathan & Sieglinde [[bbox]] x=171.6 y=120 width=555.0 height=48 [[attributes]] font-weight='bold' color='text....1,desktop.heading.1' \n(uid = 83c71267-d0d7-409f) [[tag]] div [[xpath]] /html/body/div[1]/...div/section/div/div[1] [[bbox]] x=155.6 y=70 width=813.3 height=2385 [[attributes]] class='sc-fzozJi...d0d7-409f' [[children]] script script \n(uid = 2b5d6875-f35c-4a34) [[tag]] input [[xpath]] /html/body/div[1]/section...div[1]/div[1]/input [[bbox]] x=217 y=14.6 width=320 height=39.6 [[attributes]] value='' elevation='2' autocomplete...='Find restaurants or cuisines' \n(uid = 43cbc96e-f3fa-420e) [[tag]] div [[xpath]] /html/body/div[1]/...1]/div[2]/div[1] [[text]] Today (Friday) [[bbox]] x=1028.9 y=157.5 width=319.7 height=20 [[attributes]] class='mx6ydz-4 lf...='widget-date-picker-selection' \n(uid = 5bb6863c-f88c-4847) [[tag]] div [[xpath]] /html/body/div[1]/...div[2]/div/div[2] [[text]] T [[bbox]] x=1072.2 y=271 width=40 height=31.2 [[attributes]] title='Tuesday' class='Day...f88c-4847' \n(uid = 5186a4e5-cdc3-4f70) [[tag]] div [[xpath]] /html/body/div[1]/...3]/div[5]/div[5] [[text]] 30 [[bbox]] x=1192.2 y=466.2 width=40 height=41 [[attributes]] tabindex='-1' aria-disabled...-cdc3-4f70' \n(uid = eab3d223-fd3e-4df8) [[tag]] div [[xpath]] /html/body/div[1]/...3]/div[4]/div[3] [[text]] 21 [[bbox]] x=1112.2 y=425.2 width=40 height=41 [[attributes]] tabindex='-1' aria-disabled='...-fd3e-4df8' \n(uid = cd2070e2-349d-4966) [[tag]] div [[xpath]] /html/body/div[1]/...3]/div[2]/div[3] [[text]] 07 [[bbox]] x=1112.2 y=343.2 width=40 height=41 [[attributes]] tabindex='-1' aria-disabled...349d-4966' \n(uid = 1a48b408-ee1b-4c68) [[tag]] div [[xpath]] /html/body/div[1]/...3]/div[4]/div[2] [[text]] 20 [[bbox]] x=1072.2 y=425.2 width=40 height=41 [[attributes]] tabindex='-1' aria-disabled='...ee1b-4c68'",
+    "url": "",
+    "action_type": "click",
+    "action_args": {
+      "uid": "640f511d-db5a-4aa5"
+    },
+    "action_raw": "click(uid=\"640f511d-db5a-4aa5\")",
+    "category": "click"
+  },
+  {
+    "turn_id": "jxjdjkh_t45",
+    "demo_name": "jxjdjkh",
+    "goal": "Complete the browsing task in demo jxjdjkh",
+    "chat_history": [],
+    "axtree_snapshot": "(no candidates available)",
+    "url": "",
+    "action_type": "say",
+    "action_args": {
+      "speaker": "navigator",
+      "utterance": "Yes, it is available."
+    },
+    "action_raw": "say(speaker=\"navigator\", utterance=\"Yes, it is available.\")",
+    "category": "communicate"
+  },
+  {
+    "turn_id": "dalipxa_t14",
+    "demo_name": "dalipxa",
+    "goal": "Please set Auckland International Airport (AKL).",
+    "chat_history": [
+      {
+        "role": "user",
+        "content": "Please set Auckland International Airport (AKL)."
+      }
+    ],
+    "axtree_snapshot": "(uid = 36e01bb6-5991-40f3) [[tag]] div [[xpath]] /html/body...]/div[1] [[text]] Bob Hope Airport (BUR) [[bbox]] x=484.5 y=386 width=210.9 height=22 [[attributes]] class='item-...40f3' \n(uid = cb76f562-3506-4e99) [[tag]] div [[xpath]] /html/body.../div[1] [[text]] Search [[bbox]] x=1164.5 y=222 width=57.0 height=76.5 [[attributes]] class='search-...4e99' \n(uid = 79a93f44-0630-408e) [[tag]] button [[xpath]] /html/body/...[1]/button [[bbox]] x=1119.5 y=205 width=119.0 height=66 [[attributes]] type='button' data... search-button' [[children]] div div \n(uid = aebd5fec-5635-4899) [[tag]] div [[xpath]] /html/body...]/div[1] [[text]] Long Beach Municipal Airport (LGB) [[bbox]] x=127.5 y=386 width=233.5 height=22 [[attributes]] class='item-location...899' \n(uid = 0b90ff3e-1a1d-4e5f) [[tag]] input [[xpath]] /html/body/.../span/input [[bbox]] x=127.5 y=236 width=471.0 height=18 [[attributes]] data-event-id..., district...' \n(uid = ee20e6d3-f957-4593) [[tag]] div [[xpath]] /html/body...]/div[1] [[text]] Orlando International Airport (MCO) [[bbox]] x=127.5 y=326 width=221.0 height=22 [[attributes]] class='item-...4593' \n(uid = 77bfdab3-69cc-405c) [[tag]] div [[xpath]] /html/body...]/div[1] [[text]] Brisbane Airport (BNE) [[bbox]] x=484.5 y=563 width=200.0 height=22 [[attributes]] class='item-...405c' \n(uid = 6cb7f936-1981-4551) [[tag]] div [[xpath]] /html/body...]/div[1] [[text]] West Palm Beach... (PBI) [[bbox]] x=484.5 y=326 width=272.1 height=22 [[attributes]] class='item-...4551' \n(uid = ece184bd-045e-4338) [[tag]] div [[xpath]] /html/body.../div[1] [[text]] 10:00 [[bbox]] x=788.6 y=236 width=35.8 height=18 [[attributes]] class='time'...338' \n(uid = 1a0fe891-f4ed-4519) [[tag]] div [[xpath]] /html/body...]/div[1] [[text]] Albany International Airport (ALB) [[bbox]] x=127.5 y=446 width=285.4 height=22 [[attributes]] class='item-location...519'",
+    "url": "",
+    "action_type": "click",
+    "action_args": {
+      "uid": "86b18e2a-8dac-44c7"
+    },
+    "action_raw": "click(uid=\"86b18e2a-8dac-44c7\")",
+    "category": "click"
+  },
+  {
+    "turn_id": "dalipxa_t20",
+    "demo_name": "dalipxa",
+    "goal": "Yes, please set July 10th to July 12th, and the pickup time is 10:00 AM.",
+    "chat_history": [
+      {
+        "role": "user",
+        "content": "Yes, please set July 10th to July 12th, and the pickup time is 10:00 AM."
+      }
+    ],
+    "axtree_snapshot": "(uid = 1fe16255-ecb8-48d2) [[tag]] div [[xpath]] /html/body/...div[15] [[text]] 07:00 [[bbox]] x=773.6 y=239 width=93 height=40 [[attributes]] class='car-select...8d2' \n(uid = 1f1122ef-29d3-4110) [[tag]] div [[xpath]] /html/body/...div[19] [[text]] 09:00 [[bbox]] x=773.6 y=399 width=93 height=40 [[attributes]] class='car-...4110' \n(uid = dc7d65f7-e75c-4245) [[tag]] div [[xpath]] /html/body/...div[13] [[text]] 06:00 [[bbox]] x=773.6 y=159 width=93 height=40 [[attributes]] class='car-...4245' \n(uid = 16763249-e6c6-4294) [[tag]] div [[xpath]] /html/body/...div[17] [[text]] 08:00 [[bbox]] x=773.6 y=319 width=93 height=40 [[attributes]] class='car-select...294' \n(uid = a2c7067e-1c26-47c2) [[tag]] div [[xpath]] /html/body/...div[23] [[text]] 11:00 [[bbox]] x=773.6 y=559 width=93 height=40 [[attributes]] class='car-select...7c2' \n(uid = 83113fd8-c3af-4693) [[tag]] div [[xpath]] /html/body/...div[21] [[text]] 10:00 [[bbox]] x=773.6 y=479 width=93 height=40 [[attributes]] data-webtasks-...-select-active' \n(uid = 7843930d-8e8f-4a0f) [[tag]] div [[xpath]] /html/body/...div[16] [[text]] 07:30 [[bbox]] x=773.6 y=279 width=93 height=40 [[attributes]] class='car-select...a0f' \n(uid = 7ad0ec86-5b4a-4f3a) [[tag]] div [[xpath]] /html/body/...div[20] [[text]] 09:30 [[bbox]] x=773.6 y=439 width=93 height=40 [[attributes]] class='car-select...f3a' \n(uid = 639ca7d5-72d7-417e) [[tag]] div [[xpath]] /html/body/.../div[9] [[text]] 04:00 [[bbox]] x=773.6 y=-1 width=93 height=40 [[attributes]] class='car-...417e' \n(uid = 79a93f44-0630-408e) [[tag]] button [[xpath]] /html/body/...div[1]/button [[bbox]] x=1119.5 y=205 width=119.0 height=66 [[attributes]] type='button' data...default search-button' [[children]] div div",
+    "url": "",
+    "action_type": "click",
+    "action_args": {
+      "uid": "83113fd8-c3af-4693"
+    },
+    "action_raw": "click(uid=\"83113fd8-c3af-4693\")",
+    "category": "click"
+  },
+  {
+    "turn_id": "dalipxa_t21",
+    "demo_name": "dalipxa",
+    "goal": "Complete the browsing task in demo dalipxa",
+    "chat_history": [],
+    "axtree_snapshot": "(no candidates available)",
+    "url": "",
+    "action_type": "say",
+    "action_args": {
+      "speaker": "navigator",
+      "utterance": "What would be the drop-off time?"
+    },
+    "action_raw": "say(speaker=\"navigator\", utterance=\"What would be the drop-off time?\")",
+    "category": "communicate"
+  }
+]
