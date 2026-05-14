@@ -176,6 +176,29 @@ class PromptEvolverConfig:
                             ``name — description`` format.  This lets
                             evolution discover whether descriptions help.
                             Default ``False``.
+        minimize_tokens:    Enable token-length optimisation.  When ``True``,
+                            two mechanisms activate:
+                            (A) a baseline-relative efficiency bonus is
+                            blended into the fitness score, and
+                            (B) tournament selection uses a lexicographic
+                            tiebreaker that prefers shorter prompts within
+                            the same accuracy band.
+                            Default ``False``.
+        token_weight:       Blend weight for the efficiency bonus (A).
+                            ``0.0`` disables blending, ``1.0`` scores
+                            purely on token efficiency.  Default ``0.10``.
+        token_efficiency_cap: Maximum efficiency ratio (baseline /
+                            candidate tokens) before capping.  Prevents
+                            degenerate ultra-short prompts from scoring
+                            disproportionately.  Default ``2.0``.
+        token_accuracy_band: Width of the accuracy band for tiebreaker
+                            (B).  Candidates whose scores fall in the
+                            same ``score // band`` bucket are compared
+                            by prompt length.  Default ``2.0``.
+        baseline_prompt_tokens: Baseline prompt token count used to
+                            compute the efficiency ratio.  If ``0``
+                            (default), token optimisation scoring is
+                            skipped even when ``minimize_tokens=True``.
     """
 
     iterations: int = 30
@@ -204,6 +227,11 @@ class PromptEvolverConfig:
     adaptive_mutations: bool = False
     llm_mutation_rate: float = 0.0
     describe_entities: bool = False
+    minimize_tokens: bool = False
+    token_weight: float = 0.10
+    token_efficiency_cap: float = 2.0
+    token_accuracy_band: float = 2.0
+    baseline_prompt_tokens: int = 0
 
     def __post_init__(self) -> None:
         # Auto-detect from environment variables
@@ -1364,6 +1392,26 @@ class PromptEvolverResult:
 
 
 # ---------------------------------------------------------------------------
+# Token counting
+# ---------------------------------------------------------------------------
+
+
+def count_prompt_tokens(text: str) -> int:
+    """Count tokens in a prompt string.
+
+    Uses *tiktoken* with the ``cl100k_base`` encoding (GPT-4 family).
+    Falls back to ``len(text) // 4`` when tiktoken is not installed.
+    """
+    try:
+        import tiktoken  # type: ignore[import-untyped]
+
+        enc = tiktoken.get_encoding("cl100k_base")
+        return len(enc.encode(text))
+    except (ImportError, KeyError):
+        return len(text) // 4
+
+
+# ---------------------------------------------------------------------------
 # Main engine
 # ---------------------------------------------------------------------------
 
@@ -1709,10 +1757,27 @@ class PromptEvolver:
 
         A candidate with zero penalty violations always beats one with
         any violations, regardless of raw fitness.
+
+        When ``minimize_tokens`` is enabled with a positive
+        ``token_accuracy_band``, candidates in the same accuracy band
+        are compared by prompt length (shorter wins).
         """
         k = min(k, len(island))
         indices = self._rng.choice(len(island), size=k, replace=False)
         contestants = [island[int(i)] for i in indices]
+
+        cfg = self.config
+        if cfg.minimize_tokens and cfg.token_accuracy_band > 0:
+            band = cfg.token_accuracy_band
+
+            def _token_aware_key(c: PromptCandidate) -> tuple:
+                feasible = 1 if c.penalty_violations == 0 else 0
+                bucket = int(c.score // band)
+                tokens = count_prompt_tokens(c.template)
+                return (feasible, bucket, -tokens)
+
+            return max(contestants, key=_token_aware_key)
+
         return max(contestants, key=_feasibility_key)
 
     def _migrate(self, islands: list[list[PromptCandidate]]) -> None:
@@ -1738,6 +1803,36 @@ class PromptEvolver:
             )
             islands[dest].append(migrant)
             self._all_candidates.append(migrant)
+
+    def _apply_token_efficiency(
+        self, raw_score: float, candidate: PromptCandidate,
+    ) -> float:
+        """Blend a baseline-relative efficiency bonus into the raw score.
+
+        When ``minimize_tokens`` is enabled, computes
+        ``efficiency = baseline_tokens / candidate_tokens`` (capped at
+        ``token_efficiency_cap``), converts it to a 0–100 bonus, and
+        blends it with the raw accuracy score using ``token_weight``.
+
+        Returns the raw score unchanged when token optimisation is
+        disabled or no baseline is set.
+        """
+        cfg = self.config
+        if not (cfg.minimize_tokens and cfg.token_weight > 0
+                and cfg.baseline_prompt_tokens > 0):
+            return raw_score
+
+        prompt_tokens = count_prompt_tokens(candidate.template)
+        efficiency = cfg.baseline_prompt_tokens / max(prompt_tokens, 1)
+        efficiency_bonus = (
+            min(efficiency, cfg.token_efficiency_cap)
+            / cfg.token_efficiency_cap
+            * 100.0
+        )
+        return (
+            raw_score * (1 - cfg.token_weight)
+            + efficiency_bonus * cfg.token_weight
+        )
 
     def _evaluate_candidate(self, candidate: PromptCandidate) -> float:
         """Evaluate a candidate prompt on the dataset. Returns accuracy * 100."""
@@ -1794,7 +1889,8 @@ class PromptEvolver:
                 )
 
         accuracy = total_score / len(samples) if samples else 0.0
-        return accuracy * 100.0
+        raw_score = accuracy * 100.0
+        return self._apply_token_efficiency(raw_score, candidate)
 
 
 # ---------------------------------------------------------------------------

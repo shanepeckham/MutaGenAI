@@ -551,6 +551,65 @@ three difficulty tiers. Published baseline: ToolLLaMA 66.7 %, GPT-4
 
 ---
 
+## Token optimization
+
+Agent system prompts can be verbose (800–1 500 tokens). Token
+optimization applies evolutionary pressure toward shorter prompts
+without sacrificing accuracy. The feature is **off by default** and
+activated via five `PromptEvolverConfig` fields.
+
+### How it works
+
+Two complementary mechanisms run inside the existing evolutionary loop:
+
+1. **Baseline-relative efficiency bonus** — after computing raw accuracy
+   the engine calculates `efficiency = baseline_tokens / candidate_tokens`
+   (capped at `token_efficiency_cap`), converts it to a 0–100 bonus, and
+   blends it with the raw score using `token_weight`.
+2. **Lexicographic tournament tiebreaker** — within the same accuracy
+   band (`token_accuracy_band` percentage points) the tournament selects
+   the candidate with fewer tokens instead of higher raw score.
+
+### Quick start — token-aware evolution
+
+```python
+from mutagenai import (
+    PromptEvolver, PromptEvolverConfig, Tool, EvalSample,
+    LLMBackend, count_prompt_tokens,
+)
+
+baseline_prompt = "You are a helpful assistant..."
+config = PromptEvolverConfig(
+    iterations=5,
+    backend=LLMBackend.OLLAMA,
+    minimize_tokens=True,            # enable token optimization
+    token_weight=0.10,               # 10 % of score from efficiency
+    token_efficiency_cap=2.0,        # cap efficiency bonus at 2x shorter
+    token_accuracy_band=2.0,         # tiebreak within 2 pp accuracy
+    baseline_prompt_tokens=count_prompt_tokens(baseline_prompt),
+)
+
+evolver = PromptEvolver(tools=tools, eval_dataset=dataset, config=config)
+result = evolver.run()
+```
+
+### Configuration reference
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `minimize_tokens` | `bool` | `False` | Master switch for token optimization |
+| `token_weight` | `float` | `0.10` | Blend weight for the efficiency bonus (0–1) |
+| `token_efficiency_cap` | `float` | `2.0` | Maximum efficiency ratio before capping |
+| `token_accuracy_band` | `float` | `2.0` | Accuracy band width for the tournament tiebreaker (pp) |
+| `baseline_prompt_tokens` | `int` | `0` | Token count of the baseline prompt (use `count_prompt_tokens()`) |
+
+### Utility
+
+`count_prompt_tokens(text)` counts tokens using tiktoken `cl100k_base`
+with a `len(text) // 4` fallback when tiktoken is not installed.
+
+---
+
 ## No-eval prompt evolution — 7 strategies
 
 > **Script:** [`examples/cookbook/prompt_evolution_no_eval.py`](examples/cookbook/prompt_evolution_no_eval.py)

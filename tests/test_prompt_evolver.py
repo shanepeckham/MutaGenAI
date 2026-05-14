@@ -1063,3 +1063,209 @@ class TestFeasibilityKeyPromptEvolver:
     def test_penalty_violations_default_zero(self):
         c = PromptCandidate(template="t", score=50.0)
         assert c.penalty_violations == 0
+
+
+# ── Token optimization tests ──────────────────────────────────────────────
+
+
+from MutaGenAI.prompt_evolver import count_prompt_tokens
+
+
+class TestCountPromptTokens:
+    """Tests for count_prompt_tokens utility."""
+
+    def test_given_empty_string_when_count_then_returns_zero(self):
+        assert count_prompt_tokens("") == 0
+
+    def test_given_short_text_when_count_then_returns_positive(self):
+        tokens = count_prompt_tokens("Hello world")
+        assert tokens > 0
+
+    def test_given_longer_text_when_count_then_more_tokens(self):
+        short = count_prompt_tokens("Hi")
+        long = count_prompt_tokens("Hello world, this is a much longer sentence.")
+        assert long > short
+
+    def test_given_known_text_when_count_then_consistent(self):
+        # Same input should always produce same output
+        text = "You are a helpful assistant."
+        assert count_prompt_tokens(text) == count_prompt_tokens(text)
+
+
+class TestTokenOptimizationConfig:
+    """Tests for token optimization config defaults."""
+
+    def test_given_default_config_when_check_then_disabled(self):
+        cfg = PromptEvolverConfig()
+        assert cfg.minimize_tokens is False
+        assert cfg.token_weight == 0.10
+        assert cfg.token_efficiency_cap == 2.0
+        assert cfg.token_accuracy_band == 2.0
+        assert cfg.baseline_prompt_tokens == 0
+
+    def test_given_enabled_config_when_construct_then_stores_values(self):
+        cfg = PromptEvolverConfig(
+            minimize_tokens=True,
+            token_weight=0.20,
+            token_efficiency_cap=3.0,
+            token_accuracy_band=5.0,
+            baseline_prompt_tokens=500,
+        )
+        assert cfg.minimize_tokens is True
+        assert cfg.token_weight == 0.20
+        assert cfg.token_efficiency_cap == 3.0
+        assert cfg.token_accuracy_band == 5.0
+        assert cfg.baseline_prompt_tokens == 500
+
+
+class TestApplyTokenEfficiency:
+    """Tests for _apply_token_efficiency blending logic."""
+
+    @pytest.fixture()
+    def evolver_disabled(self, sample_tools, sample_dataset):
+        """Evolver with token optimization disabled (default)."""
+        cfg = PromptEvolverConfig(minimize_tokens=False)
+        return PromptEvolver(tools=sample_tools, eval_dataset=sample_dataset, config=cfg)
+
+    @pytest.fixture()
+    def evolver_enabled(self, sample_tools, sample_dataset):
+        """Evolver with token optimization enabled."""
+        cfg = PromptEvolverConfig(
+            minimize_tokens=True,
+            token_weight=0.10,
+            token_efficiency_cap=2.0,
+            baseline_prompt_tokens=200,
+        )
+        return PromptEvolver(tools=sample_tools, eval_dataset=sample_dataset, config=cfg)
+
+    def test_given_disabled_when_apply_then_returns_raw(self, evolver_disabled):
+        # Arrange
+        candidate = PromptCandidate(template="short prompt", score=80.0)
+
+        # Act
+        result = evolver_disabled._apply_token_efficiency(80.0, candidate)
+
+        # Assert
+        assert result == 80.0
+
+    def test_given_enabled_when_apply_then_blends_score(self, evolver_enabled):
+        # Arrange — a prompt roughly half the baseline length
+        candidate = PromptCandidate(template="short", score=80.0)
+
+        # Act
+        result = evolver_enabled._apply_token_efficiency(80.0, candidate)
+
+        # Assert — blended should differ from raw because efficiency != 1.0
+        assert result != 80.0
+
+    def test_given_zero_baseline_when_apply_then_returns_raw(self, sample_tools, sample_dataset):
+        # Arrange — enabled but baseline_prompt_tokens=0
+        cfg = PromptEvolverConfig(
+            minimize_tokens=True,
+            token_weight=0.10,
+            baseline_prompt_tokens=0,
+        )
+        evolver = PromptEvolver(tools=sample_tools, eval_dataset=sample_dataset, config=cfg)
+        candidate = PromptCandidate(template="test", score=75.0)
+
+        # Act
+        result = evolver._apply_token_efficiency(75.0, candidate)
+
+        # Assert
+        assert result == 75.0
+
+    def test_given_zero_weight_when_apply_then_returns_raw(self, sample_tools, sample_dataset):
+        # Arrange
+        cfg = PromptEvolverConfig(
+            minimize_tokens=True,
+            token_weight=0.0,
+            baseline_prompt_tokens=200,
+        )
+        evolver = PromptEvolver(tools=sample_tools, eval_dataset=sample_dataset, config=cfg)
+        candidate = PromptCandidate(template="test", score=75.0)
+
+        # Act
+        result = evolver._apply_token_efficiency(75.0, candidate)
+
+        # Assert
+        assert result == 75.0
+
+    def test_given_same_length_prompt_when_apply_then_blends_correctly(
+        self, sample_tools, sample_dataset,
+    ):
+        # Arrange — build a prompt with known token count as baseline
+        baseline_text = "You are a helpful assistant that selects tools."
+        baseline_tokens = count_prompt_tokens(baseline_text)
+        cfg = PromptEvolverConfig(
+            minimize_tokens=True,
+            token_weight=0.10,
+            token_efficiency_cap=2.0,
+            baseline_prompt_tokens=baseline_tokens,
+        )
+        evolver = PromptEvolver(tools=sample_tools, eval_dataset=sample_dataset, config=cfg)
+        candidate = PromptCandidate(template=baseline_text, score=80.0)
+
+        # Act
+        result = evolver._apply_token_efficiency(80.0, candidate)
+
+        # Assert — efficiency=1.0, bonus=1.0/2.0*100=50, blended=80*0.9+50*0.1=77.0
+        assert abs(result - 77.0) < 0.1
+
+
+class TestTournamentSelectTokenAware:
+    """Tests for token-aware tournament selection tiebreaker."""
+
+    @pytest.fixture()
+    def evolver_token(self, sample_tools, sample_dataset):
+        cfg = PromptEvolverConfig(
+            minimize_tokens=True,
+            token_accuracy_band=5.0,
+        )
+        return PromptEvolver(tools=sample_tools, eval_dataset=sample_dataset, config=cfg)
+
+    @pytest.fixture()
+    def evolver_default(self, sample_tools, sample_dataset):
+        cfg = PromptEvolverConfig(minimize_tokens=False)
+        return PromptEvolver(tools=sample_tools, eval_dataset=sample_dataset, config=cfg)
+
+    def test_given_same_band_when_select_then_prefers_shorter(self, evolver_token):
+        # Arrange — both in band 16 (80//5==16, 82//5==16)
+        short = PromptCandidate(template="short", score=80.0)
+        long = PromptCandidate(
+            template="This is a much longer prompt with many tokens", score=82.0,
+        )
+        island = [short, long]
+
+        # Act — k=2 means both are contestants
+        winner = evolver_token._tournament_select(island, k=2)
+
+        # Assert — same accuracy band, shorter prompt wins
+        assert winner is short
+
+    def test_given_different_band_when_select_then_prefers_higher(self, evolver_token):
+        # Arrange — 80//5=16, 90//5=18 → different bands
+        low = PromptCandidate(template="short", score=80.0)
+        high = PromptCandidate(
+            template="This is a much longer prompt with many tokens", score=90.0,
+        )
+        island = [low, high]
+
+        # Act
+        winner = evolver_token._tournament_select(island, k=2)
+
+        # Assert — higher band wins regardless of length
+        assert winner is high
+
+    def test_given_disabled_when_select_then_uses_score(self, evolver_default):
+        # Arrange
+        a = PromptCandidate(template="short", score=80.0)
+        b = PromptCandidate(
+            template="This is a much longer prompt with many tokens", score=82.0,
+        )
+        island = [a, b]
+
+        # Act
+        winner = evolver_default._tournament_select(island, k=2)
+
+        # Assert — disabled: higher score wins (standard feasibility key)
+        assert winner is b
