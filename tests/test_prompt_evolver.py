@@ -16,6 +16,7 @@ from MutaGenAI.prompt_evolver import (
     Tool,
     _crossover_templates,
     _mutate_template,
+    count_prompt_tokens,
     parse_tool_response,
     score_response,
 )
@@ -1066,9 +1067,6 @@ class TestFeasibilityKeyPromptEvolver:
 
 
 # ── Token optimization tests ──────────────────────────────────────────────
-
-
-from MutaGenAI.prompt_evolver import count_prompt_tokens
 
 
 class TestCountPromptTokens:
