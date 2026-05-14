@@ -60,17 +60,20 @@ MutaGenAI/
 
 ## Key modules and their responsibilities
 
-### prompt_evolver.py (~1 539 LOC)
+### prompt_evolver.py (~1 600 LOC)
 
 The core evolutionary prompt engine. Contains:
 
 - **`PromptEvolver`** — main class for ground-truth prompt evolution.
   Implements island-model EA with tournament selection, crossover,
   mutation, and elite preservation. Runs CMA-ES in parallel to tune
-  temperature and top-p.
+  temperature and top-p. Supports optional token optimization via
+  `minimize_tokens` config fields.
 - **`PromptEvolverConfig`** — configuration dataclass (iterations,
   population_size, num_islands, mutation_rate, crossover_rate,
-  migration_interval, elite_size, standard/deep presets).
+  migration_interval, elite_size, standard/deep presets, token
+  optimization: minimize_tokens, token_weight, token_efficiency_cap,
+  token_accuracy_band, baseline_prompt_tokens).
 - **`PromptCandidate`** — a single prompt variant with score, hash,
   generation, island_id, lineage (parent_hashes, operation).
 - **`LLMBackend`** / **`LLMClient`** — enum + HTTP client for Ollama,
@@ -81,6 +84,8 @@ The core evolutionary prompt engine. Contains:
 - **`ProblemType`** — enum: tool_calling, classification, generation,
   code, conversation.
 - **`ErrorProfile`** — tracks common failure modes during evolution.
+- **`count_prompt_tokens()`** — utility for counting tokens using
+  tiktoken with a character-based fallback.
 - **`evolve_prompt_with_cmaes()`** — CMA-ES continuous parameter tuning.
 - **`generate_adaptive_mutations()`** — generates domain-specific
   mutations based on error analysis.
@@ -263,6 +268,9 @@ default) and 95.5 % on xLAM (vs 95.4 % default) — without labels.
 ```python
 # Ground-truth evolution
 from MutaGenAI import PromptEvolver, PromptEvolverConfig, Tool, EvalSample, LLMBackend
+
+# Token optimization
+from MutaGenAI import count_prompt_tokens
 
 # No-eval evolution
 from MutaGenAI import NoEvalPromptEvolver, NoEvalConfig

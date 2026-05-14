@@ -1,0 +1,1501 @@
+[
+  {
+    "hash": "fe5ac077d18afd76",
+    "parent_hashes": [
+      "5f003a2a83602d94",
+      "a33b19995d682592"
+    ],
+    "operation": "crossover",
+    "generation": 5,
+    "island_id": 2,
+    "score": 32.82,
+    "temperature": 0.2745,
+    "top_p": 1.0,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nThe parameters object must contain string values only.\n\nBe precise. Use the minimum words needed.\nFinal Answer: <answer>",
+    "prompt_tokens": 69,
+    "efficiency_ratio": 3.551
+  },
+  {
+    "hash": "78fd607ae1f17490",
+    "parent_hashes": [
+      "fe5ac077d18afd76"
+    ],
+    "operation": "migration",
+    "generation": 5,
+    "island_id": 0,
+    "score": 32.82,
+    "temperature": 0.2745,
+    "top_p": 1.0,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nThe parameters object must contain string values only.\n\nBe precise. Use the minimum words needed.\nFinal Answer: <answer>",
+    "prompt_tokens": 69,
+    "efficiency_ratio": 3.551
+  },
+  {
+    "hash": "a33b19995d682592",
+    "parent_hashes": [
+      "1052267991f7f2e3"
+    ],
+    "operation": "mutation",
+    "generation": 3,
+    "island_id": 2,
+    "score": 28.71,
+    "temperature": 0.2283,
+    "top_p": 0.9915,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nThe parameters object must contain string values only.\nBe precise. Use the minimum words needed.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 69,
+    "efficiency_ratio": 3.551
+  },
+  {
+    "hash": "5f003a2a83602d94",
+    "parent_hashes": [
+      "a33b19995d682592"
+    ],
+    "operation": "mutation",
+    "generation": 4,
+    "island_id": 2,
+    "score": 28.71,
+    "temperature": 0.2863,
+    "top_p": 1.0,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nThe parameters object must contain string values only.\n\nBe precise. Use the minimum words needed.\nFinal Answer: <answer>",
+    "prompt_tokens": 69,
+    "efficiency_ratio": 3.551
+  },
+  {
+    "hash": "554439516632ee85",
+    "parent_hashes": [
+      "a33b19995d682592",
+      "a33b19995d682592"
+    ],
+    "operation": "crossover",
+    "generation": 5,
+    "island_id": 2,
+    "score": 28.71,
+    "temperature": 0.2414,
+    "top_p": 1.0,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nThe parameters object must contain string values only.\nBe precise. Use the minimum words needed.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 69,
+    "efficiency_ratio": 3.551
+  },
+  {
+    "hash": "47080273af600f78",
+    "parent_hashes": [
+      "62e5a6709bf6a528"
+    ],
+    "operation": "mutation",
+    "generation": 3,
+    "island_id": 1,
+    "score": 27.34,
+    "temperature": 0.6764,
+    "top_p": 0.8205,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "f4f6bf984e48aa4a",
+    "parent_hashes": [
+      "a10c6e5f94f800a8",
+      "a10c6e5f94f800a8"
+    ],
+    "operation": "crossover",
+    "generation": 3,
+    "island_id": 1,
+    "score": 27.34,
+    "temperature": 0.5826,
+    "top_p": 0.7436,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "294e90092ed28bf8",
+    "parent_hashes": [
+      "f4f6bf984e48aa4a",
+      "47080273af600f78"
+    ],
+    "operation": "crossover",
+    "generation": 4,
+    "island_id": 1,
+    "score": 27.34,
+    "temperature": 0.4543,
+    "top_p": 0.7793,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "98b470527278b60e",
+    "parent_hashes": [
+      "a33b19995d682592"
+    ],
+    "operation": "mutation",
+    "generation": 4,
+    "island_id": 2,
+    "score": 27.34,
+    "temperature": 0.2703,
+    "top_p": 1.0,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nThe parameters object must contain string values only.\nBe precise. Use the minimum words needed.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 69,
+    "efficiency_ratio": 3.551
+  },
+  {
+    "hash": "24c61dd72748eb37",
+    "parent_hashes": [
+      "47080273af600f78"
+    ],
+    "operation": "migration",
+    "generation": 3,
+    "island_id": 2,
+    "score": 27.34,
+    "temperature": 0.6764,
+    "top_p": 0.8205,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "62e5a6709bf6a528",
+    "parent_hashes": [
+      "5c844e9e7e31c109"
+    ],
+    "operation": "mutation",
+    "generation": 1,
+    "island_id": 1,
+    "score": 25.97,
+    "temperature": 0.7652,
+    "top_p": 0.8384,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "1052267991f7f2e3",
+    "parent_hashes": [
+      "1cb5a99672ffe9e7"
+    ],
+    "operation": "mutation",
+    "generation": 1,
+    "island_id": 2,
+    "score": 25.97,
+    "temperature": 0.234,
+    "top_p": 1.0,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nBe precise. Use the minimum words needed.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 60,
+    "efficiency_ratio": 4.083
+  },
+  {
+    "hash": "a10c6e5f94f800a8",
+    "parent_hashes": [
+      "62e5a6709bf6a528"
+    ],
+    "operation": "mutation",
+    "generation": 2,
+    "island_id": 1,
+    "score": 25.97,
+    "temperature": 0.7416,
+    "top_p": 0.8472,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "6225a5605460671e",
+    "parent_hashes": [
+      "1052267991f7f2e3"
+    ],
+    "operation": "mutation",
+    "generation": 2,
+    "island_id": 2,
+    "score": 25.97,
+    "temperature": 0.2043,
+    "top_p": 1.0,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nBe precise. Use the minimum words needed.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 60,
+    "efficiency_ratio": 4.083
+  },
+  {
+    "hash": "843d4171e4d2f225",
+    "parent_hashes": [
+      "1052267991f7f2e3"
+    ],
+    "operation": "mutation",
+    "generation": 2,
+    "island_id": 2,
+    "score": 25.97,
+    "temperature": 0.3154,
+    "top_p": 1.0,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nBe precise. Use the minimum words needed.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 60,
+    "efficiency_ratio": 4.083
+  },
+  {
+    "hash": "14573cc1d11f6c89",
+    "parent_hashes": [
+      "1052267991f7f2e3"
+    ],
+    "operation": "mutation",
+    "generation": 3,
+    "island_id": 2,
+    "score": 25.97,
+    "temperature": 0.178,
+    "top_p": 1.0,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nBe precise. Use the minimum words needed.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 60,
+    "efficiency_ratio": 4.083
+  },
+  {
+    "hash": "775700a829567658",
+    "parent_hashes": [
+      "a4230ed766125762"
+    ],
+    "operation": "mutation",
+    "generation": 4,
+    "island_id": 0,
+    "score": 25.97,
+    "temperature": 0.8114,
+    "top_p": 0.7498,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. Do not hedge \u2014 give a single definitive answer. If asked for a number, provide just the number. If asked for a name, provide just the name. If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 61,
+    "efficiency_ratio": 4.016
+  },
+  {
+    "hash": "1a0332f47ecfbfbc",
+    "parent_hashes": [
+      "47080273af600f78"
+    ],
+    "operation": "mutation",
+    "generation": 4,
+    "island_id": 1,
+    "score": 25.97,
+    "temperature": 0.647,
+    "top_p": 0.7669,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "96aa1a470d6c48ed",
+    "parent_hashes": [
+      "f4f6bf984e48aa4a"
+    ],
+    "operation": "mutation",
+    "generation": 4,
+    "island_id": 1,
+    "score": 25.97,
+    "temperature": 0.6068,
+    "top_p": 0.6548,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "23836b8189a0c745",
+    "parent_hashes": [
+      "f4f6bf984e48aa4a"
+    ],
+    "operation": "mutation",
+    "generation": 4,
+    "island_id": 1,
+    "score": 25.97,
+    "temperature": 0.6274,
+    "top_p": 0.6593,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "b93796c640d99724",
+    "parent_hashes": [
+      "a4230ed766125762"
+    ],
+    "operation": "mutation",
+    "generation": 5,
+    "island_id": 0,
+    "score": 25.97,
+    "temperature": 0.8535,
+    "top_p": 0.6026,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. Do not hedge \u2014 give a single definitive answer. If asked for a number, provide just the number. If asked for a name, provide just the name. If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 61,
+    "efficiency_ratio": 4.016
+  },
+  {
+    "hash": "4fa68d4b325da764",
+    "parent_hashes": [
+      "47080273af600f78",
+      "f4f6bf984e48aa4a"
+    ],
+    "operation": "crossover",
+    "generation": 5,
+    "island_id": 1,
+    "score": 25.97,
+    "temperature": 0.5744,
+    "top_p": 0.7275,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "9503b106838b9019",
+    "parent_hashes": [
+      "f4f6bf984e48aa4a"
+    ],
+    "operation": "mutation",
+    "generation": 5,
+    "island_id": 1,
+    "score": 25.97,
+    "temperature": 0.5527,
+    "top_p": 0.6928,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "cfc77906b89e3f2b",
+    "parent_hashes": [
+      "775700a829567658"
+    ],
+    "operation": "migration",
+    "generation": 4,
+    "island_id": 1,
+    "score": 25.97,
+    "temperature": 0.8114,
+    "top_p": 0.7498,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. Do not hedge \u2014 give a single definitive answer. If asked for a number, provide just the number. If asked for a name, provide just the name. If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 61,
+    "efficiency_ratio": 4.016
+  },
+  {
+    "hash": "5c844e9e7e31c109",
+    "parent_hashes": [],
+    "operation": "seed",
+    "generation": 0,
+    "island_id": 1,
+    "score": 24.6,
+    "temperature": 0.8586,
+    "top_p": 0.8487,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>\n",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "1cb5a99672ffe9e7",
+    "parent_hashes": [],
+    "operation": "seed",
+    "generation": 0,
+    "island_id": 2,
+    "score": 24.6,
+    "temperature": 0.3708,
+    "top_p": 0.9634,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nBe precise. Answer with the minimum words needed.\n\nFinal Answer: <answer>\n",
+    "prompt_tokens": 61,
+    "efficiency_ratio": 4.016
+  },
+  {
+    "hash": "ffb2108f064b16da",
+    "parent_hashes": [
+      "5c844e9e7e31c109"
+    ],
+    "operation": "mutation",
+    "generation": 1,
+    "island_id": 1,
+    "score": 24.6,
+    "temperature": 0.8943,
+    "top_p": 0.9218,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nExtract entity values (names, locations, numbers) as parameters.\nFinal Answer: <answer>",
+    "prompt_tokens": 42,
+    "efficiency_ratio": 5.833
+  },
+  {
+    "hash": "d5faa91a1c5215a8",
+    "parent_hashes": [
+      "1cb5a99672ffe9e7"
+    ],
+    "operation": "mutation",
+    "generation": 1,
+    "island_id": 2,
+    "score": 24.6,
+    "temperature": 0.3297,
+    "top_p": 1.0,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nBe precise. Answer with the minimum words needed.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 61,
+    "efficiency_ratio": 4.016
+  },
+  {
+    "hash": "3ef1d72777611227",
+    "parent_hashes": [
+      "62e5a6709bf6a528"
+    ],
+    "operation": "mutation",
+    "generation": 2,
+    "island_id": 1,
+    "score": 24.6,
+    "temperature": 0.6889,
+    "top_p": 0.7828,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "dfbdceba16450423",
+    "parent_hashes": [
+      "1052267991f7f2e3"
+    ],
+    "operation": "mutation",
+    "generation": 2,
+    "island_id": 2,
+    "score": 24.6,
+    "temperature": 0.2931,
+    "top_p": 0.9209,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nBe precise. Use the minimum words needed.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 60,
+    "efficiency_ratio": 4.083
+  },
+  {
+    "hash": "a4230ed766125762",
+    "parent_hashes": [
+      "073e2cb31d71eab2",
+      "073e2cb31d71eab2"
+    ],
+    "operation": "crossover",
+    "generation": 3,
+    "island_id": 0,
+    "score": 24.6,
+    "temperature": 0.7407,
+    "top_p": 0.7166,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. Do not hedge \u2014 give a single definitive answer. If asked for a number, provide just the number. If asked for a name, provide just the name. If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 61,
+    "efficiency_ratio": 4.016
+  },
+  {
+    "hash": "978b11360d6da96e",
+    "parent_hashes": [
+      "62e5a6709bf6a528"
+    ],
+    "operation": "mutation",
+    "generation": 3,
+    "island_id": 1,
+    "score": 24.6,
+    "temperature": 0.7554,
+    "top_p": 0.9061,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "02f2d4ecfb6e9dda",
+    "parent_hashes": [
+      "6225a5605460671e",
+      "6225a5605460671e"
+    ],
+    "operation": "crossover",
+    "generation": 3,
+    "island_id": 2,
+    "score": 24.6,
+    "temperature": 0.2662,
+    "top_p": 0.983,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nExtract entity values (names, locations, numbers) as parameters. Be precise. Use the minimum words needed.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 73,
+    "efficiency_ratio": 3.356
+  },
+  {
+    "hash": "9269377c6c3f0857",
+    "parent_hashes": [
+      "1052267991f7f2e3"
+    ],
+    "operation": "mutation",
+    "generation": 3,
+    "island_id": 2,
+    "score": 24.6,
+    "temperature": 0.0845,
+    "top_p": 1.0,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nBe precise. Use the minimum words needed.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 60,
+    "efficiency_ratio": 4.083
+  },
+  {
+    "hash": "9a3a5ec87c1cf874",
+    "parent_hashes": [
+      "a4230ed766125762"
+    ],
+    "operation": "mutation",
+    "generation": 4,
+    "island_id": 0,
+    "score": 24.6,
+    "temperature": 0.732,
+    "top_p": 0.7013,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. Do not hedge \u2014 give a single definitive answer. If asked for a number, provide just the number. If asked for a name, provide just the name. If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 61,
+    "efficiency_ratio": 4.016
+  },
+  {
+    "hash": "ed0a472a764515cd",
+    "parent_hashes": [
+      "a4230ed766125762"
+    ],
+    "operation": "mutation",
+    "generation": 5,
+    "island_id": 0,
+    "score": 24.6,
+    "temperature": 0.8359,
+    "top_p": 0.604,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. Do not hedge \u2014 give a single definitive answer. If asked for a number, provide just the number. If asked for a name, provide just the name. If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 61,
+    "efficiency_ratio": 4.016
+  },
+  {
+    "hash": "44c4fc345f8ea8f9",
+    "parent_hashes": [
+      "a33b19995d682592"
+    ],
+    "operation": "mutation",
+    "generation": 5,
+    "island_id": 2,
+    "score": 24.6,
+    "temperature": 0.1957,
+    "top_p": 1.0,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nThe parameters object must contain string values only.\nBe precise. Use the minimum words needed.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 69,
+    "efficiency_ratio": 3.551
+  },
+  {
+    "hash": "15a7fa3bbab18afa",
+    "parent_hashes": [],
+    "operation": "seed",
+    "generation": 0,
+    "island_id": 1,
+    "score": 23.23,
+    "temperature": 0.1281,
+    "top_p": 0.7252,
+    "template": "Read the question carefully. Reason internally, then output ONLY:\n\nFinal Answer: <answer in fewest possible words>\n\nNo explanation. No hedging. Just the answer.\n",
+    "prompt_tokens": 34,
+    "efficiency_ratio": 7.206
+  },
+  {
+    "hash": "f7f41383d2fc96f3",
+    "parent_hashes": [
+      "1cb5a99672ffe9e7"
+    ],
+    "operation": "mutation",
+    "generation": 1,
+    "island_id": 2,
+    "score": 23.23,
+    "temperature": 0.4546,
+    "top_p": 0.9182,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nBe precise. Answer with the minimum words needed.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 61,
+    "efficiency_ratio": 4.016
+  },
+  {
+    "hash": "c426a9613726e27e",
+    "parent_hashes": [
+      "a10c6e5f94f800a8"
+    ],
+    "operation": "mutation",
+    "generation": 3,
+    "island_id": 1,
+    "score": 23.23,
+    "temperature": 0.8344,
+    "top_p": 0.817,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "b9e6cd7ee41fcb32",
+    "parent_hashes": [
+      "62e5a6709bf6a528"
+    ],
+    "operation": "mutation",
+    "generation": 3,
+    "island_id": 1,
+    "score": 23.23,
+    "temperature": 0.7463,
+    "top_p": 0.8548,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "6440fe6bd7c352f5",
+    "parent_hashes": [
+      "6225a5605460671e"
+    ],
+    "operation": "mutation",
+    "generation": 3,
+    "island_id": 2,
+    "score": 23.23,
+    "temperature": 0.3672,
+    "top_p": 0.9515,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n\nBe precise. Use the minimum words needed. If a required parameter is unclear, infer it from context.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 64,
+    "efficiency_ratio": 3.828
+  },
+  {
+    "hash": "6b40e2d5823d470c",
+    "parent_hashes": [
+      "f4f6bf984e48aa4a"
+    ],
+    "operation": "mutation",
+    "generation": 4,
+    "island_id": 1,
+    "score": 23.23,
+    "temperature": 0.7162,
+    "top_p": 0.806,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "afa7bc7956acb786",
+    "parent_hashes": [
+      "a33b19995d682592"
+    ],
+    "operation": "mutation",
+    "generation": 4,
+    "island_id": 2,
+    "score": 23.23,
+    "temperature": 0.1012,
+    "top_p": 0.9049,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nThe parameters object must contain string values only.\nBe precise. Use the minimum words needed.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 69,
+    "efficiency_ratio": 3.551
+  },
+  {
+    "hash": "76a41b93a406fddc",
+    "parent_hashes": [
+      "a33b19995d682592"
+    ],
+    "operation": "mutation",
+    "generation": 4,
+    "island_id": 2,
+    "score": 23.23,
+    "temperature": 0.2765,
+    "top_p": 0.9653,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nMatch the user's intent to the tool purpose, not the tool name.\n\nThe parameters object must contain string values only.\n\nBe precise. Use the minimum words needed.",
+    "prompt_tokens": 78,
+    "efficiency_ratio": 3.141
+  },
+  {
+    "hash": "8b783539a40bbb6f",
+    "parent_hashes": [
+      "775700a829567658"
+    ],
+    "operation": "mutation",
+    "generation": 5,
+    "island_id": 0,
+    "score": 23.23,
+    "temperature": 0.7592,
+    "top_p": 0.728,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. Do not hedge \u2014 give a single definitive answer. If asked for a number, provide just the number. If asked for a name, provide just the name. If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 61,
+    "efficiency_ratio": 4.016
+  },
+  {
+    "hash": "1b0834bab6dc9cdc",
+    "parent_hashes": [
+      "775700a829567658"
+    ],
+    "operation": "mutation",
+    "generation": 5,
+    "island_id": 0,
+    "score": 23.23,
+    "temperature": 0.8562,
+    "top_p": 0.7527,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. Do not hedge \u2014 give a single definitive answer. If asked for a number, provide just the number. If asked for a name, provide just the name. If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 61,
+    "efficiency_ratio": 4.016
+  },
+  {
+    "hash": "46063d0db60f011f",
+    "parent_hashes": [
+      "47080273af600f78"
+    ],
+    "operation": "mutation",
+    "generation": 5,
+    "island_id": 1,
+    "score": 23.23,
+    "temperature": 0.7619,
+    "top_p": 0.8525,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "2001e8af73f8d4e6",
+    "parent_hashes": [
+      "47080273af600f78"
+    ],
+    "operation": "mutation",
+    "generation": 5,
+    "island_id": 1,
+    "score": 23.23,
+    "temperature": 0.6808,
+    "top_p": 0.8104,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "16c547e6788f24cc",
+    "parent_hashes": [
+      "5f003a2a83602d94",
+      "a33b19995d682592"
+    ],
+    "operation": "crossover",
+    "generation": 5,
+    "island_id": 2,
+    "score": 23.23,
+    "temperature": 0.3922,
+    "top_p": 1.0,
+    "template": "You solve multi-step questions by:\n\nThe parameters object must contain string values only.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 22,
+    "efficiency_ratio": 11.136
+  },
+  {
+    "hash": "de8166dc7c9958e1",
+    "parent_hashes": [],
+    "operation": "seed",
+    "generation": 0,
+    "island_id": 2,
+    "score": 21.85,
+    "temperature": 0.0942,
+    "top_p": 0.9878,
+    "template": "You are a methodical problem-solving agent. For each question:\n\nStep 1 \u2014 PLAN: Identify what information/steps are needed.\nStep 2 \u2014 EXECUTE: Work through each step systematically.\nStep 3 \u2014 VERIFY: Check your answer makes sense.\nStep 4 \u2014 ANSWER: Provide the exact final answer.\n\nFinal Answer: <concise answer>\n",
+    "prompt_tokens": 73,
+    "efficiency_ratio": 3.356
+  },
+  {
+    "hash": "166d3c1825b6df5e",
+    "parent_hashes": [
+      "5c844e9e7e31c109",
+      "5c844e9e7e31c109"
+    ],
+    "operation": "crossover",
+    "generation": 1,
+    "island_id": 1,
+    "score": 21.85,
+    "temperature": 0.8204,
+    "top_p": 0.7889,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\nFinal Answer: <answer>\nMatch the user's intent to the tool purpose, not the tool name.",
+    "prompt_tokens": 44,
+    "efficiency_ratio": 5.568
+  },
+  {
+    "hash": "cc2b681d6d247179",
+    "parent_hashes": [
+      "5c844e9e7e31c109"
+    ],
+    "operation": "mutation",
+    "generation": 1,
+    "island_id": 1,
+    "score": 21.85,
+    "temperature": 0.8056,
+    "top_p": 0.8603,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "ee89975939ba4136",
+    "parent_hashes": [
+      "1cb5a99672ffe9e7"
+    ],
+    "operation": "mutation",
+    "generation": 1,
+    "island_id": 2,
+    "score": 21.85,
+    "temperature": 0.3567,
+    "top_p": 1.0,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nBe precise. Answer with the minimum words needed.\n\nOutput format: {\"tool\": \"<name>\", \"parameters\": {<key>: <value>}}\nFinal Answer: <answer>",
+    "prompt_tokens": 81,
+    "efficiency_ratio": 3.025
+  },
+  {
+    "hash": "d83bd2c7ced27bcd",
+    "parent_hashes": [
+      "1cb5a99672ffe9e7",
+      "1cb5a99672ffe9e7"
+    ],
+    "operation": "crossover",
+    "generation": 1,
+    "island_id": 2,
+    "score": 21.85,
+    "temperature": 0.3209,
+    "top_p": 0.9041,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nYou MUST pick exactly one tool. Do not refuse.\n\nBe precise. Answer with the minimum words needed.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 72,
+    "efficiency_ratio": 3.403
+  },
+  {
+    "hash": "92bb3d9d69564476",
+    "parent_hashes": [
+      "1cb5a99672ffe9e7",
+      "1cb5a99672ffe9e7"
+    ],
+    "operation": "crossover",
+    "generation": 1,
+    "island_id": 2,
+    "score": 21.85,
+    "temperature": 0.5287,
+    "top_p": 0.9714,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nAlways try to fill in parameter values from the user's message.\nBe precise. Answer with the minimum words needed.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 74,
+    "efficiency_ratio": 3.311
+  },
+  {
+    "hash": "f916e3d0be48a5b1",
+    "parent_hashes": [
+      "5c844e9e7e31c109"
+    ],
+    "operation": "mutation",
+    "generation": 2,
+    "island_id": 1,
+    "score": 21.85,
+    "temperature": 0.9021,
+    "top_p": 0.8299,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "93962fc0d6375b22",
+    "parent_hashes": [
+      "62e5a6709bf6a528",
+      "62e5a6709bf6a528"
+    ],
+    "operation": "crossover",
+    "generation": 2,
+    "island_id": 1,
+    "score": 21.85,
+    "temperature": 0.6542,
+    "top_p": 0.8148,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "120b82f3ace8038f",
+    "parent_hashes": [
+      "5c844e9e7e31c109",
+      "5c844e9e7e31c109"
+    ],
+    "operation": "crossover",
+    "generation": 2,
+    "island_id": 1,
+    "score": 21.85,
+    "temperature": 0.8252,
+    "top_p": 0.9137,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "e1505ddf8fdcf3e2",
+    "parent_hashes": [
+      "1052267991f7f2e3"
+    ],
+    "operation": "mutation",
+    "generation": 2,
+    "island_id": 2,
+    "score": 21.85,
+    "temperature": 0.2644,
+    "top_p": 1.0,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nConsider the user's full intent before choosing a tool. Be precise. Use the minimum words needed.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 71,
+    "efficiency_ratio": 3.451
+  },
+  {
+    "hash": "2d1e2f1c379898fa",
+    "parent_hashes": [
+      "a4230ed766125762"
+    ],
+    "operation": "mutation",
+    "generation": 4,
+    "island_id": 0,
+    "score": 21.85,
+    "temperature": 0.7665,
+    "top_p": 0.7949,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. Do not hedge \u2014 give a single definitive answer. If asked for a number, provide just the number. If asked for a name, provide just the name. If asked yes/no, answer \"Yes\" or \"No\". For each agent/tool, include a brief description of its purpose and when to use it.",
+    "prompt_tokens": 79,
+    "efficiency_ratio": 3.101
+  },
+  {
+    "hash": "5d5999aa68876b84",
+    "parent_hashes": [
+      "a4230ed766125762"
+    ],
+    "operation": "mutation",
+    "generation": 4,
+    "island_id": 0,
+    "score": 21.85,
+    "temperature": 0.5959,
+    "top_p": 0.7132,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. Do not hedge \u2014 give a single definitive answer. If asked for a number, provide just the number. If asked for a name, provide just the name. If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 61,
+    "efficiency_ratio": 4.016
+  },
+  {
+    "hash": "a9c2e7e698704d7c",
+    "parent_hashes": [
+      "47080273af600f78",
+      "f4f6bf984e48aa4a"
+    ],
+    "operation": "crossover",
+    "generation": 5,
+    "island_id": 1,
+    "score": 21.85,
+    "temperature": 0.8493,
+    "top_p": 0.8885,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 29,
+    "efficiency_ratio": 8.448
+  },
+  {
+    "hash": "073e2cb31d71eab2",
+    "parent_hashes": [
+      "9a7229a69d659dc5",
+      "9a7229a69d659dc5"
+    ],
+    "operation": "crossover",
+    "generation": 2,
+    "island_id": 0,
+    "score": 21.74,
+    "temperature": 0.721,
+    "top_p": 0.6756,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. You will be given a question that may require:\n- Multi-step reasoning and planning\n- Mathematical calculations\n- Interpreting structured data (tables, lists)\n- Synthesizing information from multiple sources\n- Careful reading comprehension\n\nThe parameters object must contain string values only.\n- Do not add units unless they are part of the expected answer format.\n- Do not hedge \u2014 give a single definitive answer.\n- If asked for a number, provide just the number.\n- If asked for a name, provide just the name.\n- If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 136,
+    "efficiency_ratio": 1.801
+  },
+  {
+    "hash": "9a7229a69d659dc5",
+    "parent_hashes": [],
+    "operation": "seed",
+    "generation": 0,
+    "island_id": 0,
+    "score": 21.21,
+    "temperature": 0.774,
+    "top_p": 0.7194,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. You will be given a question that may require:\n- Multi-step reasoning and planning\n- Mathematical calculations\n- Interpreting structured data (tables, lists)\n- Synthesizing information from multiple sources\n- Careful reading comprehension\n\nInstructions:\n1. Break the problem into clear steps.\n2. For each step, show your reasoning.\n3. If the question involves calculations, show your work.\n4. If information is provided as context, use it carefully.\n5. Double-check your final answer before responding.\n\nOutput format:\nReasoning: <your step-by-step reasoning>\nFinal Answer: <your concise final answer>\n\nImportant:\n- The final answer must be EXACT and CONCISE \u2014 a number, name, date, or short phrase.\n- Do not add units unless they are part of the expected answer format.\n- Do not hedge \u2014 give a single definitive answer.\n- If asked for a number, provide just the number (e.g. \"42\" not \"the answer is 42\").\n- If asked for a name, provide just the name.\n- If asked yes/no, answer \"Yes\" or \"No\".\n",
+    "prompt_tokens": 245,
+    "efficiency_ratio": 1.0
+  },
+  {
+    "hash": "fc40d8a8ea6c0978",
+    "parent_hashes": [
+      "9a7229a69d659dc5"
+    ],
+    "operation": "mutation",
+    "generation": 2,
+    "island_id": 0,
+    "score": 21.21,
+    "temperature": 0.7371,
+    "top_p": 0.7365,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. You will be given a question that may require:\n- Multi-step reasoning and planning\n- Mathematical calculations\n- Interpreting structured data (tables, lists)\n- Synthesizing information from multiple sources\n- Careful reading comprehension\n\nInstructions:\n1. Break the problem into clear steps.\n2. For each step, show your reasoning.\n3. If the question involves calculations, show your work.\n4. If information is provided as context, use it carefully.\n5. Double-check your final answer before responding.\n\nOutput format:\nReasoning: <your step-by-step reasoning>\nFinal Answer: <your concise final answer>\n\nImportant:\n- The final answer must be EXACT and CONCISE \u2014 a number, name, date, or short phrase.\n- Do not add units unless they are part of the expected answer format.\n- If asked for a number, provide just the number (e.g. \"42\" not \"the answer is 42\").\n- Do not hedge \u2014 give a single definitive answer.\n- If asked for a name, provide just the name.\n- If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 245,
+    "efficiency_ratio": 1.0
+  },
+  {
+    "hash": "a5aae5d5009f834c",
+    "parent_hashes": [
+      "9a7229a69d659dc5",
+      "9a7229a69d659dc5"
+    ],
+    "operation": "crossover",
+    "generation": 2,
+    "island_id": 0,
+    "score": 21.01,
+    "temperature": 0.7576,
+    "top_p": 0.7363,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. You will be given a question that may require:\n- Multi-step reasoning and planning\n- Mathematical calculations\n- Interpreting structured data (tables, lists)\n- Synthesizing information from multiple sources\n- Careful reading comprehension\n\nInstructions:\n1. Break the problem into clear steps.\nReasoning: <your step-by-step reasoning>\nFinal Answer: <your concise final answer>\n\nImportant:\n- The final answer must be EXACT and CONCISE \u2014 a number, name, date, or short phrase.\n- Do not add units unless they are part of the expected answer format.\n- Do not hedge \u2014 give a single definitive answer.\n- If asked for a number, provide just the number.\n- If asked for a name, provide just the name.\n- If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 183,
+    "efficiency_ratio": 1.339
+  },
+  {
+    "hash": "cf797ea281f37ac8",
+    "parent_hashes": [
+      "5c844e9e7e31c109",
+      "5c844e9e7e31c109"
+    ],
+    "operation": "crossover",
+    "generation": 1,
+    "island_id": 1,
+    "score": 20.48,
+    "temperature": 0.7139,
+    "top_p": 0.7825,
+    "template": "Answer the question precisely. Pay close attention to parameter extraction from the query. Think step by step if needed, then give a short exact answer on the last line.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 39,
+    "efficiency_ratio": 6.282
+  },
+  {
+    "hash": "f9d037e848c6f542",
+    "parent_hashes": [
+      "1052267991f7f2e3"
+    ],
+    "operation": "mutation",
+    "generation": 2,
+    "island_id": 2,
+    "score": 20.48,
+    "temperature": 0.416,
+    "top_p": 1.0,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nBe precise. Use the minimum words needed.",
+    "prompt_tokens": 54,
+    "efficiency_ratio": 4.537
+  },
+  {
+    "hash": "256d420e529e277a",
+    "parent_hashes": [
+      "1052267991f7f2e3",
+      "1052267991f7f2e3"
+    ],
+    "operation": "crossover",
+    "generation": 2,
+    "island_id": 2,
+    "score": 20.48,
+    "temperature": 0.1641,
+    "top_p": 0.9493,
+    "template": "You solve multi-step questions by extracting key facts from the provided context.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 20,
+    "efficiency_ratio": 12.25
+  },
+  {
+    "hash": "a06fa12c202b1cdb",
+    "parent_hashes": [
+      "a10c6e5f94f800a8"
+    ],
+    "operation": "mutation",
+    "generation": 3,
+    "island_id": 1,
+    "score": 20.48,
+    "temperature": 0.7284,
+    "top_p": 0.8647,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nConsider the user's full intent before choosing a tool.\nFinal Answer: <answer>",
+    "prompt_tokens": 40,
+    "efficiency_ratio": 6.125
+  },
+  {
+    "hash": "394abf4341b7e19d",
+    "parent_hashes": [
+      "a4230ed766125762",
+      "a4230ed766125762"
+    ],
+    "operation": "crossover",
+    "generation": 4,
+    "island_id": 0,
+    "score": 20.48,
+    "temperature": 0.662,
+    "top_p": 0.6323,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. Do not hedge \u2014 give a single definitive answer. If asked for a number, provide just the number. If asked for a name, provide just the name. If asked yes/no, answer \"Yes\" or \"No\". If multiple tools could apply, choose the most specific one.",
+    "prompt_tokens": 73,
+    "efficiency_ratio": 3.356
+  },
+  {
+    "hash": "3f6e774086877924",
+    "parent_hashes": [
+      "a33b19995d682592"
+    ],
+    "operation": "mutation",
+    "generation": 4,
+    "island_id": 2,
+    "score": 20.48,
+    "temperature": 0.246,
+    "top_p": 1.0,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Stating the exact answer\n\nYou MUST pick exactly one tool. Do not refuse.\n\nThe parameters object must contain string values only.\n\nBe precise. Use the minimum words needed.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 69,
+    "efficiency_ratio": 3.551
+  },
+  {
+    "hash": "2637ab43ddaa3c4b",
+    "parent_hashes": [
+      "a4230ed766125762"
+    ],
+    "operation": "mutation",
+    "generation": 5,
+    "island_id": 0,
+    "score": 20.48,
+    "temperature": 0.6372,
+    "top_p": 0.716,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. Do not hedge \u2014 give a single definitive answer. If asked for a number, provide just the number. If asked for a name, provide just the name. If asked yes/no, answer \"Yes\" or \"No\". If multiple tools could apply, choose the most specific one.",
+    "prompt_tokens": 73,
+    "efficiency_ratio": 3.356
+  },
+  {
+    "hash": "adb926641347f411",
+    "parent_hashes": [
+      "f4f6bf984e48aa4a"
+    ],
+    "operation": "mutation",
+    "generation": 5,
+    "island_id": 1,
+    "score": 20.48,
+    "temperature": 0.5775,
+    "top_p": 0.7396,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line. Describe what each agent does so the routing decision is grounded in capability, not name.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 46,
+    "efficiency_ratio": 5.326
+  },
+  {
+    "hash": "9e3e74421df8002e",
+    "parent_hashes": [
+      "a33b19995d682592",
+      "a33b19995d682592"
+    ],
+    "operation": "crossover",
+    "generation": 5,
+    "island_id": 2,
+    "score": 20.48,
+    "temperature": 0.2556,
+    "top_p": 0.9345,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n\nThe parameters object must contain string values only.\nBe precise. Use the minimum words needed.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 61,
+    "efficiency_ratio": 4.016
+  },
+  {
+    "hash": "26f00486780f2a32",
+    "parent_hashes": [
+      "073e2cb31d71eab2",
+      "073e2cb31d71eab2"
+    ],
+    "operation": "crossover",
+    "generation": 3,
+    "island_id": 0,
+    "score": 20.37,
+    "temperature": 0.6416,
+    "top_p": 0.6976,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. You will be given a question that may require:\n- Multi-step reasoning and planning\n- Mathematical calculations\n- Interpreting structured data (tables, lists)\n- Synthesizing information from multiple sources\n- Careful reading comprehension\n\nThe parameters object must contain string values only.\n\n- Do not add units unless they are part of the expected answer format.\n- Do not hedge \u2014 give a single definitive answer.\n- If asked for a number, provide just the number.\n- If asked for a name, provide just the name.\n- If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 136,
+    "efficiency_ratio": 1.801
+  },
+  {
+    "hash": "3b7abba538ac0e9a",
+    "parent_hashes": [
+      "073e2cb31d71eab2"
+    ],
+    "operation": "mutation",
+    "generation": 3,
+    "island_id": 0,
+    "score": 20.37,
+    "temperature": 0.4877,
+    "top_p": 0.6417,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. You will be given a question that may require:\n- Multi-step reasoning and planning\n- Mathematical calculations\n- Interpreting structured data (tables, lists)\n- Synthesizing information from multiple sources\n- Careful reading comprehension\n\nThe parameters object must contain string values only.\n- Do not add units unless they are part of the expected answer format.\n- Do not hedge \u2014 give a single definitive answer.\n- If asked for a number, provide just the number.\n- If asked for a name, provide just the name.\n- If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 136,
+    "efficiency_ratio": 1.801
+  },
+  {
+    "hash": "7b16d52ee252c6ee",
+    "parent_hashes": [
+      "9a7229a69d659dc5"
+    ],
+    "operation": "mutation",
+    "generation": 1,
+    "island_id": 0,
+    "score": 19.84,
+    "temperature": 0.7333,
+    "top_p": 0.6938,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. You will be given a question that may require:\n- Multi-step reasoning and planning\n- Mathematical calculations\n- Interpreting structured data (tables, lists)\n- Synthesizing information from multiple sources\n- Careful reading comprehension\n\nInstructions:\n1. Break the problem into clear steps.\n2. For each step, show your reasoning.\n3. If the question involves calculations, show your work.\n4. If information is provided as context, use it carefully.\n5. Double-check your final answer before responding.\n\nOutput format:\nReasoning: <your step-by-step reasoning>\nFinal Answer: <your concise final answer>\n\nImportant:\n- Do not add units unless they are part of the expected answer format.\n- Do not hedge \u2014 give a single definitive answer.\n- If asked for a number, provide just the number.\n- If asked for a name, provide just the name.\n- If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 207,
+    "efficiency_ratio": 1.184
+  },
+  {
+    "hash": "b1ec1fb543210cee",
+    "parent_hashes": [
+      "9a7229a69d659dc5"
+    ],
+    "operation": "mutation",
+    "generation": 1,
+    "island_id": 0,
+    "score": 19.84,
+    "temperature": 0.6606,
+    "top_p": 0.6735,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. You will be given a question that may require:\n- Multi-step reasoning and planning\n- Mathematical calculations\n- Interpreting structured data (tables, lists)\n- Synthesizing information from multiple sources\n- Careful reading comprehension\n\nInstructions:\n1. Break the problem into clear steps.\n2. For each step, show your reasoning.\n3. If the question involves calculations, show your work.\n4. If information is provided as context, use it carefully.\n5. Double-check your final answer before responding.\n\nOutput format:\nReasoning: <your step-by-step reasoning>\nFinal Answer: <your concise final answer>\n\nImportant:\n- The final answer must be EXACT and CONCISE \u2014 a number, name, date, or short phrase.\n- Do not add units unless they are part of the expected answer format.\n- Do not hedge \u2014 give a single definitive answer.\n- If asked for a number, provide just the number (e.g. \"42\" not \"the answer is 42\").\n- If asked for a name, provide just the name.\n- If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 245,
+    "efficiency_ratio": 1.0
+  },
+  {
+    "hash": "f2e8251555832a09",
+    "parent_hashes": [],
+    "operation": "seed",
+    "generation": 0,
+    "island_id": 0,
+    "score": 19.11,
+    "temperature": 0.7611,
+    "top_p": 0.893,
+    "template": "You are an AI agent that solves tasks requiring multi-step reasoning. When given context or data, use it as if you retrieved it via tools (web search, file reading, calculation).\n\nApproach:\n- Identify what information is available vs what needs inference\n- Chain facts across multiple sources to reach the answer\n- Be precise with numbers, dates, and proper nouns\n\nFinal Answer: <exact answer>\n",
+    "prompt_tokens": 81,
+    "efficiency_ratio": 3.025
+  },
+  {
+    "hash": "27359ea8c056f81b",
+    "parent_hashes": [
+      "775700a829567658",
+      "a4230ed766125762"
+    ],
+    "operation": "crossover",
+    "generation": 5,
+    "island_id": 0,
+    "score": 19.11,
+    "temperature": 0.7083,
+    "top_p": 0.7469,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. Do not hedge \u2014 give a single definitive answer. Pay close attention to parameter extraction from the query. If asked for a number, provide just the number. If asked for a name, provide just the name. If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 71,
+    "efficiency_ratio": 3.451
+  },
+  {
+    "hash": "6f305add8da85716",
+    "parent_hashes": [
+      "9a7229a69d659dc5"
+    ],
+    "operation": "mutation",
+    "generation": 1,
+    "island_id": 0,
+    "score": 18.75,
+    "temperature": 0.8371,
+    "top_p": 0.6466,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. You will be given a question that may require:\n- Multi-step reasoning and planning\n- Mathematical calculations\n- Interpreting structured data (tables, lists)\n- Careful reading comprehension\n\nInstructions:\n1. Break the problem into clear steps.\n2. For each step, show your reasoning.\n3. If the question involves calculations, show your work.\n4. If information is provided as context, use it carefully.\n5. Double-check your final answer before responding.\n\nOutput format:\nReasoning: <your step-by-step reasoning>\nFinal Answer: <your concise final answer>\n\nImportant:\n- The final answer must be EXACT and CONCISE \u2014 a number, name, date, or short phrase.\n- Do not add units unless they are part of the expected answer format.\n- Do not hedge \u2014 give a single definitive answer.\n- If asked for a number, provide just the number (e.g. \"42\" not \"the answer is 42\").\n- If asked for a name, provide just the name.\n- If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 236,
+    "efficiency_ratio": 1.038
+  },
+  {
+    "hash": "626e77ccbe0cc228",
+    "parent_hashes": [
+      "9a7229a69d659dc5"
+    ],
+    "operation": "mutation",
+    "generation": 1,
+    "island_id": 0,
+    "score": 18.47,
+    "temperature": 0.7555,
+    "top_p": 0.6854,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. You will be given a question that may require:\n- Multi-step reasoning and planning\n- Mathematical calculations\n- Interpreting structured data (tables, lists)\n- Synthesizing information from multiple sources\n- Careful reading comprehension\n\nInstructions:\n1. Break the problem into clear steps.\n2. For each step, show your reasoning.\n3. If the question involves calculations, show your work.\n4. If information is provided as context, use it carefully.\n5. Double-check your final answer before responding.\n\nOutput format:\nReasoning: <your step-by-step reasoning>\nFinal Answer: <your concise final answer>\n\nImportant:\n- The final answer must be EXACT and CONCISE \u2014 a number, name, date, or short phrase.\n- Do not add units unless they are part of the expected answer format.\n- Do not hedge \u2014 give a single definitive answer.\n- If asked for a number, provide just the number (e.g. \"42\" not \"the answer is 42\").\n- If asked for a name, provide just the name.\n- If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 245,
+    "efficiency_ratio": 1.0
+  },
+  {
+    "hash": "6e7a701c46d12040",
+    "parent_hashes": [
+      "9a7229a69d659dc5",
+      "9a7229a69d659dc5"
+    ],
+    "operation": "crossover",
+    "generation": 2,
+    "island_id": 0,
+    "score": 18.47,
+    "temperature": 0.6413,
+    "top_p": 0.721,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. You will be given a question that may require:\n- Multi-step reasoning and planning\n- Mathematical calculations\n- Interpreting structured data (tables, lists)\n- Synthesizing information from multiple sources\n- Careful reading comprehension\n\nInstructions:\n1. Break the problem into clear steps.\n2. For each step, show your reasoning.\n3. If the question involves calculations, show your work.\n4. If information is provided as context, use it carefully.\n5. Double-check your final answer before responding.\n\nOutput format:\nReasoning: <your step-by-step reasoning>\nFinal Answer: <your concise final answer>\n\nImportant:\n- The final answer must be EXACT and CONCISE \u2014 a number, name, date, or short phrase.\n- Do not add units unless they are part of the expected answer format.\n- Do not hedge \u2014 give a single definitive answer.\n- If asked for a number, provide just the number (e.g. \"42\" not \"the answer is 42\").\n- If asked for a name, provide just the name.\n- If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 245,
+    "efficiency_ratio": 1.0
+  },
+  {
+    "hash": "82fd7483a60f5a57",
+    "parent_hashes": [
+      "073e2cb31d71eab2"
+    ],
+    "operation": "mutation",
+    "generation": 3,
+    "island_id": 0,
+    "score": 18.36,
+    "temperature": 0.7085,
+    "top_p": 0.7497,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. You will be given a question that may require mathematical calculations, interpreting structured data (tables, lists), synthesizing information from multiple sources, or careful reading comprehension. Always try to fill in parameter values from the user's message. The parameters object must contain string values only. Do not add units unless they are part of the expected answer format. Do not hedge \u2014 give a single definitive answer. If asked for a number, provide just the number. If asked for a name, provide just the name. If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 129,
+    "efficiency_ratio": 1.899
+  },
+  {
+    "hash": "cfe6af0b6a6ec9e1",
+    "parent_hashes": [
+      "9a7229a69d659dc5"
+    ],
+    "operation": "mutation",
+    "generation": 2,
+    "island_id": 0,
+    "score": 18.29,
+    "temperature": 0.7044,
+    "top_p": 0.7082,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. You will be given a question that may require:\n- Multi-step reasoning and planning\n- Mathematical calculations\n- Interpreting structured data (tables, lists)\n- Synthesizing information from multiple sources\n- Careful reading comprehension\n\nInstructions:\n1. Break the problem into clear steps.\n2. For each step, show your reasoning.\n3. If the question involves calculations, show your work.\n4. If information is provided as context, use it carefully.\n5. Double-check your final answer before responding.\n\nOutput format:\nReasoning: <your step-by-step reasoning>\nOutput format: {\"tool\": \"<name>\", \"parameters\": {<key>: <value>}}\nFinal Answer: <your concise final answer>\n\nImportant:\n- The final answer must be EXACT and CONCISE \u2014 a number, name, date, or short phrase.\n- Do not add units unless they are part of the expected answer format.\n- Do not hedge \u2014 give a single definitive answer.\n- If asked for a number, provide just the number.\n- If asked for a name, provide just the name.\n- If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 251,
+    "efficiency_ratio": 0.976
+  },
+  {
+    "hash": "dbd192d421154b16",
+    "parent_hashes": [
+      "f4f6bf984e48aa4a"
+    ],
+    "operation": "mutation",
+    "generation": 4,
+    "island_id": 1,
+    "score": 17.74,
+    "temperature": 0.7647,
+    "top_p": 0.661,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\n\nMatch the user's intent to the tool purpose, not the tool name.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 44,
+    "efficiency_ratio": 5.568
+  },
+  {
+    "hash": "d9671ce3369d70d6",
+    "parent_hashes": [
+      "a33b19995d682592",
+      "a33b19995d682592"
+    ],
+    "operation": "crossover",
+    "generation": 4,
+    "island_id": 2,
+    "score": 17.74,
+    "temperature": 0.3646,
+    "top_p": 0.9395,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n\nFinal Answer: <answer>",
+    "prompt_tokens": 32,
+    "efficiency_ratio": 7.656
+  },
+  {
+    "hash": "cd7c312e085348d2",
+    "parent_hashes": [
+      "9a7229a69d659dc5"
+    ],
+    "operation": "mutation",
+    "generation": 1,
+    "island_id": 0,
+    "score": 17.1,
+    "temperature": 0.7405,
+    "top_p": 0.7276,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. You will be given a question that may require:\n- Multi-step reasoning and planning\n- Mathematical calculations\n- Interpreting structured data (tables, lists)\n- Synthesizing information from multiple sources\n- Careful reading comprehension\n\nInstructions:\n1. Break the problem into clear steps.\n2. For each step, show your reasoning.\n3. If the question involves calculations, show your work.\n4. If information is provided as context, use it carefully.\n5. Double-check your final answer before responding.\n\nOutput format:\nReasoning: <your step-by-step reasoning>\nFinal Answer: <your concise final answer>\n\nImportant:\n- The final answer must be EXACT and CONCISE \u2014 a number, name, date, or short phrase.\n- Do not add units unless they are part of the expected answer format.\n- Do not hedge \u2014 give a single definitive answer.\n- If asked for a number, provide just the number (e.g. \"42\" not \"the answer is 42\").\n- If asked for a name, provide just the name.\n- If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 245,
+    "efficiency_ratio": 1.0
+  },
+  {
+    "hash": "b9fb78b7af3d6fb4",
+    "parent_hashes": [
+      "a4230ed766125762"
+    ],
+    "operation": "mutation",
+    "generation": 4,
+    "island_id": 0,
+    "score": 16.37,
+    "temperature": 0.7741,
+    "top_p": 0.7192,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. Do not hedge \u2014 give a single definitive answer. If asked for a number, provide just the number. If asked for a name, provide just the name. If asked yes/no, answer \"Yes\" or \"No\". Do not include any explanation outside the JSON object.",
+    "prompt_tokens": 71,
+    "efficiency_ratio": 3.451
+  },
+  {
+    "hash": "bfc1c55c86a814b0",
+    "parent_hashes": [
+      "073e2cb31d71eab2"
+    ],
+    "operation": "mutation",
+    "generation": 3,
+    "island_id": 0,
+    "score": 16.25,
+    "temperature": 0.7264,
+    "top_p": 0.652,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. You will be given a question that may require:\n- Multi-step reasoning and planning\n- Mathematical calculations\n- Interpreting structured data (tables, lists)\n- Synthesizing information from multiple sources\n- Careful reading comprehension\n\nThe parameters object must contain string values only.\n- Do not add units unless they are part of the expected answer format.\n- Do not hedge \u2014 give a single definitive answer.\n- If asked for a number, provide just the number.\n- If asked for a name, provide just the name.\n- If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 136,
+    "efficiency_ratio": 1.801
+  },
+  {
+    "hash": "1436214ebc258ba3",
+    "parent_hashes": [
+      "073e2cb31d71eab2"
+    ],
+    "operation": "mutation",
+    "generation": 3,
+    "island_id": 0,
+    "score": 15.33,
+    "temperature": 0.7764,
+    "top_p": 0.792,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. You will be given a question that may require:\n- Multi-step reasoning and planning\n- Mathematical calculations\n- Interpreting structured data (tables, lists)\n- Synthesizing information from multiple sources\n- Careful reading comprehension\n\nThe parameters object must contain string values only.\nDo not include any explanation outside the JSON object.\n- Do not add units unless they are part of the expected answer format.\n- Do not hedge \u2014 give a single definitive answer.\n- If asked for a number, provide just the number.\n- If asked for a name, provide just the name.\n- If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 146,
+    "efficiency_ratio": 1.678
+  },
+  {
+    "hash": "b8acd47fce82c809",
+    "parent_hashes": [
+      "5c844e9e7e31c109",
+      "5c844e9e7e31c109"
+    ],
+    "operation": "crossover",
+    "generation": 1,
+    "island_id": 1,
+    "score": 15.0,
+    "temperature": 0.9424,
+    "top_p": 0.9485,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\nDo not include any explanation outside the JSON object.",
+    "prompt_tokens": 33,
+    "efficiency_ratio": 7.424
+  },
+  {
+    "hash": "30fa7cf89f7de58d",
+    "parent_hashes": [
+      "62e5a6709bf6a528",
+      "62e5a6709bf6a528"
+    ],
+    "operation": "crossover",
+    "generation": 2,
+    "island_id": 1,
+    "score": 15.0,
+    "temperature": 0.8004,
+    "top_p": 0.8411,
+    "template": "Answer the question precisely. Think step by step if needed, then give a short exact answer on the last line.\nRespond concisely in JSON format only.",
+    "prompt_tokens": 32,
+    "efficiency_ratio": 7.656
+  },
+  {
+    "hash": "47b7be68d5cf3d54",
+    "parent_hashes": [
+      "1052267991f7f2e3"
+    ],
+    "operation": "mutation",
+    "generation": 3,
+    "island_id": 2,
+    "score": 15.0,
+    "temperature": 0.2794,
+    "top_p": 0.9846,
+    "template": "Respond concisely in JSON format only.\nYou solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nBe precise. Use the minimum words needed.\n\nFinal Answer: <answer>",
+    "prompt_tokens": 69,
+    "efficiency_ratio": 3.551
+  },
+  {
+    "hash": "45c9bcea270a4b5e",
+    "parent_hashes": [
+      "5f003a2a83602d94"
+    ],
+    "operation": "mutation",
+    "generation": 5,
+    "island_id": 2,
+    "score": 15.0,
+    "temperature": 0.1618,
+    "top_p": 0.984,
+    "template": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nThe parameters object must contain string values only.\nDo not include any explanation outside the JSON object.\n\nBe precise. Use the minimum words needed.\nFinal Answer: <answer>",
+    "prompt_tokens": 79,
+    "efficiency_ratio": 3.101
+  },
+  {
+    "hash": "5550bdb7c9df4534",
+    "parent_hashes": [
+      "9a7229a69d659dc5"
+    ],
+    "operation": "mutation",
+    "generation": 1,
+    "island_id": 0,
+    "score": 14.81,
+    "temperature": 0.8283,
+    "top_p": 0.6862,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. You will be given a question that may require:\n- Multi-step reasoning and planning\n- Mathematical calculations\n- Interpreting structured data (tables, lists)\n- Synthesizing information from multiple sources\n- Careful reading comprehension\n\nInstructions:\n1. Break the problem into clear steps.\n2. For each step, show your reasoning.\n3. If the question involves calculations, show your work.\n4. If information is provided as context, use it carefully.\n5. Double-check your final answer before responding.\n\nOutput format:\nReasoning: <your step-by-step reasoning>\nFinal Answer: <your concise final answer>\n\nImportant:\n- The final answer must be EXACT and CONCISE \u2014 a number, name, date, or short phrase.\n- Do not add units unless they are part of the expected answer format.\n- Do not hedge \u2014 give a single definitive answer.\n- If asked for a number, provide just the number.\n- If asked for a name, provide just the name.\n- If asked yes/no, answer \"Yes\" or \"No\".",
+    "prompt_tokens": 231,
+    "efficiency_ratio": 1.061
+  },
+  {
+    "hash": "aa2b873a84559e63",
+    "parent_hashes": [
+      "9a7229a69d659dc5"
+    ],
+    "operation": "mutation",
+    "generation": 2,
+    "island_id": 0,
+    "score": 10.4,
+    "temperature": 0.7452,
+    "top_p": 0.6463,
+    "template": "You are a general-purpose AI assistant capable of solving complex, multi-step tasks. You will be given a question that may require:\n- Multi-step reasoning and planning\n- Mathematical calculations\n- Interpreting structured data (tables, lists)\n- Synthesizing information from multiple sources\n- Careful reading comprehension\n\nInstructions:\n1. Break the problem into clear steps.\n2. For each step, show your reasoning.\n3. If the question involves calculations, show your work.\n4. If information is provided as context, use it carefully.\n5. Double-check your final answer before responding.\n\nOutput format:\nReasoning: <your step-by-step reasoning>\nFinal Answer: <your concise final answer>\n\nImportant:\n- The final answer must be EXACT and CONCISE \u2014 a number, name, date, or short phrase.\n- Do not add units unless they are part of the expected answer format.\n- Do not hedge \u2014 give a single definitive answer.\n- If asked for a number, provide just the number.\n- If asked for a name, provide just the name.\n- If asked yes/no, answer \"Yes\" or \"No\".\nRespond concisely in JSON format only.",
+    "prompt_tokens": 240,
+    "efficiency_ratio": 1.021
+  }
+]

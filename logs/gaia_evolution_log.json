@@ -1,0 +1,78 @@
+{
+  "experiment": "gaia_deep",
+  "timestamp": "2026-05-13T11:10:22Z",
+  "model": "gpt-4.1",
+  "backend": "azure_openai",
+  "dataset": "GAIA (gaia-benchmark/GAIA, 2023_all)",
+  "reference": "https://huggingface.co/spaces/gaia-benchmark/leaderboard",
+  "paper": "https://arxiv.org/abs/2311.12983",
+  "config": {
+    "iterations": 5,
+    "population_size": 6,
+    "num_islands": 3,
+    "elite_size": 2,
+    "mutation_rate": 0.7,
+    "crossover_rate": 0.3,
+    "adaptive_mutations": true,
+    "llm_mutation_rate": 0.3,
+    "refine_after_splice": true,
+    "eval_sample_size": 50,
+    "levels": [
+      1
+    ],
+    "total_examples": 53,
+    "train_examples": 31,
+    "holdout_examples": 22
+  },
+  "results": {
+    "baseline_accuracy": 13.64,
+    "evolved_accuracy": 15.91,
+    "delta_pp": 2.27,
+    "baseline_correct": 3,
+    "evolved_correct": 3,
+    "wall_time_s": 7864.4,
+    "total_candidates": 99,
+    "best_temperature": 0.2745,
+    "best_top_p": 1.0
+  },
+  "best_prompt": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nThe parameters object must contain string values only.\n\nBe precise. Use the minimum words needed.\nFinal Answer: <answer>",
+  "history": [
+    [
+      1,
+      25.967741935483872
+    ],
+    [
+      2,
+      25.967741935483872
+    ],
+    [
+      3,
+      28.70967741935484
+    ],
+    [
+      4,
+      28.70967741935484
+    ],
+    [
+      5,
+      32.822580645161295
+    ]
+  ],
+  "lineage_size": 99,
+  "token_optimization": {
+    "enabled": true,
+    "strategy": "baseline_relative_efficiency + lexicographic_tiebreaker",
+    "token_weight": 0.15,
+    "efficiency_cap": 2.0,
+    "accuracy_band": 2.0,
+    "baseline_tokens": 245,
+    "evolved_tokens": 69,
+    "token_delta": -176,
+    "efficiency_ratio": 3.551
+  },
+  "candidate_token_stats": {
+    "min_tokens": 20,
+    "max_tokens": 251,
+    "mean_tokens": 78.5
+  }
+}
