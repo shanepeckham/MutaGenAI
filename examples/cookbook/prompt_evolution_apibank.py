@@ -61,10 +61,15 @@ from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
 
 from MutaGenAI.prompt_evolver import (
+    ErrorProfile,
+    FailureBucket,
     LLMBackend,
     LLMClient,
+    ProblemType,
     PromptCandidate,
     PromptEvolverConfig,
+    SelectionMethod,
+    get_failure_bucket_mutations,
 )
 
 
@@ -119,6 +124,7 @@ class APIBankExperiment:
     prompt_evolution: list[dict[str, Any]] = field(default_factory=list)
     api_name_accuracy: float = 0.0
     param_accuracy: float = 0.0
+    failure_buckets: dict[str, int] = field(default_factory=dict)
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -332,6 +338,21 @@ def score_apibank_case(response: str, case: APIBankCase) -> tuple[float, dict[st
     return 0.4 * name_score + 0.4 * param_score + 0.2 * format_score, detail
 
 
+def _classify_failure_bucket(
+    score: float, detail: dict[str, Any],
+) -> FailureBucket | None:
+    """Map an API-Bank scoring result to a :class:`FailureBucket`."""
+    if detail.get("error") == "NO_API_CALL":
+        return FailureBucket.NO_OUTPUT
+    if detail.get("error") == "API_NAME_MISMATCH":
+        return FailureBucket.WRONG_TOOL
+    if detail["api_name_match"] and detail["param_score"] < 0.5:
+        return FailureBucket.WRONG_PARAMS
+    if 0 < score < 0.8:
+        return FailureBucket.PARTIAL_MATCH
+    return None
+
+
 # ─────────────────────────────────────────────────────────────────────────
 # Seed prompt templates
 # ─────────────────────────────────────────────────────────────────────────
@@ -425,14 +446,25 @@ _APIBANK_MUTATIONS: list[str] = [
 
 
 def _mutate_apibank_template(
-    template: str, rng: np.random.Generator, rate: float = 0.5
+    template: str,
+    rng: np.random.Generator,
+    rate: float = 0.5,
+    extra_mutations: list[str] | None = None,
 ) -> str:
     """Apply a random mutation to an API-Bank prompt template."""
-    mutation = rng.choice(_APIBANK_MUTATIONS)
+    pool = _APIBANK_MUTATIONS
+    if extra_mutations:
+        pool = _APIBANK_MUTATIONS + extra_mutations
+    mutation = rng.choice(pool)
     lines = template.strip().split("\n")
 
-    action = mutation.split(":")[0].strip().lower()
-    content = mutation.split(":", 1)[1].strip().strip("'\"")
+    # Failure bucket mutations are plain text (no "Action: content" format)
+    if ":" in mutation:
+        action = mutation.split(":")[0].strip().lower()
+        content = mutation.split(":", 1)[1].strip().strip("'\"")
+    else:
+        action = "add"
+        content = mutation.strip()
 
     if "prepend" in action:
         lines.insert(0, content)
@@ -475,6 +507,45 @@ def _crossover_apibank_templates(
 
 
 # ─────────────────────────────────────────────────────────────────────────
+# Score-proportional parent selection
+# ─────────────────────────────────────────────────────────────────────────
+
+
+def _score_prop_select(
+    island: list[PromptCandidate], rng: np.random.Generator,
+) -> PromptCandidate:
+    """Score-proportional selection with exploration bonus.
+
+    Probability is proportional to ``sigmoid(score) / (1 + selection_count)``.
+    """
+    import math
+
+    if len(island) == 1:
+        island[0].selection_count += 1
+        return island[0]
+
+    weights = np.array([
+        (
+            1.0 / (1.0 + math.exp(-10.0 * (c.score / 100.0 - 0.5)))
+        ) * (
+            1.0 / (1.0 + c.selection_count)
+        )
+        for c in island
+    ])
+
+    total = weights.sum()
+    if total <= 0:
+        idx = int(rng.integers(len(island)))
+        island[idx].selection_count += 1
+        return island[idx]
+
+    probs = weights / total
+    idx = int(rng.choice(len(island), p=probs))
+    island[idx].selection_count += 1
+    return island[idx]
+
+
+# ─────────────────────────────────────────────────────────────────────────
 # Evolution engine
 # ─────────────────────────────────────────────────────────────────────────
 
@@ -493,10 +564,23 @@ def run_apibank_evolution(
     """
     rng = np.random.default_rng(seed)
     category = cases[0].category if cases else "unknown"
+    use_score_prop = (
+        config.selection_method == SelectionMethod.SCORE_PROPORTIONAL
+    )
+    problem_type = config.problem_type or ProblemType.TOOL_ROUTING
+    error_profile = ErrorProfile()
+
+    # Progressive evaluation settings
+    use_progressive = (
+        config.eval_promotion_threshold is not None
+        and config.eval_deep_sample_size is not None
+    )
 
     # ── Evaluate a candidate ───────────────────────────────────────────
     def evaluate(
-        candidate: PromptCandidate, eval_cases: list[APIBankCase]
+        candidate: PromptCandidate,
+        eval_cases: list[APIBankCase],
+        track_buckets: bool = True,
     ) -> tuple[float, float, float]:
         """Returns (overall_score, api_name_acc, param_acc)."""
         total = 0.0
@@ -517,6 +601,8 @@ def run_apibank_evolution(
             )
             if response is None:
                 total += float(rng.uniform(0, 0.1))
+                if track_buckets:
+                    error_profile.record_bucket(FailureBucket.NO_OUTPUT)
                 continue
 
             score, detail = score_apibank_case(response, case)
@@ -524,6 +610,11 @@ def run_apibank_evolution(
             if detail["api_name_match"]:
                 name_hits += 1
             param_total += detail["param_score"]
+
+            if track_buckets:
+                bucket = _classify_failure_bucket(score, detail)
+                if bucket is not None:
+                    error_profile.record_bucket(bucket)
 
         n = len(eval_cases) if eval_cases else 1
         return (
@@ -594,7 +685,22 @@ def run_apibank_evolution(
     best_overall = copy.deepcopy(baseline_best)
     history: list[tuple[int, float]] = [(0, baseline_score)]
 
+    # Deep eval subset for progressive evaluation
+    if use_progressive:
+        deep_size = min(
+            config.eval_deep_sample_size or len(eval_cases), len(cases)
+        )
+        deep_indices = rng.choice(len(cases), size=deep_size, replace=False)
+        deep_cases = [cases[int(i)] for i in deep_indices]
+    else:
+        deep_cases = eval_cases
+
     for gen in range(1, config.iterations + 1):
+        # Compute failure bucket mutations for this generation
+        bucket_mutations = get_failure_bucket_mutations(
+            error_profile, problem_type
+        )
+
         for isl_id in range(config.num_islands):
             island = islands[isl_id]
             if not island:
@@ -602,26 +708,40 @@ def run_apibank_evolution(
 
             new_cands: list[PromptCandidate] = []
             for _ in range(config.population_size):
-                k = min(3, len(island))
-                idxs = rng.choice(len(island), size=k, replace=False)
-                parent_a = max(
-                    (island[int(i)] for i in idxs), key=lambda c: c.score
-                )
+                # ── Parent selection ───────────────────────────────
+                if use_score_prop:
+                    parent_a = _score_prop_select(island, rng)
+                else:
+                    k = min(3, len(island))
+                    idxs = rng.choice(len(island), size=k, replace=False)
+                    parent_a = max(
+                        (island[int(i)] for i in idxs),
+                        key=lambda c: c.score,
+                    )
 
                 if rng.random() < config.crossover_rate and len(island) > 1:
-                    idxs2 = rng.choice(len(island), size=k, replace=False)
-                    parent_b = max(
-                        (island[int(i)] for i in idxs2), key=lambda c: c.score
-                    )
+                    if use_score_prop:
+                        parent_b = _score_prop_select(island, rng)
+                    else:
+                        k = min(3, len(island))
+                        idxs2 = rng.choice(
+                            len(island), size=k, replace=False,
+                        )
+                        parent_b = max(
+                            (island[int(i)] for i in idxs2),
+                            key=lambda c: c.score,
+                        )
                     child_tmpl = _crossover_apibank_templates(
                         parent_a.template, parent_b.template, rng
                     )
                 else:
                     child_tmpl = parent_a.template
 
+                # ── Mutation (with failure bucket hints) ──────────
                 if rng.random() < config.mutation_rate:
                     child_tmpl = _mutate_apibank_template(
-                        child_tmpl, rng, config.mutation_rate
+                        child_tmpl, rng, config.mutation_rate,
+                        extra_mutations=bucket_mutations or None,
                     )
 
                 temp = parent_a.temperature + float(rng.normal(0, 0.1))
@@ -635,7 +755,16 @@ def run_apibank_evolution(
                     top_p=top_p,
                     generation=gen,
                 )
+
+                # ── Progressive evaluation ────────────────────────
                 score, name_acc, param_acc = evaluate(child, eval_cases)
+                if (
+                    use_progressive
+                    and score >= (config.eval_promotion_threshold or 0)
+                ):
+                    score, name_acc, param_acc = evaluate(
+                        child, deep_cases, track_buckets=False,
+                    )
                 child.score = score
                 new_cands.append(child)
 
@@ -646,6 +775,9 @@ def run_apibank_evolution(
             combined = island + new_cands
             combined.sort(key=lambda c: c.score, reverse=True)
             islands[isl_id] = combined[: config.elite_size]
+
+        # Decay error profile so recent generations weigh more
+        error_profile.decay(0.8)
 
         # Migration every 3 gens
         if gen % 3 == 0 and config.num_islands > 1:
@@ -685,8 +817,17 @@ def run_apibank_evolution(
                 f"temp={best_overall.temperature:.3f}  "
                 f"top_p={best_overall.top_p:.3f}"
             )
+            if bucket_mutations:
+                top_buckets = error_profile.worst_buckets(3)
+                bucket_str = ", ".join(
+                    f"{b}({c})" for b, c in top_buckets
+                )
+                print(f"         buckets: {bucket_str}")
 
     wall_time = time.perf_counter() - t0
+
+    # Snapshot final failure bucket counts
+    final_buckets = dict(error_profile.failure_buckets)
 
     return APIBankExperiment(
         category=category,
@@ -704,6 +845,7 @@ def run_apibank_evolution(
         prompt_evolution=prompt_trace,
         api_name_accuracy=best_name_acc,
         param_accuracy=best_param_acc,
+        failure_buckets=final_buckets,
     )
 
 
@@ -793,6 +935,15 @@ def show_prompt_evolution(experiment: APIBankExperiment) -> None:
         f"  API Name Accuracy: {experiment.api_name_accuracy:.1f}%  |  "
         f"Param Accuracy: {experiment.param_accuracy:.1f}%"
     )
+    if experiment.failure_buckets:
+        print(
+            "  Failure Buckets: "
+            + ", ".join(
+                f"{k}={v}" for k, v in
+                sorted(experiment.failure_buckets.items(),
+                       key=lambda x: x[1], reverse=True)
+            )
+        )
 
 
 def show_results_table(
@@ -856,6 +1007,7 @@ def save_experiment_log(
             "best_prompt_template": exp.best_prompt_template,
             "api_name_accuracy": round(exp.api_name_accuracy, 2),
             "param_accuracy": round(exp.param_accuracy, 2),
+            "failure_buckets": exp.failure_buckets,
         }
         log["experiments"].append(entry)
 
@@ -877,6 +1029,8 @@ ALGORITHM_CONFIGS: dict[str, dict[str, Any]] = {
         "mutation_rate": 0.6,
         "crossover_rate": 0.3,
         "eval_sample_size": 10,
+        "selection_method": SelectionMethod.SCORE_PROPORTIONAL,
+        "problem_type": ProblemType.TOOL_ROUTING,
     },
     "deep": {
         "iterations": 5,
@@ -886,6 +1040,9 @@ ALGORITHM_CONFIGS: dict[str, dict[str, Any]] = {
         "mutation_rate": 0.5,
         "crossover_rate": 0.4,
         "eval_sample_size": 12,
+        "selection_method": SelectionMethod.SCORE_PROPORTIONAL,
+        "problem_type": ProblemType.TOOL_ROUTING,
+        # Progressive eval: uses default threshold=30.0, deep size auto-computed
     },
 }
 
@@ -943,39 +1100,17 @@ def main() -> None:
             score = evaluate_baseline(cases, level_name, ollama_client)
             default_baselines[level_name] = score
 
-    # ── Phase 2: Ollama evolution ──────────────────────────────────────
-    print("\n  Phase 2: Prompt Evolution (Ollama)")
+    # ── Phase 2: Ollama deep evolution ───────────────────────────────
+    print("\n  Phase 2: Deep Prompt Evolution (Ollama)")
     print("  " + "─" * 50)
 
     all_experiments: list[APIBankExperiment] = []
 
-    # Standard on all levels
     for level_name in BENCHMARK_LEVELS:
         cases = by_level.get(level_name, [])
         if not cases:
             continue
 
-        algo = "standard"
-        algo_params = ALGORITHM_CONFIGS[algo]
-        cfg = PromptEvolverConfig(
-            backend=LLMBackend.OLLAMA,
-            ollama_model=os.environ.get("OLLAMA_MODEL", "llama3.2"),
-            timeout=60.0,
-            **algo_params,
-        )
-
-        exp = run_apibank_evolution(
-            cases=cases,
-            client=ollama_client,
-            config=cfg,
-            algorithm_name=algo,
-            verbose=True,
-        )
-        all_experiments.append(exp)
-        show_prompt_evolution(exp)
-
-    # Deep on level_2 (hardest — requires retrieval + calling)
-    if "level_2" in by_level and by_level["level_2"]:
         algo = "deep"
         algo_params = ALGORITHM_CONFIGS[algo]
         cfg = PromptEvolverConfig(
@@ -986,7 +1121,7 @@ def main() -> None:
         )
 
         exp = run_apibank_evolution(
-            cases=by_level["level_2"],
+            cases=cases,
             client=ollama_client,
             config=cfg,
             algorithm_name=algo,
@@ -1026,32 +1161,12 @@ def main() -> None:
                 score = evaluate_baseline(cases, level_name, azure_client)
                 default_baselines[f"{level_name}_azure"] = score
 
-        # Standard evolution on all levels
+        # Deep evolution on all levels
         for level_name in BENCHMARK_LEVELS:
             cases = by_level.get(level_name, [])
             if not cases:
                 continue
 
-            algo = "standard"
-            algo_params = ALGORITHM_CONFIGS[algo]
-            az_cfg = PromptEvolverConfig(
-                backend=LLMBackend.AZURE_OPENAI,
-                timeout=30.0,
-                **algo_params,
-            )
-
-            exp = run_apibank_evolution(
-                cases=cases,
-                client=azure_client,
-                config=az_cfg,
-                algorithm_name=algo,
-                verbose=True,
-            )
-            all_experiments.append(exp)
-            show_prompt_evolution(exp)
-
-        # Deep on level_2
-        if "level_2" in by_level and by_level["level_2"]:
             algo = "deep"
             algo_params = ALGORITHM_CONFIGS[algo]
             az_cfg = PromptEvolverConfig(
@@ -1061,7 +1176,7 @@ def main() -> None:
             )
 
             exp = run_apibank_evolution(
-                cases=by_level["level_2"],
+                cases=cases,
                 client=azure_client,
                 config=az_cfg,
                 algorithm_name=algo,
@@ -1076,7 +1191,8 @@ def main() -> None:
 
     # ── Save experiment log ────────────────────────────────────────────
     log_path = os.path.join(
-        os.path.dirname(__file__), "..", "..", "apibank_experiment_log.json"
+        os.path.dirname(__file__), "..", "..", "logs",
+        "apibank_v2_experiment_log.json",
     )
     save_experiment_log(all_experiments, default_baselines, log_path)
 

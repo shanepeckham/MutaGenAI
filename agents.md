@@ -83,12 +83,22 @@ The core evolutionary prompt engine. Contains:
   labelled evaluation samples.
 - **`ProblemType`** — enum: tool_calling, classification, generation,
   code, conversation.
+- **`SelectionMethod`** — enum: tournament (default), score_proportional.
+  Score-proportional selection uses a sigmoid-weighted formula with an
+  exploration bonus that penalises over-selected parents.
+- **`FailureBucket`** — enum: wrong_tool, wrong_params, no_output,
+  unparseable, partial_match. Classifies *how* each evaluation sample
+  failed so that targeted mutations can address the failure mode.
 - **`ErrorProfile`** — tracks common failure modes during evolution.
+  Extended with `failure_buckets` dict, `record_bucket()`, and
+  `worst_buckets()` for structured failure tracking.
 - **`count_prompt_tokens()`** — utility for counting tokens using
   tiktoken with a character-based fallback.
 - **`evolve_prompt_with_cmaes()`** — CMA-ES continuous parameter tuning.
 - **`generate_adaptive_mutations()`** — generates domain-specific
   mutations based on error analysis.
+- **`get_failure_bucket_mutations()`** — returns targeted mutation
+  snippets for the worst failure buckets, keyed by problem type.
 - **`get_mutations_for_problem_type()`** — returns the 18 built-in
   mutation operators for a given problem type.
 
@@ -268,6 +278,10 @@ default) and 95.5 % on xLAM (vs 95.4 % default) — without labels.
 ```python
 # Ground-truth evolution
 from MutaGenAI import PromptEvolver, PromptEvolverConfig, Tool, EvalSample, LLMBackend
+
+# Selection, failure buckets, and problem type enums
+from MutaGenAI import SelectionMethod, FailureBucket, ProblemType
+from MutaGenAI import get_failure_bucket_mutations
 
 # Token optimization
 from MutaGenAI import count_prompt_tokens

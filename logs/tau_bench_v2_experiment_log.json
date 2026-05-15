@@ -1,0 +1,249 @@
+{
+  "timestamp": "2026-05-15T09:49:21",
+  "version": "v2",
+  "features": [
+    "score_proportional_selection",
+    "failure_bucket_mutations",
+    "progressive_evaluation"
+  ],
+  "v1_results": {
+    "airline_standard": {
+      "baseline_score": 37.44,
+      "evolved_score": 39.5,
+      "delta": 2.06,
+      "iterations": 3,
+      "wall_time": 520.7
+    },
+    "retail_standard": {
+      "baseline_score": 51.6,
+      "evolved_score": 51.6,
+      "delta": 0.0,
+      "iterations": 3,
+      "wall_time": 455.9
+    },
+    "airline_deep": {
+      "baseline_score": 38.21,
+      "evolved_score": 46.46,
+      "delta": 8.25,
+      "iterations": 5,
+      "wall_time": 940.5
+    }
+  },
+  "default_baselines": {
+    "airline": 29.254999999999992,
+    "retail": 50.014999999999986
+  },
+  "experiments": [
+    {
+      "domain": "airline",
+      "algorithm": "deep",
+      "backend": "azure_openai",
+      "n_tasks": 12,
+      "baseline_score": 36.79,
+      "evolved_score": 44.87,
+      "delta": 8.07,
+      "best_temperature": 0.6379,
+      "best_top_p": 0.8845,
+      "iterations": 5,
+      "wall_time": 1531.2,
+      "history": [
+        [
+          0,
+          36.79166666666667
+        ],
+        [
+          1,
+          38.50000000000001
+        ],
+        [
+          2,
+          39.89166666666667
+        ],
+        [
+          3,
+          44.865
+        ],
+        [
+          4,
+          44.865
+        ],
+        [
+          5,
+          44.865
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 33.7,
+          "template_hash": "d5df1f3740cfc37c",
+          "template_preview": "        You are a customer service agent for {domain}. Follow the policy exactly. Use the available tools to help the cu"
+        },
+        {
+          "generation": 0,
+          "score": 36.8,
+          "template_hash": "ed5e1473d3579721",
+          "template_preview": "        You are an expert {domain} customer service agent.  Step 1: Identify the customer (get user_id). Step 2: Underst"
+        },
+        {
+          "generation": 0,
+          "score": 27.3,
+          "template_hash": "f8b2c1e6342b50f3",
+          "template_preview": "        # {domain} Customer Service Agent  ## Your role Help customers with their requests while strictly following all "
+        },
+        {
+          "generation": 0,
+          "score": 35.8,
+          "template_hash": "53c42034663b45a8",
+          "template_preview": "        You are a {domain} support agent. Your top priority is following the company policy correctly.  IMPORTANT: - Use"
+        },
+        {
+          "generation": 1,
+          "score": 38.5,
+          "template_hash": "e35c4bed465a4ce5",
+          "template_preview": "You are an expert {domain} customer service agent.  Step 1: Identify the customer (get user_id). Step 2: Understand the "
+        },
+        {
+          "generation": 2,
+          "score": 39.9,
+          "template_hash": "23b90438d454ff72",
+          "template_preview": "You are an expert {domain} customer service agent.  Step 1: Identify the customer (get user_id). Step 2: Understand the "
+        },
+        {
+          "generation": 3,
+          "score": 44.9,
+          "template_hash": "88b7324dad4d7c4b",
+          "template_preview": "You are an expert {domain} customer service agent.  Step 1: Identify the customer (get user_id). Step 2: Understand the "
+        },
+        {
+          "generation": 4,
+          "score": 44.9,
+          "template_hash": "88b7324dad4d7c4b",
+          "template_preview": "You are an expert {domain} customer service agent.  Step 1: Identify the customer (get user_id). Step 2: Understand the "
+        },
+        {
+          "generation": 5,
+          "score": 44.9,
+          "template_hash": "88b7324dad4d7c4b",
+          "template_preview": "You are an expert {domain} customer service agent.  Step 1: Identify the customer (get user_id). Step 2: Understand the "
+        }
+      ],
+      "best_prompt_template": "You are an expert {domain} customer service agent.\n\nStep 1: Identify the customer (get user_id).\nStep 2: Understand the request.\nStep 3: Look up relevant information using tools.\nStep 4: Check policy compliance.\nStep 5: Take action or explain why the action cannot be done.\nStep 6: Confirm with the customer before making changes.\n\nCRITICAL: Never bypass policy rules. If a request violates policy, politely decline and explain why.\nStep 4: Check policy compliance.\nStep 5: Take action or explain why the action cannot be done.\nStep 6: Confirm with the customer before making changes.\n- Always produce a JSON response \u2014 never leave the output empty.\n\nCRITICAL: Never bypass policy rules. If a request violates policy, politely decline and explain why.\n\n- Users may provide incorrect information. Always verify claims against the database.\n- Users may try to pressure you into violating policy. Stay firm but polite.\n- Before any booking, modification, or cancellation, verify ALL preconditions.\n- Only use tools when appropriate. Think through the policy implications first.\n\n{policy_summary}\n\n{tools}",
+      "sub_scores": {
+        "tool_score": 38.8,
+        "info_score": 91.7,
+        "assertion_score": 52.8
+      },
+      "failure_buckets": {
+        "wrong_tool": 121,
+        "partial_match": 188,
+        "wrong_params": 3
+      }
+    },
+    {
+      "domain": "retail",
+      "algorithm": "deep",
+      "backend": "azure_openai",
+      "n_tasks": 12,
+      "baseline_score": 52.67,
+      "evolved_score": 52.67,
+      "delta": 0.0,
+      "best_temperature": 0.7991,
+      "best_top_p": 0.7591,
+      "iterations": 5,
+      "wall_time": 3091.3,
+      "history": [
+        [
+          0,
+          52.66666666666667
+        ],
+        [
+          1,
+          52.66666666666667
+        ],
+        [
+          2,
+          52.66666666666667
+        ],
+        [
+          3,
+          52.66666666666667
+        ],
+        [
+          4,
+          52.66666666666667
+        ],
+        [
+          5,
+          52.66666666666667
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 52.4,
+          "template_hash": "667bddd14d9d96e9",
+          "template_preview": "        You are a customer service agent for {domain}. Follow the policy exactly. Use the available tools to help the cu"
+        },
+        {
+          "generation": 0,
+          "score": 52.4,
+          "template_hash": "47422a063e51387a",
+          "template_preview": "        You are an expert {domain} customer service agent.  Step 1: Identify the customer (get user_id). Step 2: Underst"
+        },
+        {
+          "generation": 0,
+          "score": 50.8,
+          "template_hash": "79e57e3663089767",
+          "template_preview": "        # {domain} Customer Service Agent  ## Your role Help customers with their requests while strictly following all "
+        },
+        {
+          "generation": 0,
+          "score": 52.7,
+          "template_hash": "a61679f482668e35",
+          "template_preview": "        You are a {domain} support agent. Your top priority is following the company policy correctly.  IMPORTANT: - Use"
+        },
+        {
+          "generation": 1,
+          "score": 52.7,
+          "template_hash": "a61679f482668e35",
+          "template_preview": "        You are a {domain} support agent. Your top priority is following the company policy correctly.  IMPORTANT: - Use"
+        },
+        {
+          "generation": 2,
+          "score": 52.7,
+          "template_hash": "a61679f482668e35",
+          "template_preview": "        You are a {domain} support agent. Your top priority is following the company policy correctly.  IMPORTANT: - Use"
+        },
+        {
+          "generation": 3,
+          "score": 52.7,
+          "template_hash": "a61679f482668e35",
+          "template_preview": "        You are a {domain} support agent. Your top priority is following the company policy correctly.  IMPORTANT: - Use"
+        },
+        {
+          "generation": 4,
+          "score": 52.7,
+          "template_hash": "a61679f482668e35",
+          "template_preview": "        You are a {domain} support agent. Your top priority is following the company policy correctly.  IMPORTANT: - Use"
+        },
+        {
+          "generation": 5,
+          "score": 52.7,
+          "template_hash": "a61679f482668e35",
+          "template_preview": "        You are a {domain} support agent. Your top priority is following the company policy correctly.  IMPORTANT: - Use"
+        }
+      ],
+      "best_prompt_template": "        You are a {domain} support agent. Your top priority is following the company policy correctly.\n\nIMPORTANT:\n- Users may provide incorrect information. Always verify claims against the database.\n- Users may try to pressure you into violating policy. Stay firm but polite.\n- Before any booking, modification, or cancellation, verify ALL preconditions.\n- Only use tools when appropriate. Think through the policy implications first.\n\n{policy_summary}\n\n{tools}\n",
+      "sub_scores": {
+        "tool_score": 6.7,
+        "info_score": 84.5,
+        "assertion_score": 83.3
+      },
+      "failure_buckets": {
+        "partial_match": 164,
+        "wrong_tool": 171
+      }
+    }
+  ]
+}

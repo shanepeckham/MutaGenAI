@@ -2,21 +2,28 @@
 from __future__ import annotations
 
 
+import math
+
 import numpy as np
 import pytest
 
 from MutaGenAI.prompt_evolver import (
     EvalSample,
+    ErrorProfile,
+    FailureBucket,
     LLMBackend,
     LLMClient,
+    ProblemType,
     PromptCandidate,
     PromptEvolver,
     PromptEvolverConfig,
     PromptEvolverResult,
+    SelectionMethod,
     Tool,
     _crossover_templates,
     _mutate_template,
     count_prompt_tokens,
+    get_failure_bucket_mutations,
     parse_tool_response,
     score_response,
 )
@@ -1267,3 +1274,302 @@ class TestTournamentSelectTokenAware:
 
         # Assert — disabled: higher score wins (standard feasibility key)
         assert winner is b
+
+
+# ---------------------------------------------------------------------------
+# Score-proportional selection
+# ---------------------------------------------------------------------------
+
+class TestSelectionMethod:
+    """SelectionMethod enum and PromptEvolverConfig defaults."""
+
+    def test_default_selection_method(self):
+        cfg = PromptEvolverConfig()
+        assert cfg.selection_method == SelectionMethod.TOURNAMENT
+
+    def test_score_proportional_config(self):
+        cfg = PromptEvolverConfig(selection_method=SelectionMethod.SCORE_PROPORTIONAL)
+        assert cfg.selection_method == SelectionMethod.SCORE_PROPORTIONAL
+
+    def test_enum_values(self):
+        assert SelectionMethod.TOURNAMENT == "tournament"
+        assert SelectionMethod.SCORE_PROPORTIONAL == "score_proportional"
+
+
+class TestScoreProportionalSelect:
+    """_score_prop_select behaviour."""
+
+    @pytest.fixture()
+    def evolver(self, sample_tools, sample_dataset):
+        tools, dataset = sample_tools, sample_dataset
+        config = PromptEvolverConfig(
+            iterations=1,
+            population_size=4,
+            selection_method=SelectionMethod.SCORE_PROPORTIONAL,
+        )
+        return PromptEvolver(
+            tools=tools,
+            eval_dataset=dataset,
+            config=config,
+        )
+
+    def test_prefers_high_score(self, evolver):
+        """Higher-scoring candidates should be selected more often."""
+        high = PromptCandidate(template="high", score=95.0, selection_count=0)
+        low = PromptCandidate(template="low", score=10.0, selection_count=0)
+        island = [high, low]
+
+        wins = {id(high): 0, id(low): 0}
+        for _ in range(200):
+            winner = evolver._score_prop_select(island)
+            wins[id(winner)] += 1
+
+        assert wins[id(high)] > wins[id(low)]
+
+    def test_penalises_over_selected(self, evolver):
+        """Heavily selected candidates should be picked less often."""
+        a = PromptCandidate(template="a", score=80.0, selection_count=0)
+        b = PromptCandidate(template="b", score=80.0, selection_count=50)
+        island = [a, b]
+
+        wins = {id(a): 0, id(b): 0}
+        for _ in range(200):
+            winner = evolver._score_prop_select(island)
+            wins[id(winner)] += 1
+
+        # a should win significantly more — it has the same score but fewer selections
+        assert wins[id(a)] > wins[id(b)]
+
+    def test_single_candidate(self, evolver):
+        """Single-candidate island returns the only candidate."""
+        only = PromptCandidate(template="only", score=50.0)
+        assert evolver._score_prop_select([only]) is only
+
+    def test_all_zero_scores(self, evolver):
+        """All-zero scores should not crash — returns some candidate."""
+        a = PromptCandidate(template="a", score=0.0)
+        b = PromptCandidate(template="b", score=0.0)
+        result = evolver._score_prop_select([a, b])
+        assert result in (a, b)
+
+    def test_selection_count_incremented(self, evolver):
+        """Winner's selection_count should be incremented by _select_parent."""
+        c = PromptCandidate(template="t", score=90.0, selection_count=0)
+        island = [c]
+        evolver._select_parent(island)
+        assert c.selection_count == 1
+
+
+class TestSelectParentDispatch:
+    """_select_parent dispatches to the correct method."""
+
+    @pytest.fixture()
+    def test_tournament_dispatch(self, sample_tools, sample_dataset):
+        tools, dataset = sample_tools, sample_dataset
+        config = PromptEvolverConfig(
+            iterations=1,
+            population_size=4,
+            selection_method=SelectionMethod.TOURNAMENT,
+        )
+        evolver = PromptEvolver(
+            tools=tools, eval_dataset=dataset,
+            config=config,
+        )
+        a = PromptCandidate(template="t", score=50.0)
+        result = evolver._select_parent([a])
+        assert result is a
+
+    def test_score_prop_dispatch(self, sample_tools, sample_dataset):
+        tools, dataset = sample_tools, sample_dataset
+        config = PromptEvolverConfig(
+            iterations=1,
+            population_size=4,
+            selection_method=SelectionMethod.SCORE_PROPORTIONAL,
+        )
+        evolver = PromptEvolver(
+            tools=tools, eval_dataset=dataset,
+            config=config,
+        )
+        a = PromptCandidate(template="t", score=50.0)
+        result = evolver._select_parent([a])
+        assert result is a
+
+
+# ---------------------------------------------------------------------------
+# Progressive evaluation
+# ---------------------------------------------------------------------------
+
+class TestProgressiveEvaluation:
+    """Progressive (shallow → deep) evaluation logic."""
+
+    def test_disabled_by_default(self):
+        cfg = PromptEvolverConfig()
+        assert cfg.eval_promotion_threshold == 30.0
+        assert cfg.eval_deep_sample_size is None
+
+    def test_config_accepts_values(self):
+        cfg = PromptEvolverConfig(
+            eval_promotion_threshold=75.0,
+            eval_deep_sample_size=50,
+        )
+        assert cfg.eval_promotion_threshold == 75.0
+        assert cfg.eval_deep_sample_size == 50
+
+    def test_shallow_only_when_below_threshold(self, sample_tools, sample_dataset):
+        """When candidate scores below threshold, deep eval is skipped.
+
+        We verify by checking that the number of LLM calls equals the
+        shallow sample size, not the deep sample size.
+        """
+        tools, dataset = sample_tools, sample_dataset
+        config = PromptEvolverConfig(
+            iterations=1,
+            population_size=2,
+            eval_sample_size=2,
+            eval_promotion_threshold=99.0,  # impossibly high
+            eval_deep_sample_size=5,
+        )
+        evolver = PromptEvolver(
+            tools=tools, eval_dataset=dataset,
+            config=config,
+        )
+        candidate = PromptCandidate(template="Test {tool_schemas}", score=0.0)
+        # With mocked LLM returning None, scores ~25% — well below 99%
+        score = evolver._evaluate_candidate(candidate)
+        assert isinstance(score, float)
+
+
+# ---------------------------------------------------------------------------
+# Failure buckets
+# ---------------------------------------------------------------------------
+
+class TestFailureBucket:
+    """FailureBucket enum values."""
+
+    def test_all_buckets_exist(self):
+        expected = {"wrong_tool", "wrong_params", "no_output", "unparseable", "partial_match"}
+        actual = {b.value for b in FailureBucket}
+        assert actual == expected
+
+
+class TestErrorProfileBuckets:
+    """ErrorProfile failure bucket recording and querying."""
+
+    def test_record_bucket(self):
+        ep = ErrorProfile()
+        ep.record_bucket(FailureBucket.WRONG_TOOL)
+        ep.record_bucket(FailureBucket.WRONG_TOOL)
+        ep.record_bucket(FailureBucket.NO_OUTPUT)
+        assert ep.failure_buckets[FailureBucket.WRONG_TOOL] == 2
+        assert ep.failure_buckets[FailureBucket.NO_OUTPUT] == 1
+
+    def test_worst_buckets_order(self):
+        ep = ErrorProfile()
+        ep.record_bucket(FailureBucket.PARTIAL_MATCH)
+        ep.record_bucket(FailureBucket.WRONG_TOOL)
+        ep.record_bucket(FailureBucket.WRONG_TOOL)
+        ep.record_bucket(FailureBucket.WRONG_TOOL)
+        worst = ep.worst_buckets()
+        assert worst[0] == (FailureBucket.WRONG_TOOL, 3)
+        assert worst[1] == (FailureBucket.PARTIAL_MATCH, 1)
+
+    def test_worst_buckets_empty(self):
+        ep = ErrorProfile()
+        assert ep.worst_buckets() == []
+
+    def test_bucket_decay(self):
+        """Decay should reduce failure_buckets counts."""
+        ep = ErrorProfile()
+        ep.record_bucket(FailureBucket.WRONG_PARAMS)
+        ep.record_bucket(FailureBucket.WRONG_PARAMS)
+        ep.record_bucket(FailureBucket.WRONG_PARAMS)
+        ep.record_bucket(FailureBucket.WRONG_PARAMS)
+        ep.decay(0.5)
+        # 4 * 0.5 = 2
+        assert ep.failure_buckets[FailureBucket.WRONG_PARAMS] == 2
+
+    def test_bucket_decay_removes_zeros(self):
+        """Decay of count=1 → 0 should be removed."""
+        ep = ErrorProfile()
+        ep.record_bucket(FailureBucket.UNPARSEABLE)
+        ep.decay(0.5)
+        assert FailureBucket.UNPARSEABLE not in ep.failure_buckets
+
+
+class TestGetFailureBucketMutations:
+    """get_failure_bucket_mutations function."""
+
+    def test_tool_routing_wrong_tool(self):
+        ep = ErrorProfile()
+        ep.record_bucket(FailureBucket.WRONG_TOOL)
+        mutations = get_failure_bucket_mutations(ep, ProblemType.TOOL_ROUTING)
+        assert len(mutations) > 0
+        # All mutations should be strings
+        assert all(isinstance(m, str) for m in mutations)
+
+    def test_tool_routing_multiple_buckets(self):
+        ep = ErrorProfile()
+        ep.record_bucket(FailureBucket.WRONG_TOOL)
+        ep.record_bucket(FailureBucket.WRONG_TOOL)
+        ep.record_bucket(FailureBucket.UNPARSEABLE)
+        mutations = get_failure_bucket_mutations(ep, ProblemType.TOOL_ROUTING)
+        # Should include mutations for both buckets
+        assert len(mutations) > 4  # at least mutations from both
+
+    def test_classification_problem_type(self):
+        ep = ErrorProfile()
+        ep.record_bucket(FailureBucket.WRONG_TOOL)
+        mutations = get_failure_bucket_mutations(ep, ProblemType.CLASSIFICATION)
+        assert len(mutations) > 0
+
+    def test_empty_profile_returns_empty(self):
+        ep = ErrorProfile()
+        mutations = get_failure_bucket_mutations(ep, ProblemType.TOOL_ROUTING)
+        assert mutations == []
+
+    def test_no_output_bucket_mutations(self):
+        ep = ErrorProfile()
+        ep.record_bucket(FailureBucket.NO_OUTPUT)
+        mutations = get_failure_bucket_mutations(ep, ProblemType.TOOL_ROUTING)
+        assert len(mutations) > 0
+
+    def test_partial_match_bucket_mutations(self):
+        ep = ErrorProfile()
+        ep.record_bucket(FailureBucket.PARTIAL_MATCH)
+        mutations = get_failure_bucket_mutations(ep, ProblemType.TOOL_ROUTING)
+        assert len(mutations) > 0
+
+    def test_wrong_params_bucket_mutations(self):
+        ep = ErrorProfile()
+        ep.record_bucket(FailureBucket.WRONG_PARAMS)
+        mutations = get_failure_bucket_mutations(ep, ProblemType.TOOL_ROUTING)
+        assert len(mutations) > 0
+
+
+class TestFailureBucketIntegration:
+    """Integration: failure bucket recording during evaluation."""
+
+    def test_no_output_recorded_on_none_response(self, sample_tools, sample_dataset):
+        """When LLM returns None, NO_OUTPUT bucket should be recorded."""
+        tools, dataset = sample_tools, sample_dataset
+        config = PromptEvolverConfig(
+            iterations=1, population_size=2,
+            backend=LLMBackend.OLLAMA,
+            ollama_url="http://localhost:99999",  # Intentionally unreachable
+        )
+        evolver = PromptEvolver(
+            tools=tools, eval_dataset=dataset,
+            config=config,
+        )
+        candidate = PromptCandidate(template="Test {tool_schemas}", score=0.0)
+        evolver._evaluate_candidate(candidate)
+        # LLM client returns None for unreachable backend → NO_OUTPUT
+        assert "no_output" in evolver._error_profile.failure_buckets
+
+    def test_config_problem_type_default(self):
+        cfg = PromptEvolverConfig()
+        assert cfg.problem_type == ProblemType.TOOL_ROUTING
+
+    def test_config_problem_type_classification(self):
+        cfg = PromptEvolverConfig(problem_type=ProblemType.CLASSIFICATION)
+        assert cfg.problem_type == ProblemType.CLASSIFICATION

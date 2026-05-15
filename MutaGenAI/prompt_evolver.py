@@ -117,6 +117,7 @@ class PromptCandidate:
     operation: str = "seed"
     parent_hashes: list[str] = field(default_factory=list)
     penalty_violations: int = 0
+    selection_count: int = 0
 
     def __post_init__(self) -> None:
         if not self.hash:
@@ -125,6 +126,44 @@ class PromptCandidate:
             # Include counter to guarantee uniqueness even when templates match
             blob = f"{self.template}|{self.generation}|{self.island_id}|{_candidate_counter}"
             self.hash = hashlib.sha256(blob.encode()).hexdigest()[:16]
+
+
+class ProblemType(str, Enum):
+    """The nature of the task being optimised.
+
+    Determines which built-in mutation snippets are injected during
+    evolution. Users select this in the wizard or via the CLI.
+    """
+
+    TOOL_ROUTING = "tool_routing"
+    CLASSIFICATION = "classification"
+
+
+class SelectionMethod(str, Enum):
+    """Parent selection strategy for evolution.
+
+    ``TOURNAMENT`` — classic k-tournament selection (default).
+    ``SCORE_PROPORTIONAL`` — sigmoid-weighted score with an exploration
+    bonus that penalises over-selected parents, inspired by DGM's
+    ``score_child_prop`` method.
+    """
+
+    TOURNAMENT = "tournament"
+    SCORE_PROPORTIONAL = "score_proportional"
+
+
+class FailureBucket(str, Enum):
+    """Structured failure categories for targeted mutation guidance.
+
+    Each bucket maps to a set of problem-type-specific mutation snippets
+    that address the corresponding failure mode.
+    """
+
+    WRONG_TOOL = "wrong_tool"
+    WRONG_PARAMS = "wrong_params"
+    NO_OUTPUT = "no_output"
+    UNPARSEABLE = "unparseable"
+    PARTIAL_MATCH = "partial_match"
 
 
 @dataclass
@@ -199,6 +238,31 @@ class PromptEvolverConfig:
                             compute the efficiency ratio.  If ``0``
                             (default), token optimisation scoring is
                             skipped even when ``minimize_tokens=True``.
+        selection_method:   Parent selection strategy.
+                            ``SelectionMethod.TOURNAMENT`` (default) uses
+                            k-tournament selection.
+                            ``SelectionMethod.SCORE_PROPORTIONAL`` uses
+                            sigmoid-weighted score with an exploration
+                            bonus that penalises over-selected parents.
+        eval_promotion_threshold: Score threshold (0–100) for progressive
+                            evaluation.  Candidates scoring below this
+                            on the shallow pass (``eval_sample_size``)
+                            are not re-evaluated.  Candidates at or
+                            above are re-evaluated on a deeper sample
+                            (``eval_deep_sample_size``).  Default 30.0.
+                            Set to 0.0 to disable progressive eval.
+        eval_deep_sample_size: Number of samples for the deep evaluation
+                            pass.  Only used when
+                            ``eval_promotion_threshold`` > 0.  When
+                            ``None`` (default), automatically computed
+                            as min(dataset_size, 2 × eval_sample_size)
+                            if the dataset has sufficient diversity
+                            (≥ 3 distinct expected tools or categories).
+                            Set explicitly to override.
+        problem_type:       The nature of the task being optimised.
+                            Controls which mutation snippets and failure-
+                            bucket hints are used during evolution.
+                            Default ``ProblemType.TOOL_ROUTING``.
     """
 
     iterations: int = 30
@@ -232,6 +296,10 @@ class PromptEvolverConfig:
     token_efficiency_cap: float = 2.0
     token_accuracy_band: float = 2.0
     baseline_prompt_tokens: int = 0
+    selection_method: SelectionMethod = SelectionMethod.TOURNAMENT
+    eval_promotion_threshold: float = 30.0
+    eval_deep_sample_size: Optional[int] = None
+    problem_type: ProblemType = ProblemType.TOOL_ROUTING
 
     def __post_init__(self) -> None:
         # Auto-detect from environment variables
@@ -712,17 +780,6 @@ _SEED_TEMPLATES = [
 # ---------------------------------------------------------------------------
 
 
-class ProblemType(str, Enum):
-    """The nature of the task being optimised.
-
-    Determines which built-in mutation snippets are injected during
-    evolution. Users select this in the wizard or via the CLI.
-    """
-
-    TOOL_ROUTING = "tool_routing"
-    CLASSIFICATION = "classification"
-
-
 # ---------------------------------------------------------------------------
 # Prompt mutations – per problem type
 # ---------------------------------------------------------------------------
@@ -782,6 +839,96 @@ def get_mutations_for_problem_type(
 
 
 # ---------------------------------------------------------------------------
+# Failure-bucket-targeted mutations
+# ---------------------------------------------------------------------------
+
+
+_FAILURE_BUCKET_MUTATIONS_TOOL_ROUTING: dict[str, list[str]] = {
+    FailureBucket.WRONG_TOOL.value: [
+        "Compare each tool's description to the user intent before selecting.",
+        "Match the user's goal to the tool purpose, not surface keywords.",
+        "When tools seem similar, pick the one whose description best fits.",
+        "Re-read the user query and tool descriptions before your final choice.",
+    ],
+    FailureBucket.WRONG_PARAMS.value: [
+        "Extract ALL parameter values directly from the user's message.",
+        "Map each required parameter to an explicit phrase in the query.",
+        "Do not invent parameter values — only use what the user stated.",
+        "Double-check that each parameter key matches the tool's schema.",
+    ],
+    FailureBucket.NO_OUTPUT.value: [
+        "Always produce a JSON response — never leave the output empty.",
+        "If unsure, pick the closest matching tool rather than returning nothing.",
+        "You MUST respond with a tool selection for every query.",
+        "Never refuse to answer — always select the best-fitting tool.",
+    ],
+    FailureBucket.UNPARSEABLE.value: [
+        "Output ONLY a valid JSON object — no markdown, no explanation.",
+        'Your response must be parseable JSON: {"tool": ..., "parameters": ...}.',
+        "Do not wrap your response in code fences or add commentary.",
+        "Return exactly one JSON object with 'tool' and 'parameters' keys.",
+    ],
+    FailureBucket.PARTIAL_MATCH.value: [
+        "Verify each extracted parameter value matches the user's exact words.",
+        "Check that string parameters preserve the user's original casing.",
+        "Ensure all required parameters are present in your response.",
+        "Re-read the query to capture parameter values you may have missed.",
+    ],
+}
+
+_FAILURE_BUCKET_MUTATIONS_CLASSIFICATION: dict[str, list[str]] = {
+    FailureBucket.WRONG_TOOL.value: [
+        "Re-read each category definition before choosing a label.",
+        "Focus on the semantic meaning of the input, not surface keywords.",
+        "When categories seem similar, identify the decisive distinguishing feature.",
+        "Consider all categories before committing to your answer.",
+    ],
+    FailureBucket.NO_OUTPUT.value: [
+        "Always output exactly one category label — never leave the response empty.",
+        "If uncertain, choose the most likely category rather than refusing.",
+        "You MUST classify every input into exactly one category.",
+        "Never skip classification — select the best-fitting label.",
+    ],
+    FailureBucket.UNPARSEABLE.value: [
+        "Return ONLY the category label — no explanations or extra text.",
+        "Your output must be a single word or phrase matching a valid category.",
+        "Do not add reasoning, confidence scores, or justifications.",
+        "Output the exact category name as listed in your instructions.",
+    ],
+    FailureBucket.WRONG_PARAMS.value: [],
+    FailureBucket.PARTIAL_MATCH.value: [],
+}
+
+
+def get_failure_bucket_mutations(
+    error_profile: ErrorProfile,
+    problem_type: ProblemType,
+    top_k: int = 3,
+) -> list[str]:
+    """Return mutation snippets targeting the most frequent failure modes.
+
+    Examines the error profile's failure buckets, selects the *top_k*
+    most frequent, and returns the corresponding mutation snippets for
+    the given *problem_type*.
+    """
+    worst = error_profile.worst_buckets(top_k)
+    if not worst:
+        return []
+
+    if problem_type is ProblemType.CLASSIFICATION:
+        bucket_map = _FAILURE_BUCKET_MUTATIONS_CLASSIFICATION
+    else:
+        bucket_map = _FAILURE_BUCKET_MUTATIONS_TOOL_ROUTING
+
+    hints: list[str] = []
+    for bucket_key, _count in worst:
+        mutations = bucket_map.get(bucket_key, [])
+        hints.extend(mutations)
+
+    return hints
+
+
+# ---------------------------------------------------------------------------
 # Error-guided adaptive mutations
 # ---------------------------------------------------------------------------
 
@@ -796,6 +943,7 @@ class ErrorProfile:
 
     total: dict[str, int] = field(default_factory=dict)
     errors: dict[str, int] = field(default_factory=dict)
+    failure_buckets: dict[str, int] = field(default_factory=dict)
 
     def record(self, category: str, correct: bool) -> None:
         self.total[category] = self.total.get(category, 0) + 1
@@ -829,6 +977,25 @@ class ErrorProfile:
             if self.total[cat] <= 0:
                 del self.total[cat]
                 self.errors.pop(cat, None)
+        for key in list(self.failure_buckets):
+            self.failure_buckets[key] = int(self.failure_buckets[key] * factor)
+            if self.failure_buckets[key] <= 0:
+                del self.failure_buckets[key]
+
+    def record_bucket(self, bucket: "FailureBucket") -> None:
+        """Increment the count for a structured failure bucket."""
+        key = bucket.value
+        self.failure_buckets[key] = self.failure_buckets.get(key, 0) + 1
+
+    def worst_buckets(self, top_k: int = 3) -> list[tuple[str, int]]:
+        """Return up to *top_k* failure buckets sorted by count (desc).
+
+        Only includes buckets with at least one recorded failure.
+        """
+        sorted_buckets = sorted(
+            self.failure_buckets.items(), key=lambda x: x[1], reverse=True
+        )
+        return [(b, c) for b, c in sorted_buckets[:top_k] if c > 0]
 
 
 def generate_adaptive_mutations(
@@ -1474,6 +1641,7 @@ class PromptEvolver:
         self._error_profile = ErrorProfile()
         self._failure_examples: list[tuple[str, str, str]] = []
         self._adaptive_pool: list[str] = []
+        self._failure_bucket_pool: list[str] = []
 
     def run(self) -> PromptEvolverResult:
         """Run the evolutionary prompt optimisation loop."""
@@ -1529,10 +1697,9 @@ class PromptEvolver:
             gen_t0 = time.perf_counter()
             logger.info("── Generation %d/%d ──", gen, self.config.iterations)
 
-            # Reset error tracking per generation for adaptive mutations
-            if self.config.adaptive_mutations or self.config.llm_mutation_rate > 0:
-                self._error_profile = ErrorProfile()
-                self._failure_examples = []
+            # Reset error tracking per generation
+            self._error_profile = ErrorProfile()
+            self._failure_examples = []
 
             for island_id in range(self.config.num_islands):
                 island = islands[island_id]
@@ -1571,7 +1738,7 @@ class PromptEvolver:
             if self.config.adaptive_mutations and self._error_profile.worst_categories():
                 self._adaptive_pool = generate_adaptive_mutations(
                     self._error_profile,
-                    ProblemType.TOOL_ROUTING,
+                    self.config.problem_type,
                     self._client,
                 )
                 logger.info(
@@ -1581,6 +1748,21 @@ class PromptEvolver:
                 )
             else:
                 self._adaptive_pool = []
+
+            # Generate failure-bucket-targeted mutations
+            if self._error_profile.worst_buckets():
+                self._failure_bucket_pool = get_failure_bucket_mutations(
+                    self._error_profile,
+                    self.config.problem_type,
+                )
+                if self._failure_bucket_pool:
+                    logger.info(
+                        "  Failure buckets: %d targeted hints from %s",
+                        len(self._failure_bucket_pool),
+                        [b for b, _ in self._error_profile.worst_buckets()],
+                    )
+            else:
+                self._failure_bucket_pool = []
 
             # Track best (feasibility-first)
             gen_best = max(
@@ -1655,15 +1837,15 @@ class PromptEvolver:
         self, island: list[PromptCandidate], generation: int
     ) -> PromptCandidate:
         """Create a new candidate from island parents via mutation/crossover."""
-        # Tournament selection
-        parent_a = self._tournament_select(island)
+        # Parent selection (configurable strategy)
+        parent_a = self._select_parent(island)
 
         # Track lineage
         parent_hashes = [parent_a.hash]
         operation = "mutation"
 
         if self._rng.random() < self.config.crossover_rate and len(island) > 1:
-            parent_b = self._tournament_select(island)
+            parent_b = self._select_parent(island)
             child_template = _crossover_templates(
                 parent_a.template,
                 parent_b.template,
@@ -1675,10 +1857,12 @@ class PromptEvolver:
         else:
             child_template = parent_a.template
 
-        # Build mutation pool (static + adaptive)
-        mutations = list(get_mutations_for_problem_type(ProblemType.TOOL_ROUTING))
+        # Build mutation pool (static + adaptive + failure-bucket)
+        mutations = list(get_mutations_for_problem_type(self.config.problem_type))
         if self._adaptive_pool:
             mutations = mutations + self._adaptive_pool
+        if self._failure_bucket_pool:
+            mutations = mutations + self._failure_bucket_pool
 
         # LLM-assisted mutation path: rewrite using failure cases
         if (
@@ -1695,7 +1879,7 @@ class PromptEvolver:
                 child_template,
                 sampled_failures,
                 self._client,
-                ProblemType.TOOL_ROUTING,
+                self.config.problem_type,
                 require_tool_schemas=self._require_tool_schemas,
             )
             operation = "llm_mutation"
@@ -1719,7 +1903,7 @@ class PromptEvolver:
             child_template = _llm_describe_entities(
                 child_template,
                 self._client,
-                ProblemType.TOOL_ROUTING,
+                self.config.problem_type,
                 require_tool_schemas=self._require_tool_schemas,
             )
             operation = "describe_entities"
@@ -1780,6 +1964,55 @@ class PromptEvolver:
 
         return max(contestants, key=_feasibility_key)
 
+    def _select_parent(
+        self, island: list[PromptCandidate],
+    ) -> PromptCandidate:
+        """Select a parent using the configured selection method."""
+        if self.config.selection_method is SelectionMethod.SCORE_PROPORTIONAL:
+            return self._score_prop_select(island)
+        return self._tournament_select(island)
+
+    def _score_prop_select(
+        self, island: list[PromptCandidate],
+    ) -> PromptCandidate:
+        """Score-proportional selection with exploration bonus.
+
+        Each candidate's selection probability is proportional to:
+
+            sigmoid(score) × 1 / (1 + selection_count)
+
+        The sigmoid ``1 / (1 + exp(-10 * (s/100 - 0.5)))`` converts the
+        0–100 score into a (0, 1) probability.  The inverse-children
+        factor ``1 / (1 + selection_count)`` encourages exploration of
+        under-selected candidates, preventing the current elite from
+        dominating every generation.
+
+        Inspired by DGM's ``score_child_prop`` parent selection.
+        """
+        if len(island) == 1:
+            island[0].selection_count += 1
+            return island[0]
+
+        weights = np.array([
+            (
+                1.0 / (1.0 + math.exp(-10.0 * (c.score / 100.0 - 0.5)))
+            ) * (
+                1.0 / (1.0 + c.selection_count)
+            )
+            for c in island
+        ])
+
+        total = weights.sum()
+        if total <= 0:
+            idx = int(self._rng.integers(len(island)))
+            island[idx].selection_count += 1
+            return island[idx]
+
+        probs = weights / total
+        idx = int(self._rng.choice(len(island), p=probs))
+        island[idx].selection_count += 1
+        return island[idx]
+
     def _migrate(self, islands: list[list[PromptCandidate]]) -> None:
         """Copy the best candidate from each island to a random neighbour."""
         n = len(islands)
@@ -1835,12 +2068,24 @@ class PromptEvolver:
         )
 
     def _evaluate_candidate(self, candidate: PromptCandidate) -> float:
-        """Evaluate a candidate prompt on the dataset. Returns accuracy * 100."""
+        """Evaluate a candidate prompt on the dataset. Returns accuracy * 100.
+
+        When progressive evaluation is active (threshold > 0), a cheap
+        shallow pass runs first using ``eval_sample_size``.  Candidates
+        that meet the promotion threshold are re-evaluated on a deeper
+        sample for a more reliable score.
+
+        Dynamic mode: when ``eval_deep_sample_size`` is None, the deep
+        sample size is auto-computed as min(dataset_size, 2× shallow)
+        only if the dataset has sufficient diversity (≥ 3 distinct
+        expected tools).  This avoids wasting API calls on homogeneous
+        datasets where a deeper pass adds no signal.
+        """
         system_prompt = candidate.template.replace(
             "{tool_schemas}", self._tool_schemas_str
         )
 
-        # Optionally subsample the evaluation set
+        # Optionally subsample the evaluation set (shallow pass)
         if (
             self.config.eval_sample_size
             and self.config.eval_sample_size < len(self.eval_dataset)
@@ -1854,6 +2099,47 @@ class PromptEvolver:
         else:
             samples = self.eval_dataset
 
+        raw_score = self._score_on_samples(candidate, system_prompt, samples)
+
+        # Progressive promotion: re-evaluate on larger sample if threshold met
+        cfg = self.config
+        deep_size = cfg.eval_deep_sample_size
+        # Dynamic: auto-compute deep size when not explicitly set
+        if deep_size is None and cfg.eval_promotion_threshold > 0:
+            distinct_tools = len({s.expected_tool for s in self.eval_dataset})
+            shallow = cfg.eval_sample_size or len(self.eval_dataset)
+            if distinct_tools >= 3 and len(self.eval_dataset) > shallow:
+                deep_size = min(len(self.eval_dataset), shallow * 2)
+
+        if (
+            cfg.eval_promotion_threshold > 0
+            and deep_size is not None
+            and raw_score >= cfg.eval_promotion_threshold
+            and len(samples) < deep_size <= len(self.eval_dataset)
+        ):
+            deep_indices = self._rng.choice(
+                len(self.eval_dataset),
+                size=deep_size,
+                replace=False,
+            )
+            deep_samples = [self.eval_dataset[int(i)] for i in deep_indices]
+            raw_score = self._score_on_samples(
+                candidate, system_prompt, deep_samples,
+            )
+
+        return self._apply_token_efficiency(raw_score, candidate)
+
+    def _score_on_samples(
+        self,
+        candidate: PromptCandidate,
+        system_prompt: str,
+        samples: list[EvalSample],
+    ) -> float:
+        """Score a candidate on a list of samples. Returns accuracy * 100.
+
+        Also records per-category error profiles, failure examples, and
+        structured failure buckets for mutation guidance.
+        """
         total_score = 0.0
         for sample in samples:
             response = self._client.complete(
@@ -1866,6 +2152,7 @@ class PromptEvolver:
             if response is None:
                 # LLM not available — random score for testing
                 total_score += float(self._rng.uniform(0, 0.5))
+                self._error_profile.record_bucket(FailureBucket.NO_OUTPUT)
                 continue
 
             predicted_tool, predicted_params = parse_tool_response(
@@ -1888,9 +2175,19 @@ class PromptEvolver:
                     (sample.query, predicted_tool or response[:80], expected_tool)
                 )
 
+            # Classify failure into structured bucket
+            if sample_score < 1.0 - 0.001:
+                if predicted_tool is None:
+                    self._error_profile.record_bucket(FailureBucket.UNPARSEABLE)
+                elif predicted_tool != sample.expected_tool:
+                    self._error_profile.record_bucket(FailureBucket.WRONG_TOOL)
+                elif sample.expected_params and sample_score <= 0.6 + 0.001:
+                    self._error_profile.record_bucket(FailureBucket.WRONG_PARAMS)
+                elif sample.expected_params:
+                    self._error_profile.record_bucket(FailureBucket.PARTIAL_MATCH)
+
         accuracy = total_score / len(samples) if samples else 0.0
-        raw_score = accuracy * 100.0
-        return self._apply_token_efficiency(raw_score, candidate)
+        return accuracy * 100.0
 
 
 # ---------------------------------------------------------------------------
