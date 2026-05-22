@@ -34,11 +34,13 @@ __version__ = "0.1.0"
 
 from MutaGenAI.prompt_evolver import (
     ErrorProfile,
+    FailureBucket,
     PromptEvolver,
     PromptEvolverConfig,
     PromptEvolverResult,
     PromptCandidate,
     ProblemType,
+    SelectionMethod,
     Tool,
     EvalSample,
     LLMBackend,
@@ -46,6 +48,7 @@ from MutaGenAI.prompt_evolver import (
     count_prompt_tokens,
     evolve_prompt_with_cmaes,
     generate_adaptive_mutations,
+    get_failure_bucket_mutations,
     get_mutations_for_problem_type,
     _feasibility_key,
 )
@@ -81,11 +84,13 @@ from MutaGenAI.wizard import run_wizard
 __all__ = [
     # Core engine
     "ErrorProfile",
+    "FailureBucket",
     "PromptEvolver",
     "PromptEvolverConfig",
     "PromptEvolverResult",
     "PromptCandidate",
     "ProblemType",
+    "SelectionMethod",
     "Tool",
     "EvalSample",
     "LLMBackend",
@@ -93,6 +98,7 @@ __all__ = [
     "count_prompt_tokens",
     "evolve_prompt_with_cmaes",
     "generate_adaptive_mutations",
+    "get_failure_bucket_mutations",
     "get_mutations_for_problem_type",
     # No-eval strategies
     "NoEvalPromptEvolver",

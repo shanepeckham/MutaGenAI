@@ -1,0 +1,277 @@
+{
+  "timestamp": "2026-05-14T17:34:59",
+  "version": "v2",
+  "features": [
+    "score_proportional_selection",
+    "failure_bucket_mutations",
+    "progressive_evaluation"
+  ],
+  "default_baselines": {
+    "g1_instruction": 100.0,
+    "g3_instruction": 98.00000000000001
+  },
+  "experiments": [
+    {
+      "category": "g1_instruction",
+      "algorithm": "standard",
+      "backend": "azure_openai",
+      "n_cases": 10,
+      "baseline_score": 100.0,
+      "evolved_score": 100.0,
+      "delta": 0.0,
+      "best_temperature": 0.5546,
+      "best_top_p": 0.5319,
+      "iterations": 3,
+      "wall_time": 667.6,
+      "history": [
+        [
+          0,
+          100.0
+        ],
+        [
+          1,
+          100.0
+        ],
+        [
+          2,
+          100.0
+        ],
+        [
+          3,
+          100.0
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 98.5,
+          "template_hash": "2666d297e02a9cb9",
+          "template_preview": "        You are a tool-calling assistant. Given the user request, select and call the appropriate API(s).  Available too"
+        },
+        {
+          "generation": 0,
+          "score": 92.0,
+          "template_hash": "dce27b69aa165ddf",
+          "template_preview": "        You are an expert API orchestrator. Your task is to: 1. Analyse the user's request and break it into sub-tasks. "
+        },
+        {
+          "generation": 0,
+          "score": 92.0,
+          "template_hash": "deecc15f4f7f47c9",
+          "template_preview": "        You are an API planning agent that uses depth-first reasoning.  Step 1: Understand the user's goal. Step 2: Iden"
+        },
+        {
+          "generation": 0,
+          "score": 100.0,
+          "template_hash": "f48150ebcdcacbb6",
+          "template_preview": "        You are a precise tool-calling assistant. Rules: - ONLY use tools from the list below. - Every required paramete"
+        },
+        {
+          "generation": 1,
+          "score": 100.0,
+          "template_hash": "f48150ebcdcacbb6",
+          "template_preview": "        You are a precise tool-calling assistant. Rules: - ONLY use tools from the list below. - Every required paramete"
+        },
+        {
+          "generation": 2,
+          "score": 100.0,
+          "template_hash": "f48150ebcdcacbb6",
+          "template_preview": "        You are a precise tool-calling assistant. Rules: - ONLY use tools from the list below. - Every required paramete"
+        },
+        {
+          "generation": 3,
+          "score": 100.0,
+          "template_hash": "f48150ebcdcacbb6",
+          "template_preview": "        You are a precise tool-calling assistant. Rules: - ONLY use tools from the list below. - Every required paramete"
+        }
+      ],
+      "best_prompt_template": "        You are a precise tool-calling assistant. Rules:\n- ONLY use tools from the list below.\n- Every required parameter MUST be provided.\n- Match tool names and API names EXACTLY as listed.\n- For multi-step tasks, return calls in execution order.\n- Return ONLY a JSON array \u2014 no explanation text.\n\nAvailable tools:\n{toolbench_apis}\n\nJSON array of tool calls:\n",
+      "multi_tool_ratio": 0.0,
+      "failure_buckets": {
+        "unparseable": 49,
+        "partial_match": 4
+      }
+    },
+    {
+      "category": "g3_instruction",
+      "algorithm": "standard",
+      "backend": "azure_openai",
+      "n_cases": 10,
+      "baseline_score": 100.0,
+      "evolved_score": 100.0,
+      "delta": 0.0,
+      "best_temperature": 0.3708,
+      "best_top_p": 0.9634,
+      "iterations": 3,
+      "wall_time": 547.7,
+      "history": [
+        [
+          0,
+          100.0
+        ],
+        [
+          1,
+          100.0
+        ],
+        [
+          2,
+          100.0
+        ],
+        [
+          3,
+          100.0
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 100.0,
+          "template_hash": "41036219a0373890",
+          "template_preview": "        You are a tool-calling assistant. Given the user request, select and call the appropriate API(s).  Available too"
+        },
+        {
+          "generation": 0,
+          "score": 100.0,
+          "template_hash": "5ead212df78a454e",
+          "template_preview": "        You are an expert API orchestrator. Your task is to: 1. Analyse the user's request and break it into sub-tasks. "
+        },
+        {
+          "generation": 0,
+          "score": 100.0,
+          "template_hash": "584ea74127e01d31",
+          "template_preview": "        You are an API planning agent that uses depth-first reasoning.  Step 1: Understand the user's goal. Step 2: Iden"
+        },
+        {
+          "generation": 0,
+          "score": 100.0,
+          "template_hash": "c650193918b17cad",
+          "template_preview": "        You are a precise tool-calling assistant. Rules: - ONLY use tools from the list below. - Every required paramete"
+        },
+        {
+          "generation": 1,
+          "score": 100.0,
+          "template_hash": "41036219a0373890",
+          "template_preview": "        You are a tool-calling assistant. Given the user request, select and call the appropriate API(s).  Available too"
+        },
+        {
+          "generation": 2,
+          "score": 100.0,
+          "template_hash": "41036219a0373890",
+          "template_preview": "        You are a tool-calling assistant. Given the user request, select and call the appropriate API(s).  Available too"
+        },
+        {
+          "generation": 3,
+          "score": 100.0,
+          "template_hash": "41036219a0373890",
+          "template_preview": "        You are a tool-calling assistant. Given the user request, select and call the appropriate API(s).  Available too"
+        }
+      ],
+      "best_prompt_template": "        You are a tool-calling assistant. Given the user request, select and call the appropriate API(s).\n\nAvailable tools:\n{toolbench_apis}\n\nReturn your answer as a JSON array of tool calls.\n",
+      "multi_tool_ratio": 1.0,
+      "failure_buckets": {
+        "unparseable": 7
+      }
+    },
+    {
+      "category": "g3_instruction",
+      "algorithm": "deep",
+      "backend": "azure_openai",
+      "n_cases": 12,
+      "baseline_score": 100.0,
+      "evolved_score": 100.0,
+      "delta": 0.0,
+      "best_temperature": 0.8242,
+      "best_top_p": 0.6069,
+      "iterations": 5,
+      "wall_time": 3193.5,
+      "history": [
+        [
+          0,
+          100.0
+        ],
+        [
+          1,
+          100.0
+        ],
+        [
+          2,
+          100.0
+        ],
+        [
+          3,
+          100.0
+        ],
+        [
+          4,
+          100.0
+        ],
+        [
+          5,
+          100.0
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 100.0,
+          "template_hash": "9870389b5a1f12bc",
+          "template_preview": "        You are a tool-calling assistant. Given the user request, select and call the appropriate API(s).  Available too"
+        },
+        {
+          "generation": 0,
+          "score": 100.0,
+          "template_hash": "3d552d1e36f3e09d",
+          "template_preview": "        You are an expert API orchestrator. Your task is to: 1. Analyse the user's request and break it into sub-tasks. "
+        },
+        {
+          "generation": 0,
+          "score": 100.0,
+          "template_hash": "757a39c9b5dea316",
+          "template_preview": "        You are an API planning agent that uses depth-first reasoning.  Step 1: Understand the user's goal. Step 2: Iden"
+        },
+        {
+          "generation": 0,
+          "score": 100.0,
+          "template_hash": "cf3f602cfff74bd3",
+          "template_preview": "        You are a precise tool-calling assistant. Rules: - ONLY use tools from the list below. - Every required paramete"
+        },
+        {
+          "generation": 1,
+          "score": 100.0,
+          "template_hash": "9870389b5a1f12bc",
+          "template_preview": "        You are a tool-calling assistant. Given the user request, select and call the appropriate API(s).  Available too"
+        },
+        {
+          "generation": 2,
+          "score": 100.0,
+          "template_hash": "9870389b5a1f12bc",
+          "template_preview": "        You are a tool-calling assistant. Given the user request, select and call the appropriate API(s).  Available too"
+        },
+        {
+          "generation": 3,
+          "score": 100.0,
+          "template_hash": "9870389b5a1f12bc",
+          "template_preview": "        You are a tool-calling assistant. Given the user request, select and call the appropriate API(s).  Available too"
+        },
+        {
+          "generation": 4,
+          "score": 100.0,
+          "template_hash": "9870389b5a1f12bc",
+          "template_preview": "        You are a tool-calling assistant. Given the user request, select and call the appropriate API(s).  Available too"
+        },
+        {
+          "generation": 5,
+          "score": 100.0,
+          "template_hash": "9870389b5a1f12bc",
+          "template_preview": "        You are a tool-calling assistant. Given the user request, select and call the appropriate API(s).  Available too"
+        }
+      ],
+      "best_prompt_template": "        You are a tool-calling assistant. Given the user request, select and call the appropriate API(s).\n\nAvailable tools:\n{toolbench_apis}\n\nReturn your answer as a JSON array of tool calls.\n",
+      "multi_tool_ratio": 1.0,
+      "failure_buckets": {
+        "unparseable": 36,
+        "partial_match": 5
+      }
+    }
+  ]
+}

@@ -306,6 +306,69 @@ prompt. CMA-ES needs no formula for "how good is temperature = 0.7"; it
 just tries values, keeps the best, and learns which combinations work
 together.
 
+### Advanced evolution features
+
+Three additional features give the evolutionary loop finer control over
+parent selection, evaluation cost, and mutation targeting.
+
+#### Score-proportional selection
+
+By default MutaGenAI uses tournament selection to pick parents. Set
+`selection_method=SelectionMethod.SCORE_PROPORTIONAL` on
+`PromptEvolverConfig` to switch to a sigmoid-weighted scheme that
+favours high-scoring candidates while penalising over-selected parents.
+This improves diversity by ensuring every promising candidate gets a
+chance to breed, not just the tournament winner.
+
+```python
+from MutaGenAI import PromptEvolverConfig, SelectionMethod
+
+config = PromptEvolverConfig(
+    selection_method=SelectionMethod.SCORE_PROPORTIONAL,
+)
+```
+
+#### Progressive evaluation (shallow → deep)
+
+When evaluation datasets are large, running every candidate through the
+full set is expensive. Progressive evaluation runs a cheap shallow pass
+first (`eval_sample_size` samples). Only candidates that meet a
+promotion threshold are re-evaluated on a larger deep sample for a more
+reliable score.
+
+```python
+config = PromptEvolverConfig(
+    eval_sample_size=10,               # shallow pass size
+    eval_promotion_threshold=75.0,     # minimum score (0–100) to promote
+    eval_deep_sample_size=50,          # deep pass size
+)
+```
+
+Both fields default to `None`, which disables progressive evaluation
+entirely — every candidate is scored once on `eval_sample_size` samples.
+
+#### Structured failure buckets
+
+Adaptive mutations already target the worst-performing categories. Failure
+buckets add a second axis: they classify *how* each sample failed (wrong
+tool, wrong parameters, unparseable output, no output, partial match) and
+inject mutation hints that specifically address that failure mode.
+
+The buckets are problem-type-aware. Tool-routing and classification tasks
+each have their own mutation dictionaries. Set `problem_type` on the
+config to match your workload:
+
+```python
+from MutaGenAI import PromptEvolverConfig, ProblemType
+
+config = PromptEvolverConfig(
+    problem_type=ProblemType.CLASSIFICATION,
+)
+```
+
+Failure bucket mutations are generated automatically each generation and
+blended into the mutation pool alongside adaptive and built-in mutations.
+
 ---
 
 ## Core modules

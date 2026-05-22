@@ -1,0 +1,545 @@
+{
+  "timestamp": "2026-05-14T16:34:51",
+  "default_baselines": {
+    "level_1": 55.0111111111111,
+    "level_2": 53.755555555555546,
+    "level_1_azure": 96.78888888888888,
+    "level_2_azure": 72.06666666666665
+  },
+  "experiments": [
+    {
+      "category": "level_1",
+      "algorithm": "standard",
+      "backend": "ollama",
+      "n_cases": 10,
+      "baseline_score": 95.53,
+      "evolved_score": 100.0,
+      "delta": 4.47,
+      "best_temperature": 0.48,
+      "best_top_p": 0.6343,
+      "iterations": 3,
+      "wall_time": 495.2,
+      "history": [
+        [
+          0,
+          95.53333333333333
+        ],
+        [
+          1,
+          100.0
+        ],
+        [
+          2,
+          100.0
+        ],
+        [
+          3,
+          100.0
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 36.0,
+          "template_hash": "b523d0bd8cc052f7",
+          "template_preview": "        You are an API-calling assistant. Given a conversation and API descriptions, generate the correct API request.  "
+        },
+        {
+          "generation": 0,
+          "score": 71.2,
+          "template_hash": "739500c1b4a36368",
+          "template_preview": "        You are an expert API assistant. Follow these steps: 1. Read the conversation history carefully. 2. Identify whi"
+        },
+        {
+          "generation": 0,
+          "score": 95.5,
+          "template_hash": "fc681cf7d05b7124",
+          "template_preview": "        You are a precise API-calling agent. Rules: - Output EXACTLY ONE API call in the format [ApiName(key1='value1', "
+        },
+        {
+          "generation": 0,
+          "score": 77.2,
+          "template_hash": "6abeca797a931edf",
+          "template_preview": "        You are an API orchestration expert. Your task: 1. Analyse what the user needs from the conversation. 2. Match t"
+        },
+        {
+          "generation": 1,
+          "score": 100.0,
+          "template_hash": "e87bfc8373b7ac25",
+          "template_preview": "You are a precise API-calling agent. Rules: - Output EXACTLY ONE API call in the format [ApiName(key1='value1', ...)] - "
+        },
+        {
+          "generation": 2,
+          "score": 100.0,
+          "template_hash": "e87bfc8373b7ac25",
+          "template_preview": "You are a precise API-calling agent. Rules: - Output EXACTLY ONE API call in the format [ApiName(key1='value1', ...)] - "
+        },
+        {
+          "generation": 3,
+          "score": 100.0,
+          "template_hash": "e87bfc8373b7ac25",
+          "template_preview": "You are a precise API-calling agent. Rules: - Output EXACTLY ONE API call in the format [ApiName(key1='value1', ...)] - "
+        }
+      ],
+      "best_prompt_template": "You are a precise API-calling agent. Rules:\n- Output EXACTLY ONE API call in the format [ApiName(key1='value1', ...)]\n- Match API names EXACTLY as described.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\nThe most recent user message often contains the key information.\n- Include ALL required parameters.\n- Output ONLY the API-Request line, nothing else.\n\n{apibank_instruction}\n\n{apibank_input}",
+      "api_name_accuracy": 100.0,
+      "param_accuracy": 100.0,
+      "failure_buckets": {
+        "no_output": 14,
+        "wrong_tool": 27,
+        "wrong_params": 1
+      }
+    },
+    {
+      "category": "level_2",
+      "algorithm": "standard",
+      "backend": "ollama",
+      "n_cases": 10,
+      "baseline_score": 85.17,
+      "evolved_score": 85.17,
+      "delta": 0.0,
+      "best_temperature": 0.4434,
+      "best_top_p": 0.6136,
+      "iterations": 3,
+      "wall_time": 419.1,
+      "history": [
+        [
+          0,
+          85.16666666666666
+        ],
+        [
+          1,
+          85.16666666666666
+        ],
+        [
+          2,
+          85.16666666666666
+        ],
+        [
+          3,
+          85.16666666666666
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 62.0,
+          "template_hash": "5e3624412428287c",
+          "template_preview": "        You are an API-calling assistant. Given a conversation and API descriptions, generate the correct API request.  "
+        },
+        {
+          "generation": 0,
+          "score": 75.5,
+          "template_hash": "a5d75082e6b1a438",
+          "template_preview": "        You are an expert API assistant. Follow these steps: 1. Read the conversation history carefully. 2. Identify whi"
+        },
+        {
+          "generation": 0,
+          "score": 85.2,
+          "template_hash": "6dc95dd3835abcfd",
+          "template_preview": "        You are a precise API-calling agent. Rules: - Output EXACTLY ONE API call in the format [ApiName(key1='value1', "
+        },
+        {
+          "generation": 0,
+          "score": 74.5,
+          "template_hash": "fd2ebd6fb494b88b",
+          "template_preview": "        You are an API orchestration expert. Your task: 1. Analyse what the user needs from the conversation. 2. Match t"
+        },
+        {
+          "generation": 1,
+          "score": 85.2,
+          "template_hash": "6dc95dd3835abcfd",
+          "template_preview": "        You are a precise API-calling agent. Rules: - Output EXACTLY ONE API call in the format [ApiName(key1='value1', "
+        },
+        {
+          "generation": 2,
+          "score": 85.2,
+          "template_hash": "6dc95dd3835abcfd",
+          "template_preview": "        You are a precise API-calling agent. Rules: - Output EXACTLY ONE API call in the format [ApiName(key1='value1', "
+        },
+        {
+          "generation": 3,
+          "score": 85.2,
+          "template_hash": "6dc95dd3835abcfd",
+          "template_preview": "        You are a precise API-calling agent. Rules: - Output EXACTLY ONE API call in the format [ApiName(key1='value1', "
+        }
+      ],
+      "best_prompt_template": "        You are a precise API-calling agent. Rules:\n- Output EXACTLY ONE API call in the format [ApiName(key1='value1', ...)]\n- Match API names EXACTLY as described.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters.\n- Output ONLY the API-Request line, nothing else.\n\n{apibank_instruction}\n\n{apibank_input}\n",
+      "api_name_accuracy": 90.0,
+      "param_accuracy": 72.92,
+      "failure_buckets": {
+        "no_output": 10,
+        "wrong_tool": 31,
+        "wrong_params": 21
+      }
+    },
+    {
+      "category": "level_2",
+      "algorithm": "deep",
+      "backend": "ollama",
+      "n_cases": 12,
+      "baseline_score": 81.56,
+      "evolved_score": 81.56,
+      "delta": 0.0,
+      "best_temperature": 0.9274,
+      "best_top_p": 0.616,
+      "iterations": 5,
+      "wall_time": 1279.0,
+      "history": [
+        [
+          0,
+          81.55555555555556
+        ],
+        [
+          1,
+          81.55555555555556
+        ],
+        [
+          2,
+          81.55555555555556
+        ],
+        [
+          3,
+          81.55555555555556
+        ],
+        [
+          4,
+          81.55555555555556
+        ],
+        [
+          5,
+          81.55555555555556
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 43.9,
+          "template_hash": "96688e1243610e6d",
+          "template_preview": "        You are an API-calling assistant. Given a conversation and API descriptions, generate the correct API request.  "
+        },
+        {
+          "generation": 0,
+          "score": 57.7,
+          "template_hash": "a291116caa4b84a1",
+          "template_preview": "        You are an expert API assistant. Follow these steps: 1. Read the conversation history carefully. 2. Identify whi"
+        },
+        {
+          "generation": 0,
+          "score": 81.6,
+          "template_hash": "8d37e8111ee03421",
+          "template_preview": "        You are a precise API-calling agent. Rules: - Output EXACTLY ONE API call in the format [ApiName(key1='value1', "
+        },
+        {
+          "generation": 0,
+          "score": 46.0,
+          "template_hash": "4f9d3fd6724edd7c",
+          "template_preview": "        You are an API orchestration expert. Your task: 1. Analyse what the user needs from the conversation. 2. Match t"
+        },
+        {
+          "generation": 1,
+          "score": 81.6,
+          "template_hash": "8d37e8111ee03421",
+          "template_preview": "        You are a precise API-calling agent. Rules: - Output EXACTLY ONE API call in the format [ApiName(key1='value1', "
+        },
+        {
+          "generation": 2,
+          "score": 81.6,
+          "template_hash": "8d37e8111ee03421",
+          "template_preview": "        You are a precise API-calling agent. Rules: - Output EXACTLY ONE API call in the format [ApiName(key1='value1', "
+        },
+        {
+          "generation": 3,
+          "score": 81.6,
+          "template_hash": "8d37e8111ee03421",
+          "template_preview": "        You are a precise API-calling agent. Rules: - Output EXACTLY ONE API call in the format [ApiName(key1='value1', "
+        },
+        {
+          "generation": 4,
+          "score": 81.6,
+          "template_hash": "8d37e8111ee03421",
+          "template_preview": "        You are a precise API-calling agent. Rules: - Output EXACTLY ONE API call in the format [ApiName(key1='value1', "
+        },
+        {
+          "generation": 5,
+          "score": 81.6,
+          "template_hash": "8d37e8111ee03421",
+          "template_preview": "        You are a precise API-calling agent. Rules: - Output EXACTLY ONE API call in the format [ApiName(key1='value1', "
+        }
+      ],
+      "best_prompt_template": "        You are a precise API-calling agent. Rules:\n- Output EXACTLY ONE API call in the format [ApiName(key1='value1', ...)]\n- Match API names EXACTLY as described.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters.\n- Output ONLY the API-Request line, nothing else.\n\n{apibank_instruction}\n\n{apibank_input}\n",
+      "api_name_accuracy": 91.67,
+      "param_accuracy": 62.22,
+      "failure_buckets": {
+        "wrong_tool": 100,
+        "no_output": 11,
+        "wrong_params": 60
+      }
+    },
+    {
+      "category": "level_1",
+      "algorithm": "standard",
+      "backend": "azure_openai",
+      "n_cases": 10,
+      "baseline_score": 92.0,
+      "evolved_score": 100.0,
+      "delta": 8.0,
+      "best_temperature": 0.4451,
+      "best_top_p": 0.9905,
+      "iterations": 3,
+      "wall_time": 397.7,
+      "history": [
+        [
+          0,
+          92.0
+        ],
+        [
+          1,
+          100.0
+        ],
+        [
+          2,
+          100.0
+        ],
+        [
+          3,
+          100.0
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 92.0,
+          "template_hash": "d13f16cbc1954435",
+          "template_preview": "        You are an API-calling assistant. Given a conversation and API descriptions, generate the correct API request.  "
+        },
+        {
+          "generation": 0,
+          "score": 92.0,
+          "template_hash": "2ed081f7ab528e02",
+          "template_preview": "        You are an expert API assistant. Follow these steps: 1. Read the conversation history carefully. 2. Identify whi"
+        },
+        {
+          "generation": 0,
+          "score": 92.0,
+          "template_hash": "54a353495f24c9c3",
+          "template_preview": "        You are a precise API-calling agent. Rules: - Output EXACTLY ONE API call in the format [ApiName(key1='value1', "
+        },
+        {
+          "generation": 0,
+          "score": 92.0,
+          "template_hash": "96342fd3a60ee183",
+          "template_preview": "        You are an API orchestration expert. Your task: 1. Analyse what the user needs from the conversation. 2. Match t"
+        },
+        {
+          "generation": 1,
+          "score": 100.0,
+          "template_hash": "fe6f83ab52ab286d",
+          "template_preview": "You are an API-calling assistant. Given a conversation and API descriptions, generate the correct API request.   For aut"
+        },
+        {
+          "generation": 2,
+          "score": 100.0,
+          "template_hash": "fe6f83ab52ab286d",
+          "template_preview": "You are an API-calling assistant. Given a conversation and API descriptions, generate the correct API request.   For aut"
+        },
+        {
+          "generation": 3,
+          "score": 100.0,
+          "template_hash": "fe6f83ab52ab286d",
+          "template_preview": "You are an API-calling assistant. Given a conversation and API descriptions, generate the correct API request.   For aut"
+        }
+      ],
+      "best_prompt_template": "You are an API-calling assistant. Given a conversation and API descriptions, generate the correct API request.\n\n\nFor authentication flows, call GetUserToken first with the provided credentials.\n{apibank_input}\n\n{apibank_instruction}",
+      "api_name_accuracy": 100.0,
+      "param_accuracy": 100.0,
+      "failure_buckets": {
+        "wrong_tool": 9
+      }
+    },
+    {
+      "category": "level_2",
+      "algorithm": "standard",
+      "backend": "azure_openai",
+      "n_cases": 10,
+      "baseline_score": 89.3,
+      "evolved_score": 97.3,
+      "delta": 8.0,
+      "best_temperature": 0.3291,
+      "best_top_p": 0.7176,
+      "iterations": 3,
+      "wall_time": 362.0,
+      "history": [
+        [
+          0,
+          89.3
+        ],
+        [
+          1,
+          89.3
+        ],
+        [
+          2,
+          97.30000000000001
+        ],
+        [
+          3,
+          97.30000000000001
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 77.7,
+          "template_hash": "ae72b22cf31902bc",
+          "template_preview": "        You are an API-calling assistant. Given a conversation and API descriptions, generate the correct API request.  "
+        },
+        {
+          "generation": 0,
+          "score": 80.5,
+          "template_hash": "f7d40349c0b4a524",
+          "template_preview": "        You are an expert API assistant. Follow these steps: 1. Read the conversation history carefully. 2. Identify whi"
+        },
+        {
+          "generation": 0,
+          "score": 83.3,
+          "template_hash": "9c40f9bfeb725345",
+          "template_preview": "        You are a precise API-calling agent. Rules: - Output EXACTLY ONE API call in the format [ApiName(key1='value1', "
+        },
+        {
+          "generation": 0,
+          "score": 89.3,
+          "template_hash": "87ad9c503f6eb1a7",
+          "template_preview": "        You are an API orchestration expert. Your task: 1. Analyse what the user needs from the conversation. 2. Match t"
+        },
+        {
+          "generation": 1,
+          "score": 89.3,
+          "template_hash": "87ad9c503f6eb1a7",
+          "template_preview": "        You are an API orchestration expert. Your task: 1. Analyse what the user needs from the conversation. 2. Match t"
+        },
+        {
+          "generation": 2,
+          "score": 97.3,
+          "template_hash": "4949ff5f31322305",
+          "template_preview": "You are a precise API-calling agent. Rules: - Output EXACTLY ONE API call in the format [ApiName(key1='value1', ...)] - "
+        },
+        {
+          "generation": 3,
+          "score": 97.3,
+          "template_hash": "4949ff5f31322305",
+          "template_preview": "You are a precise API-calling agent. Rules: - Output EXACTLY ONE API call in the format [ApiName(key1='value1', ...)] - "
+        }
+      ],
+      "best_prompt_template": "You are a precise API-calling agent. Rules:\n- Output EXACTLY ONE API call in the format [ApiName(key1='value1', ...)]\n- Match API names EXACTLY as described.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters.\n- Output ONLY the API-Request line, nothing else.\n\n{apibank_instruction}\nPrevious API-Request/Response pairs show what has already been done.\n\n{apibank_input}",
+      "api_name_accuracy": 100.0,
+      "param_accuracy": 86.25,
+      "failure_buckets": {
+        "wrong_params": 8,
+        "wrong_tool": 25
+      }
+    },
+    {
+      "category": "level_2",
+      "algorithm": "deep",
+      "backend": "azure_openai",
+      "n_cases": 12,
+      "baseline_score": 87.0,
+      "evolved_score": 90.7,
+      "delta": 3.7,
+      "best_temperature": 0.4927,
+      "best_top_p": 0.6814,
+      "iterations": 5,
+      "wall_time": 2215.7,
+      "history": [
+        [
+          0,
+          87.00000000000001
+        ],
+        [
+          1,
+          87.00000000000001
+        ],
+        [
+          2,
+          89.3
+        ],
+        [
+          3,
+          89.3
+        ],
+        [
+          4,
+          90.7
+        ],
+        [
+          5,
+          90.7
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 68.7,
+          "template_hash": "ab7897050180dabd",
+          "template_preview": "        You are an API-calling assistant. Given a conversation and API descriptions, generate the correct API request.  "
+        },
+        {
+          "generation": 0,
+          "score": 71.0,
+          "template_hash": "66af9cc15e657ccf",
+          "template_preview": "        You are an expert API assistant. Follow these steps: 1. Read the conversation history carefully. 2. Identify whi"
+        },
+        {
+          "generation": 0,
+          "score": 62.0,
+          "template_hash": "e0fe80c5e18f6f5b",
+          "template_preview": "        You are a precise API-calling agent. Rules: - Output EXACTLY ONE API call in the format [ApiName(key1='value1', "
+        },
+        {
+          "generation": 0,
+          "score": 87.0,
+          "template_hash": "00f3a853fb68c331",
+          "template_preview": "        You are an API orchestration expert. Your task: 1. Analyse what the user needs from the conversation. 2. Match t"
+        },
+        {
+          "generation": 1,
+          "score": 87.0,
+          "template_hash": "00f3a853fb68c331",
+          "template_preview": "        You are an API orchestration expert. Your task: 1. Analyse what the user needs from the conversation. 2. Match t"
+        },
+        {
+          "generation": 2,
+          "score": 89.3,
+          "template_hash": "4b8ada2e92cbf0d1",
+          "template_preview": "You are an API-calling assistant. Given a conversation and API descriptions, generate the correct API request.  {apibank"
+        },
+        {
+          "generation": 3,
+          "score": 89.3,
+          "template_hash": "4b8ada2e92cbf0d1",
+          "template_preview": "You are an API-calling assistant. Given a conversation and API descriptions, generate the correct API request.  {apibank"
+        },
+        {
+          "generation": 4,
+          "score": 90.7,
+          "template_hash": "ea1ca501b182ecb1",
+          "template_preview": "You are an API-calling assistant. Given a conversation and API descriptions, generate the correct API request.  {apibank"
+        },
+        {
+          "generation": 5,
+          "score": 90.7,
+          "template_hash": "ea1ca501b182ecb1",
+          "template_preview": "You are an API-calling assistant. Given a conversation and API descriptions, generate the correct API request.  {apibank"
+        }
+      ],
+      "best_prompt_template": "You are an API-calling assistant. Given a conversation and API descriptions, generate the correct API request.\n\n{apibank_instruction}\nIf the conversation shows a prior API result, use that result in your next call.\n\n{apibank_input}",
+      "api_name_accuracy": 95.0,
+      "param_accuracy": 81.75,
+      "failure_buckets": {
+        "wrong_tool": 38,
+        "wrong_params": 53
+      }
+    }
+  ]
+}
