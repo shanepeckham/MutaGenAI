@@ -117,6 +117,7 @@ class SeedTemplateConfig:
     description: str
     seeds: list[str]
     penalties: list[Penalty] = field(default_factory=list)
+    output_schema: dict[str, Any] | None = None
 
 
 def load_seed_templates(name: str, *, directory: Path | None = None) -> list[str]:
@@ -183,6 +184,12 @@ def load_seed_template_config(
         if not isinstance(s, str) or not s.strip():
             raise ValueError(f"Seed {i} in {path} must be a non-empty string.")
 
+    # Substitute {output_schema} placeholder in seeds
+    output_schema = data.get("output_schema")
+    if output_schema is not None:
+        schema_str = json.dumps(output_schema, indent=2)
+        seeds = [s.replace("{output_schema}", schema_str) for s in seeds]
+
     # Parse optional penalties
     penalties: list[Penalty] = []
     raw_penalties = data.get("penalties", [])
@@ -214,6 +221,7 @@ def load_seed_template_config(
         description=data.get("description", ""),
         seeds=seeds,
         penalties=penalties,
+        output_schema=data.get("output_schema"),
     )
 
 
@@ -377,3 +385,140 @@ def penalties_to_proxy_checks(penalties: list[Penalty]) -> list[ProxyCheck]:
             weight=weight,
         ))
     return result
+
+
+def schema_to_proxy_checks(
+    schema: dict[str, Any],
+    *,
+    weight: float = 1.0,
+) -> list[ProxyCheck]:
+    """Generate ``ProxyCheck`` objects from a JSON output schema.
+
+    Inspects the schema dictionary and creates structural checks for:
+
+    - **valid_json** — output must be parseable JSON.
+    - **has_<key>** — each top-level key must be present.
+    - **<key>_non_empty** — string fields must be non-empty.
+    - **<key>_is_list** — array fields must be lists with at least one
+      element.
+    - **<key>_has_<subkey>** — nested object fields must contain their
+      required sub-keys.
+
+    The *schema* is a plain dict whose values describe the expected
+    type.  Supported type indicators:
+
+    - ``"string"`` or any plain string → string field.
+    - ``list`` or ``[]`` → array field.
+    - ``dict`` → nested object; sub-keys are checked recursively (one
+      level deep).
+
+    Parameters
+    ----------
+    schema :
+        A dictionary mapping field names to type indicators.
+    weight :
+        Weight assigned to each generated ``ProxyCheck``.
+
+    Returns
+    -------
+    list[ProxyCheck]
+        Checks ready to pass to a ``ProxyMetricsScorer``.
+
+    Example
+    -------
+    >>> from MutaGenAI import schema_to_proxy_checks
+    >>> schema = {
+    ...     "diagnosis": "string",
+    ...     "confidence": "number",
+    ...     "sources": [],
+    ...     "details": {"reasoning": "string", "evidence": "string"},
+    ... }
+    >>> checks = schema_to_proxy_checks(schema)
+    >>> len(checks) >= 5
+    True
+    """
+    checks: list[ProxyCheck] = []
+
+    # 1. Valid JSON check
+    def _valid_json(output: str) -> bool:
+        try:
+            json.loads(output)
+            return True
+        except (json.JSONDecodeError, ValueError):
+            return False
+
+    checks.append(ProxyCheck(name="valid_json", check_fn=_valid_json, weight=weight))
+
+    for key, type_hint in schema.items():
+        # 2. Key presence
+        def _has_key(output: str, _k: str = key) -> bool:
+            try:
+                parsed = json.loads(output)
+                return isinstance(parsed, dict) and _k in parsed
+            except (json.JSONDecodeError, ValueError):
+                return False
+
+        checks.append(ProxyCheck(
+            name=f"has_{key}", check_fn=_has_key, weight=weight,
+        ))
+
+        # 3. Type-specific checks
+        if isinstance(type_hint, list):
+            # Array field: must be a list with at least one element
+            def _is_list(output: str, _k: str = key) -> bool:
+                try:
+                    parsed = json.loads(output)
+                    return (
+                        isinstance(parsed, dict)
+                        and isinstance(parsed.get(_k), list)
+                        and len(parsed[_k]) > 0
+                    )
+                except (json.JSONDecodeError, ValueError):
+                    return False
+
+            checks.append(ProxyCheck(
+                name=f"{key}_is_list", check_fn=_is_list, weight=weight,
+            ))
+
+        elif isinstance(type_hint, dict):
+            # Nested object: check sub-keys
+            for subkey in type_hint:
+                def _has_subkey(
+                    output: str, _k: str = key, _sk: str = subkey,
+                ) -> bool:
+                    try:
+                        parsed = json.loads(output)
+                        return (
+                            isinstance(parsed, dict)
+                            and isinstance(parsed.get(_k), dict)
+                            and _sk in parsed[_k]
+                        )
+                    except (json.JSONDecodeError, ValueError):
+                        return False
+
+                checks.append(ProxyCheck(
+                    name=f"{key}_has_{subkey}",
+                    check_fn=_has_subkey,
+                    weight=weight,
+                ))
+
+        elif isinstance(type_hint, str) and type_hint.lower() in (
+            "string", "str",
+        ):
+            # String field: must be non-empty
+            def _non_empty(output: str, _k: str = key) -> bool:
+                try:
+                    parsed = json.loads(output)
+                    return (
+                        isinstance(parsed, dict)
+                        and isinstance(parsed.get(_k), str)
+                        and len(parsed[_k].strip()) > 0
+                    )
+                except (json.JSONDecodeError, ValueError):
+                    return False
+
+            checks.append(ProxyCheck(
+                name=f"{key}_non_empty", check_fn=_non_empty, weight=weight,
+            ))
+
+    return checks

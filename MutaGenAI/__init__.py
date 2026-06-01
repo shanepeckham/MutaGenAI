@@ -78,6 +78,7 @@ from MutaGenAI.seed_loader import (
     list_seed_templates,
     penalties_to_proxy_checks,
     register_penalty_condition,
+    schema_to_proxy_checks,
 )
 from MutaGenAI.wizard import run_wizard
 
@@ -125,6 +126,7 @@ __all__ = [
     "list_seed_templates",
     "penalties_to_proxy_checks",
     "register_penalty_condition",
+    "schema_to_proxy_checks",
     # Wizard
     "run_wizard",
 ]

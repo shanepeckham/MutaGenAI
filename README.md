@@ -205,8 +205,8 @@ discovered through benchmarking:
 | Improvement | What changed |
 |---|---|
 | **Seed template diversification** | A single user seed is auto-expanded to 6 structural variants (CoT, output-format-first, minimalist, contrastive, persona, intent-matching) so every island starts with different material. |
-| **Problem-type proxy checks** | Generic proxy checks (`has_function_name`, `bracket_format`) replaced with task-aware checks. Tool routing gets `valid_json`, `has_sequence_or_array`, `contains_agent_name`, `no_verbose_explanation`, `at_least_one_selection`. Classification gets `valid_json`, `single_label`, `not_empty`, `no_verbose_explanation`. |
-| **Task-specific LLM Judge rubrics** | The rubric is no longer a truncated task description. For tool routing: checks agent relevance, logical order, precision, JSON validity. For classification: checks predicted class, format, reasoning. |
+| **Problem-type proxy checks** | Generic proxy checks (`has_function_name`, `bracket_format`) replaced with task-aware checks. Tool routing gets `valid_json`, `has_sequence_or_array`, `contains_agent_name`, `no_verbose_explanation`, `at_least_one_selection`. Classification gets `valid_json`, `single_label`, `not_empty`, `no_verbose_explanation`. Generation gets `valid_json`, `is_json_object`, `has_fields`, `no_markdown_fences`, `not_empty`. |
+| **Task-specific LLM Judge rubrics** | The rubric is no longer a truncated task description. For tool routing: checks agent relevance, logical order, precision, JSON validity. For classification: checks predicted class, format, reasoning. For generation: checks valid JSON, required fields, grounded values, non-empty strings, non-empty arrays. |
 | **Adaptive mutations enabled** | Generated scripts now set `adaptive_mutations=True` and `llm_mutation_rate=0.3` in `NoEvalConfig`, enabling the evolver to learn which mutations are effective. |
 | **`refine_after_splice` enabled** | Crossover offspring are refined by the LLM to improve coherence, reducing the chance of Frankenstein prompts. |
 | **Domain mutations wired** | `DOMAIN_MUTATIONS` are now passed as `custom_mutations` to `NoEvalPromptEvolver`, so user-defined and auto-generated mutations actually drive evolution. |
@@ -354,15 +354,15 @@ buckets add a second axis: they classify *how* each sample failed (wrong
 tool, wrong parameters, unparseable output, no output, partial match) and
 inject mutation hints that specifically address that failure mode.
 
-The buckets are problem-type-aware. Tool-routing and classification tasks
-each have their own mutation dictionaries. Set `problem_type` on the
-config to match your workload:
+The buckets are problem-type-aware. Tool-routing, classification, and
+generation tasks each have their own mutation dictionaries. Set
+`problem_type` on the config to match your workload:
 
 ```python
 from MutaGenAI import PromptEvolverConfig, ProblemType
 
 config = PromptEvolverConfig(
-    problem_type=ProblemType.CLASSIFICATION,
+    problem_type=ProblemType.GENERATION,  # or TOOL_ROUTING, CLASSIFICATION
 )
 ```
 
@@ -942,6 +942,35 @@ evolver = NoEvalPromptEvolver(
     config=config,
     seed_templates=seeds,
 )
+```
+
+### Output schema and automatic proxy checks
+
+Seed templates can include an `output_schema` field that defines the
+expected JSON structure of LLM output. The schema is substituted into
+seed text via the `{output_schema}` placeholder, and can be converted
+into proxy checks automatically:
+
+```json
+{
+  "name": "medical-records",
+  "seeds": ["Generate a JSON record matching: {output_schema}"],
+  "output_schema": {
+    "diagnosis": "string",
+    "medications": [],
+    "details": {"reasoning": "string", "confidence": "number"}
+  }
+}
+```
+
+```python
+from MutaGenAI import schema_to_proxy_checks
+
+schema = {"diagnosis": "string", "medications": [], "details": {"reasoning": "string"}}
+checks = schema_to_proxy_checks(schema, weight=1.0)
+# Generates: valid_json, has_diagnosis, diagnosis_non_empty,
+#            has_medications, medications_is_list,
+#            has_details, details_has_reasoning
 ```
 
 ### Designing effective seeds

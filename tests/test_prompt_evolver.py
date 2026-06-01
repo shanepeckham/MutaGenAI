@@ -1573,3 +1573,44 @@ class TestFailureBucketIntegration:
     def test_config_problem_type_classification(self):
         cfg = PromptEvolverConfig(problem_type=ProblemType.CLASSIFICATION)
         assert cfg.problem_type == ProblemType.CLASSIFICATION
+
+    def test_config_problem_type_generation(self):
+        cfg = PromptEvolverConfig(problem_type=ProblemType.GENERATION)
+        assert cfg.problem_type == ProblemType.GENERATION
+
+
+# ── GENERATION problem type tests ────────────────────────────────────────
+
+
+class TestGenerationMutations:
+    """Tests for the GENERATION problem type mutation pool."""
+
+    def test_generation_mutations_exist(self):
+        from MutaGenAI.prompt_evolver import ProblemType, get_mutations_for_problem_type
+
+        mutations = get_mutations_for_problem_type(ProblemType.GENERATION)
+        assert len(mutations) > 0
+        assert all(isinstance(m, str) for m in mutations)
+
+    def test_generation_mutations_differ_from_others(self):
+        from MutaGenAI.prompt_evolver import ProblemType, get_mutations_for_problem_type
+
+        gen_muts = get_mutations_for_problem_type(ProblemType.GENERATION)
+        tool_muts = get_mutations_for_problem_type(ProblemType.TOOL_ROUTING)
+        class_muts = get_mutations_for_problem_type(ProblemType.CLASSIFICATION)
+        assert gen_muts != tool_muts
+        assert gen_muts != class_muts
+
+    def test_generation_failure_bucket_mutations(self):
+        ep = ErrorProfile()
+        ep.record_bucket(FailureBucket.UNPARSEABLE)
+        mutations = get_failure_bucket_mutations(ep, ProblemType.GENERATION)
+        assert len(mutations) > 0
+        assert all(isinstance(m, str) for m in mutations)
+
+    def test_generation_all_buckets_have_mutations(self):
+        for bucket in FailureBucket:
+            ep = ErrorProfile()
+            ep.record_bucket(bucket)
+            mutations = get_failure_bucket_mutations(ep, ProblemType.GENERATION)
+            assert len(mutations) > 0, f"No mutations for bucket {bucket}"

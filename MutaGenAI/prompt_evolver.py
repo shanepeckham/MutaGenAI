@@ -137,6 +137,7 @@ class ProblemType(str, Enum):
 
     TOOL_ROUTING = "tool_routing"
     CLASSIFICATION = "classification"
+    GENERATION = "generation"
 
 
 class SelectionMethod(str, Enum):
@@ -532,7 +533,7 @@ class LLMClient:
             ],
             "temperature": temperature,
             "top_p": top_p,
-            "max_tokens": 256,
+            "max_tokens": self.config.max_tokens or 256,
         }
         if foundry:
             body["model"] = self.config.azure_deployment
@@ -576,7 +577,7 @@ class LLMClient:
                 ],
                 "temperature": temperature,
                 "top_p": top_p,
-                "max_tokens": 256,
+                "max_tokens": self.config.max_tokens or 256,
             },
             timeout=self.config.timeout,
         )
@@ -825,6 +826,26 @@ _CLASSIFICATION_MUTATIONS: list[str] = [
     "Annotate each category with its definition to disambiguate overlapping labels.",
 ]
 
+_GENERATION_MUTATIONS: list[str] = [
+    "Output ONLY a valid JSON object matching the provided schema — no markdown, no extra text.",
+    "Use field names and inline comments in the schema as intent guidance.",
+    "Each schema field is independently verifiable — ensure every field is populated.",
+    "Push edge cases into the schema as field constraints, not prose instructions.",
+    "Cite the lowest-level source available for every claim.",
+    "Do not speculate beyond cited signals — ground every assertion in evidence.",
+    "Rank retrieved evidence above anecdotal or inferred information.",
+    "For array fields, include at least one element — never return empty arrays.",
+    "Nested objects must contain all required sub-keys from the schema.",
+    "Keep the prompt under one page: role, schema, and a handful of hard rules.",
+    "Let the schema carry intent — resist the urge to enumerate edge cases in prose.",
+    "For each field, provide the most specific value the evidence supports.",
+    "Confidence scores must reflect actual evidence strength, not optimism.",
+    "String fields must be non-empty and substantive — no placeholder text.",
+    "When multiple hypotheses exist, list them ranked by supporting evidence.",
+    "Separate facts from interpretation — use distinct schema fields for each.",
+    "Think step by step through each schema field before producing the output.",
+]
+
 # Legacy alias for backward compatibility
 _SECTION_MUTATIONS = _TOOL_ROUTING_MUTATIONS
 
@@ -835,6 +856,8 @@ def get_mutations_for_problem_type(
     """Return the built-in mutation snippets for a given problem type."""
     if problem_type is ProblemType.CLASSIFICATION:
         return _CLASSIFICATION_MUTATIONS
+    if problem_type is ProblemType.GENERATION:
+        return _GENERATION_MUTATIONS
     return _TOOL_ROUTING_MUTATIONS
 
 
@@ -900,6 +923,40 @@ _FAILURE_BUCKET_MUTATIONS_CLASSIFICATION: dict[str, list[str]] = {
 }
 
 
+_FAILURE_BUCKET_MUTATIONS_GENERATION: dict[str, list[str]] = {
+    FailureBucket.WRONG_TOOL.value: [
+        "Re-read the schema field definitions before producing each section.",
+        "Match evidence to the correct schema field — do not misplace facts.",
+        "When the schema has multiple similar fields, use their comments to disambiguate.",
+        "Check that each field's content matches its name and description.",
+    ],
+    FailureBucket.WRONG_PARAMS.value: [
+        "Ensure every required sub-key in nested objects is present.",
+        "Array items must conform to the element schema — check each one.",
+        "Do not omit optional fields when evidence is available to populate them.",
+        "Verify that string values are substantive, not placeholder text.",
+    ],
+    FailureBucket.NO_OUTPUT.value: [
+        "Always produce a complete JSON object — never leave the output empty.",
+        "If evidence is insufficient for a field, state that explicitly in the value.",
+        "You MUST respond with a JSON object for every input.",
+        "Never refuse to answer — populate every schema field with best-effort content.",
+    ],
+    FailureBucket.UNPARSEABLE.value: [
+        "Output ONLY a valid JSON object — no markdown fences, no commentary.",
+        "Your response must be parseable JSON matching the provided schema.",
+        "Do not wrap your response in code fences or add text outside the JSON.",
+        "Ensure all string values are properly escaped for JSON.",
+    ],
+    FailureBucket.PARTIAL_MATCH.value: [
+        "Check that every top-level schema field appears in your output.",
+        "Verify array fields have the expected number of elements.",
+        "Re-read the schema to ensure no fields were skipped.",
+        "Confidence and citation fields are required — do not omit them.",
+    ],
+}
+
+
 def get_failure_bucket_mutations(
     error_profile: ErrorProfile,
     problem_type: ProblemType,
@@ -917,6 +974,8 @@ def get_failure_bucket_mutations(
 
     if problem_type is ProblemType.CLASSIFICATION:
         bucket_map = _FAILURE_BUCKET_MUTATIONS_CLASSIFICATION
+    elif problem_type is ProblemType.GENERATION:
+        bucket_map = _FAILURE_BUCKET_MUTATIONS_GENERATION
     else:
         bucket_map = _FAILURE_BUCKET_MUTATIONS_TOOL_ROUTING
 

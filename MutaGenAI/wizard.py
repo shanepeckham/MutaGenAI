@@ -98,7 +98,7 @@ def _banner() -> None:
 class WizardState:
     """Captures every answer from the interactive walkthrough."""
 
-    problem_type: str = "tool_routing"  # tool_routing / classification
+    problem_type: str = "tool_routing"  # tool_routing / classification / generation
     task_description: str = ""
     has_ground_truth: str = "no"  # yes / no / partial
 
@@ -154,14 +154,17 @@ def _step_problem_type(state: WizardState) -> None:
                      "Map user queries to tool/function calls (JSON output)")
         tbl.add_row("[bold blue]classification[/bold blue]",
                      "Classify input text into one of several categories")
+        tbl.add_row("[bold magenta]generation[/bold magenta]",
+                     "Generate structured JSON output matching a schema")
         _console.print(tbl)
     else:
         print("  tool_routing    — Map queries to tool calls")
         print("  classification  — Classify text into categories")
+        print("  generation      — Generate structured JSON from a schema")
 
     state.problem_type = _ask("\n  Problem type",
                                default="tool_routing",
-                               choices=["tool_routing", "classification"])
+                               choices=["tool_routing", "classification", "generation"])
 
 
 def _step_task(state: WizardState) -> None:
@@ -614,6 +617,16 @@ def _rubric_for_problem_type(problem_type: str, task_desc: str) -> str:
             "(3) Is there no extraneous explanation? "
             "(4) Does the reasoning (if present) support the prediction?"
         )
+    if problem_type == "generation":
+        return (
+            f"You are evaluating a structured generation output for the task: {task_short}. "
+            "Score 0-10 on these criteria: "
+            "(1) Is the output valid JSON matching the expected schema? "
+            "(2) Are all required fields present and populated? "
+            "(3) Are field values grounded in evidence, not speculative? "
+            "(4) Are string fields substantive and non-empty? "
+            "(5) Are array fields non-empty with correctly typed elements?"
+        )
     return (
         f"Rate this output for the task: {task_short}. "
         "Score 0-10 on: correctness, format compliance, completeness."
@@ -671,6 +684,34 @@ def _proxy_checks_for_problem_type(problem_type: str) -> list[str]:
             "        ProxyCheck(",
             '            name="not_empty",',
             '            check_fn=lambda x: len(x.strip()) > 0,',
+            "            weight=1.0,",
+            "        ),",
+        ])
+    elif problem_type == "generation":
+        lines.extend([
+            "        ProxyCheck(",
+            '            name="valid_json",',
+            "            check_fn=_is_valid_json,",
+            "            weight=3.0,",
+            "        ),",
+            "        ProxyCheck(",
+            '            name="is_json_object",',
+            '            check_fn=lambda x: x.strip().startswith("{") and x.strip().endswith("}"),',
+            "            weight=2.0,",
+            "        ),",
+            "        ProxyCheck(",
+            '            name="has_fields",',
+            "            check_fn=lambda x: x.count('\"') >= 4,",
+            "            weight=2.0,",
+            "        ),",
+            "        ProxyCheck(",
+            '            name="no_markdown_fences",',
+            '            check_fn=lambda x: "```" not in x,',
+            "            weight=1.0,",
+            "        ),",
+            "        ProxyCheck(",
+            '            name="not_empty",',
+            '            check_fn=lambda x: len(x.strip()) > 2,',
             "            weight=1.0,",
             "        ),",
         ])
@@ -1137,6 +1178,7 @@ def _build_main_block(state: WizardState) -> str:
     problem_type_enum = {
         "tool_routing": "ProblemType.TOOL_ROUTING",
         "classification": "ProblemType.CLASSIFICATION",
+        "generation": "ProblemType.GENERATION",
     }[state.problem_type]
     lines.append(f"    config = NoEvalConfig(")
     lines.append(f"        iterations={state.iterations},")

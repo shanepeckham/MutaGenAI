@@ -410,3 +410,126 @@ class TestConditionRegistry:
         fn = _build_check_fn(p)
         assert fn("hi there") is True
         assert fn("hello") is False
+
+
+# ---------------------------------------------------------------------------
+# schema_to_proxy_checks tests
+# ---------------------------------------------------------------------------
+
+
+class TestSchemaToProxyChecks:
+    """Tests for schema_to_proxy_checks utility."""
+
+    def test_basic_schema(self):
+        from MutaGenAI.seed_loader import schema_to_proxy_checks
+
+        schema = {"name": "string", "score": "number"}
+        checks = schema_to_proxy_checks(schema)
+        names = [c.name for c in checks]
+        assert "valid_json" in names
+        assert "has_name" in names
+        assert "has_score" in names
+        assert "name_non_empty" in names
+
+    def test_array_field(self):
+        from MutaGenAI.seed_loader import schema_to_proxy_checks
+
+        schema = {"items": []}
+        checks = schema_to_proxy_checks(schema)
+        names = [c.name for c in checks]
+        assert "items_is_list" in names
+
+    def test_nested_object(self):
+        from MutaGenAI.seed_loader import schema_to_proxy_checks
+
+        schema = {"details": {"reasoning": "string", "evidence": "string"}}
+        checks = schema_to_proxy_checks(schema)
+        names = [c.name for c in checks]
+        assert "details_has_reasoning" in names
+        assert "details_has_evidence" in names
+
+    def test_valid_json_check_works(self):
+        from MutaGenAI.seed_loader import schema_to_proxy_checks
+
+        checks = schema_to_proxy_checks({"x": "string"})
+        valid_json_check = [c for c in checks if c.name == "valid_json"][0]
+        assert valid_json_check.check_fn('{"x": "hello"}') is True
+        assert valid_json_check.check_fn("not json") is False
+
+    def test_has_key_check_works(self):
+        from MutaGenAI.seed_loader import schema_to_proxy_checks
+
+        checks = schema_to_proxy_checks({"name": "string"})
+        has_name = [c for c in checks if c.name == "has_name"][0]
+        assert has_name.check_fn('{"name": "Alice"}') is True
+        assert has_name.check_fn('{"other": "value"}') is False
+
+    def test_non_empty_check_works(self):
+        from MutaGenAI.seed_loader import schema_to_proxy_checks
+
+        checks = schema_to_proxy_checks({"name": "string"})
+        non_empty = [c for c in checks if c.name == "name_non_empty"][0]
+        assert non_empty.check_fn('{"name": "Alice"}') is True
+        assert non_empty.check_fn('{"name": ""}') is False
+        assert non_empty.check_fn('{"name": "  "}') is False
+
+    def test_list_check_works(self):
+        from MutaGenAI.seed_loader import schema_to_proxy_checks
+
+        checks = schema_to_proxy_checks({"tags": []})
+        is_list = [c for c in checks if c.name == "tags_is_list"][0]
+        assert is_list.check_fn('{"tags": ["a", "b"]}') is True
+        assert is_list.check_fn('{"tags": []}') is False
+        assert is_list.check_fn('{"tags": "not a list"}') is False
+
+    def test_custom_weight(self):
+        from MutaGenAI.seed_loader import schema_to_proxy_checks
+
+        checks = schema_to_proxy_checks({"x": "string"}, weight=2.5)
+        assert all(c.weight == 2.5 for c in checks)
+
+    def test_empty_schema(self):
+        from MutaGenAI.seed_loader import schema_to_proxy_checks
+
+        checks = schema_to_proxy_checks({})
+        assert len(checks) == 1  # only valid_json
+        assert checks[0].name == "valid_json"
+
+
+# ---------------------------------------------------------------------------
+# output_schema in seed template config
+# ---------------------------------------------------------------------------
+
+
+class TestOutputSchema:
+    """Tests for output_schema field in seed templates."""
+
+    def test_output_schema_loaded(self, tmp_seed_dir: Path):
+        tmp_seed_dir.mkdir(parents=True)
+        data = {
+            "name": "test",
+            "seeds": ["Generate: {output_schema}"],
+            "output_schema": {"diagnosis": "string", "confidence": "number"},
+        }
+        (tmp_seed_dir / "test.json").write_text(json.dumps(data))
+        config = load_seed_template_config("test", directory=tmp_seed_dir)
+        assert config.output_schema == {"diagnosis": "string", "confidence": "number"}
+
+    def test_output_schema_substituted_in_seeds(self, tmp_seed_dir: Path):
+        tmp_seed_dir.mkdir(parents=True)
+        data = {
+            "name": "test",
+            "seeds": ["Output JSON matching: {output_schema}"],
+            "output_schema": {"name": "string"},
+        }
+        (tmp_seed_dir / "test.json").write_text(json.dumps(data))
+        config = load_seed_template_config("test", directory=tmp_seed_dir)
+        assert "{output_schema}" not in config.seeds[0]
+        assert '"name"' in config.seeds[0]
+
+    def test_no_output_schema_is_none(self, tmp_seed_dir: Path):
+        tmp_seed_dir.mkdir(parents=True)
+        data = {"name": "test", "seeds": ["Hello"]}
+        (tmp_seed_dir / "test.json").write_text(json.dumps(data))
+        config = load_seed_template_config("test", directory=tmp_seed_dir)
+        assert config.output_schema is None
