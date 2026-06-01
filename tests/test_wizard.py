@@ -711,3 +711,47 @@ class TestGeneratedSeedDiversification:
         assert "My custom seed" in script
         # Should have expanded beyond just the one seed
         assert "SEED_TEMPLATES = [" in script
+
+
+# ---------------------------------------------------------------------------
+# GENERATION problem type in wizard
+# ---------------------------------------------------------------------------
+
+
+class TestGenerationWizardSupport:
+    def test_generation_rubric(self):
+        rubric = _rubric_for_problem_type("generation", "Generate structured JSON")
+        assert "0-10" in rubric
+        assert "JSON" in rubric or "json" in rubric.lower()
+
+    def test_generation_proxy_checks(self):
+        lines = _proxy_checks_for_problem_type("generation")
+        code = "\n".join(lines)
+        assert "valid_json" in code
+        assert "is_json_object" in code
+
+    def test_generation_scorer_setup(self):
+        state = WizardState(
+            problem_type="generation",
+            task_description="Generate medical records",
+            has_ground_truth="no",
+            strategies=["composite"],
+            backend="ollama",
+            model="llama3.2",
+            human_eval="no",
+        )
+        code = _build_scorer_setup(state)
+        assert "valid_json" in code
+
+    def test_generation_main_block_problem_type(self):
+        state = WizardState(
+            problem_type="generation",
+            task_description="Generate records",
+            has_ground_truth="no",
+            strategies=["composite"],
+            backend="ollama",
+            model="llama3.2",
+            human_eval="no",
+        )
+        block = _build_main_block(state)
+        assert "ProblemType.GENERATION" in block

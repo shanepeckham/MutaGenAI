@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>schemafirst-approach.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> or <div class="page"></div> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="schema-first-agent-design">Schema-First Agent Design</h1>
+<p>A methodology for building LLM-powered reasoning agents around a <strong>single, lightweight output schema</strong> that drives the <em>entire</em> lifecycle: prompt, tool use, evaluation, and human review.</p>
+<blockquote>
+<p>This document explains the approach using a fictional example so you can apply it to your own domain.</p>
+</blockquote>
+<hr>
+<h2 id="1-the-core-idea">1. The Core Idea</h2>
+<p>Most agent prompts mix four concerns into one giant instruction block:</p>
+<ol>
+<li>Role and tone</li>
+<li>Reasoning steps</li>
+<li>Output format</li>
+<li>Quality rules</li>
+</ol>
+<p>Long, prose-heavy prompts are hard to evaluate, hard to review, and drift quickly as requirements change.</p>
+<p><strong>Schema-first</strong> flips this. You start by writing the <strong>schema of the final deliverable</strong> in JSON, Typescript, or any structured notation. The schema <em>is</em> the task definition. Everything else — prompt, tools, evaluator, UI — is derived from it.</p>
+<pre><code class="language-mermaid"><div class="mermaid">flowchart LR
+    Schema[("📐 Output Schema<br/>(single source of truth)")]
+    Schema --> Prompt["📝 Concise Prompt<br/>role + rules + schema"]
+    Schema --> Eval["🧪 Evaluation Plan<br/>field-level rubrics"]
+    Schema --> Review["👤 Review Tool<br/>auto-rendered UI"]
+    Prompt --> Agent["🤖 Agent Run<br/>tools + reasoning"]
+    Agent --> Output[("📦 Structured Output")]
+    Output --> Eval
+    Output --> Review
+    Review --> Feedback[("📊 SME Feedback")]
+    Eval --> Metrics[("📈 Metric Scores")]
+    Feedback --> Schema
+    Metrics --> Schema
+
+    classDef src fill:#FFE082,stroke:#F57F17,stroke-width:2px
+    classDef art fill:#B3E5FC,stroke:#0277BD
+    classDef data fill:#C8E6C9,stroke:#2E7D32
+    class Schema src
+    class Prompt,Eval,Review,Agent art
+    class Output,Feedback,Metrics data
+</div></code></pre>
+<hr>
+<h2 id="2-a-fictional-walk-through-incident-triage-reports">2. A Fictional Walk-Through: &quot;Incident Triage Reports&quot;</h2>
+<p>Imagine a fictional reliability team that wants an agent to take a raw production incident description and produce a triage report. We'll use this throughout.</p>
+<h3 id="21-step-1--define-the-schema">2.1 Step 1 — Define the schema</h3>
+<pre class="hljs"><code><div><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;Executive Summary&quot;</span><span class="hljs-punctuation">:</span> str<span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;Incident Facts&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">&quot;Reported At&quot;</span><span class="hljs-punctuation">:</span> str<span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;Affected Service&quot;</span><span class="hljs-punctuation">:</span> str<span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;Symptoms&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>str<span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;Blast Radius&quot;</span><span class="hljs-punctuation">:</span> str
+  <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;Service Classification&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">&quot;Tier&quot;</span><span class="hljs-punctuation">:</span> str<span class="hljs-punctuation">,</span>          # e.g. T0/T1/T2
+    <span class="hljs-attr">&quot;Owning Team&quot;</span><span class="hljs-punctuation">:</span> str
+  <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;Probable Root Causes&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+    <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;hypothesis&quot;</span><span class="hljs-punctuation">:</span> str<span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;supporting_signals&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>str<span class="hljs-punctuation">]</span> <span class="hljs-punctuation">}</span>
+  <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;Recommended Actions&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+    <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;action&quot;</span><span class="hljs-punctuation">:</span> str<span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;owner&quot;</span><span class="hljs-punctuation">:</span> str<span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;urgency&quot;</span><span class="hljs-punctuation">:</span> str <span class="hljs-punctuation">}</span>
+  <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;Citations&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+    <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;source&quot;</span><span class="hljs-punctuation">:</span> str<span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;evidence&quot;</span><span class="hljs-punctuation">:</span> str <span class="hljs-punctuation">}</span>
+  <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;Confidence Assessment&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">&quot;score&quot;</span><span class="hljs-punctuation">:</span> str<span class="hljs-punctuation">,</span>        # score of <span class="hljs-number">0</span><span class="hljs-number">-100</span>
+    <span class="hljs-attr">&quot;key_assumptions&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>str<span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;risk_drivers&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>str<span class="hljs-punctuation">]</span>
+  <span class="hljs-punctuation">}</span>
+<span class="hljs-punctuation">}</span>
+</div></code></pre>
+<p>That's the entire &quot;spec&quot;. Notice it carries <em>intent</em> via field names and inline comments — the model reads them as guidance.</p>
+<h3 id="22-step-2--write-a-concise-prompt">2.2 Step 2 — Write a concise prompt</h3>
+<p>The prompt is short: a role, the schema, and a small set of rules.</p>
+<pre class="hljs"><code><div>You are an SRE assistant producing incident triage reports.
+
+Produce a single JSON object matching this schema:
+&lt;schema&gt;
+
+Rules:
+- Use the runbook search tool to ground every probable cause in real signals.
+- Cite the lowest-level source available (dashboard panel, log query, runbook section).
+- Rank monitoring evidence above anecdotal Slack reports.
+- Do not speculate beyond cited signals.
+- Output ONLY the JSON object.
+</div></code></pre>
+<p>The model decides <em>how</em> to use its tools. The schema tells it <em>what</em> must be true of the answer.</p>
+<h3 id="23-step-3--derive-the-evaluation-plan">2.3 Step 3 — Derive the evaluation plan</h3>
+<p>For each leaf or sub-tree in the schema, pick a metric:</p>
+<table>
+<thead>
+<tr>
+<th>Schema field</th>
+<th>Metric type</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Executive Summary</code></td>
+<td>LLM-as-judge (good/fair/bad)</td>
+<td>Subjective synthesis</td>
+</tr>
+<tr>
+<td><code>Incident Facts.*</code></td>
+<td>Exact-match / extraction F1</td>
+<td>Deterministic ground truth</td>
+</tr>
+<tr>
+<td><code>Probable Root Causes[]</code></td>
+<td>Judge + grounding check</td>
+<td>Needs reasoning + citation check</td>
+</tr>
+<tr>
+<td><code>Citations[]</code></td>
+<td>URL reachability + relevance score (1–5)</td>
+<td>Cheap, automatable</td>
+</tr>
+<tr>
+<td><code>Confidence Assessment.score</code></td>
+<td>Calibration error vs. SME rating</td>
+<td>Numeric</td>
+</tr>
+</tbody>
+</table>
+<p>The evaluator is itself a schema-first agent. Its output schema <strong>mirrors</strong> the producer's schema, with a <code>{judgment, reason}</code> block per field — for example:</p>
+<pre class="hljs"><code><div><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;Executive Summary&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">&quot;judgment&quot;</span><span class="hljs-punctuation">:</span> str<span class="hljs-punctuation">,</span>  # good|fair|bad
+    <span class="hljs-attr">&quot;reason&quot;</span><span class="hljs-punctuation">:</span> str <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;Incident Facts&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">&quot;judgment&quot;</span><span class="hljs-punctuation">:</span> str<span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;reason&quot;</span><span class="hljs-punctuation">:</span> str <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;Probable Root Causes&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span> 
+    <span class="hljs-attr">&quot;judgment&quot;</span><span class="hljs-punctuation">:</span> str<span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;reason&quot;</span><span class="hljs-punctuation">:</span> str <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;Citations&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+    <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;source&quot;</span><span class="hljs-punctuation">:</span> str<span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;relevance_score&quot;</span><span class="hljs-punctuation">:</span> int<span class="hljs-punctuation">,</span>  # score of <span class="hljs-number">1</span><span class="hljs-number">-5</span>
+    <span class="hljs-attr">&quot;reason&quot;</span><span class="hljs-punctuation">:</span> str <span class="hljs-punctuation">}</span>
+  <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;Confidence Assessment&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">&quot;judgment&quot;</span><span class="hljs-punctuation">:</span> str<span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;reason&quot;</span><span class="hljs-punctuation">:</span> str <span class="hljs-punctuation">}</span>
+<span class="hljs-punctuation">}</span>
+</div></code></pre>
+<pre><code class="language-mermaid"><div class="mermaid">flowchart TB
+    subgraph Producer["Producer Agent"]
+        P_Schema[Output Schema]
+    end
+    subgraph Evaluator["Evaluator Agent"]
+        E_Schema[Eval Schema:<br/>one or more rubric per producer field]
+    end
+    P_Schema -. mirrored 1:1 .-> E_Schema
+    Output[Producer Output JSON] --> Evaluator
+    Evaluator --> Scores[Per-field judgments<br/>+ aggregate score]
+</div></code></pre>
+<p>Because the eval schema is structurally aligned with the output schema, you can drill into <em>which field</em> regressed when a new prompt or model is rolled out — instead of staring at a single opaque score.</p>
+<h3 id="24-step-4--auto-rendered-sme-review-tool">2.4 Step 4 — Auto-rendered SME review tool</h3>
+<p>The same schema becomes the layout for a human review UI. Each field gets a viewer, an inline editor, and a rating widget chosen by field type:</p>
+<ul>
+<li>Long-form narrative fields → 👍 / 👎</li>
+<li>Structured / list fields → Good / Fair / Bad</li>
+<li>Citations → per-item relevance score</li>
+</ul>
+<p>A reference implementation is one example. A minimal SME feedback record — regardless of UI choice — looks like:</p>
+<pre class="hljs"><code><div><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;entry_id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;incident-0427&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;field&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Probable Root Causes&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;rating&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;fair&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;edited_value&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span> <span class="hljs-comment">/* SME-corrected list */</span> <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;note&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Missed the upstream DNS flap as a candidate cause.&quot;</span>
+<span class="hljs-punctuation">}</span>
+</div></code></pre>
+<pre><code class="language-mermaid"><div class="mermaid">flowchart LR
+    Outputs[("Agent outputs")] --> Tool[Review UI]
+    Tool -->|renders from schema| UI["Sectioned form<br/>(viewer + editor + rating per field)"]
+    UI -->|SME edits + ratings| Store[("Feedback store")]
+    Store --> Curated[("Curated dataset<br/>for prompt iteration /<br/>fine-tuning")]
+</div></code></pre>
+<hr>
+<h2 id="3-why-this-approach-pays-off">3. Why this approach pays off</h2>
+<table>
+<thead>
+<tr>
+<th>Benefit</th>
+<th>How the schema enables it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Shorter, more stable prompts</strong></td>
+<td>Field names + comments replace paragraphs of instructions.</td>
+</tr>
+<tr>
+<td><strong>Targeted evaluation</strong></td>
+<td>Each field is independently scorable; regressions are localized.</td>
+</tr>
+<tr>
+<td><strong>Fast prototyping of review UIs</strong></td>
+<td>The schema <em>is</em> the form definition.</td>
+</tr>
+<tr>
+<td><strong>Tool-agnostic agent</strong></td>
+<td>The model picks tools to satisfy the schema — swap Bing for an internal KB without touching the prompt.</td>
+</tr>
+<tr>
+<td><strong>Better SME feedback loops</strong></td>
+<td>SMEs rate small, focused chunks rather than walls of text.</td>
+</tr>
+<tr>
+<td><strong>Cleaner training data</strong></td>
+<td>Edited outputs are already structured — directly usable for SFT or DPO.</td>
+</tr>
+<tr>
+<td><strong>Versionable contract</strong></td>
+<td>Schema diffs are reviewable in PRs; prompt/eval/UI changes follow automatically.</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-mermaid"><div class="mermaid">flowchart LR
+    subgraph Loop["Iteration Loop"]
+        direction LR
+        V1[Schema v1] --> Run1[Agent runs] --> Rev1[SME review] --> Eval1[Eval scores]
+        Eval1 -->|gaps surface<br/>at field level| V2[Schema v2]
+        V2 --> Run2[Agent runs] --> Rev2[SME review] --> Eval2[Eval scores]
+    end
+</div></code></pre>
+<p>Each turn of the loop tightens the same single artifact — the schema — which keeps prompt, evaluator, and review tool in lockstep.</p>
+<hr>
+<h2 id="4-applying-the-approach-to-a-new-task">4. Applying the approach to a new task</h2>
+<ol>
+<li><strong>Sketch the deliverable as JSON.</strong> Use field names and <code># comments</code> or <code>// comments</code> to encode intent. Keep it flat where possible; nest only where a sub-structure is genuinely reused.</li>
+<li><strong>Write a ≤ 1-page prompt.</strong> Role, the schema, a handful of hard rules, and tool-use guidance. Resist the urge to enumerate edge cases — push those into the schema.</li>
+<li><strong>Mirror the schema into an evaluator schema.</strong> For each field, pick the cheapest metric that catches the failure modes you care about.</li>
+<li><strong>Generate a review form from the schema.</strong> Pick a rating widget per field type and persist edits + ratings alongside the outputs.</li>
+<li><strong>Iterate on the schema, not the prose.</strong> When SMEs flag a gap, ask: &quot;what missing field or refined constraint would have prevented this?&quot; — then update schema, prompt, evaluator, and UI together.</li>
+</ol>
+<hr>
+<h2 id="5-getting-started">5. Getting started</h2>
+<ol>
+<li><strong>Draft the schema.</strong> Capture the deliverable as a structured object with intent-bearing field names.</li>
+<li><strong>Author the prompt.</strong> Embed the schema, add the role and a short list of rules, and grant the agent the tools it needs to ground its answers.</li>
+<li><strong>Run the agent</strong> on a representative set of inputs and persist outputs in a structured, line-delimited format.</li>
+<li><strong>Author the evaluator</strong> by mirroring the schema and attaching a metric to each field; run it over the same outputs to get per-field scores.</li>
+<li><strong>Render a review UI</strong> from the schema and have SMEs rate and edit each field; persist their feedback alongside the outputs.</li>
+<li><strong>Triage the gaps.</strong> Combine evaluator scores and SME feedback to find the weakest fields, refine the schema (and downstream artifacts), and iterate.</li>
+</ol>
+
+</body>
+</html>
