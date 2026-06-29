@@ -1,0 +1,101 @@
+{
+  "timestamp": "2026-05-27T21:08:34",
+  "benchmark": "scrapegraph_100k",
+  "approach": "schema_first_evolved_fixed_schema",
+  "dataset": "fixed_schema_70 (20 train + 50 eval)",
+  "schema_family": "NGOJobListing (jobs structural family)",
+  "backend": "azure_openai",
+  "model": "gpt-4.1",
+  "seed_prompt": "You are a structured data extraction agent.\n\nExtract information from the content below into a JSON object\nmatching this schema:\n\n{output_schema}\n\nTask: {user_prompt}\n\nContent:\n{web_content}\n\nRules:\n- Output ONLY the JSON object \u2014 no markdown fences, no explanation.\n- Every key in the schema must appear in the output.\n- If a value is absent from the content, use null.\n- Do not invent data not present in the source.\n",
+  "n_train_cases": 20,
+  "n_eval_cases": 50,
+  "train_baseline_score": 93.0,
+  "train_evolved_score": 98.0,
+  "eval_seed_score": 98.8,
+  "eval_seed_conformance": 100.0,
+  "eval_evolved_score": 96.82,
+  "eval_evolved_conformance": 98.0,
+  "eval_delta": -1.98,
+  "best_temperature": 0.6959839756334552,
+  "best_top_p": 0.6035121633825511,
+  "best_prompt_template": "You are a structured data extraction agent.\n\nExtract information from the content below into a JSON object\nmatching this schema:\n\n{output_schema}\n\nTask: {user_prompt}\n\nContent:\n{web_content}\n\nRules:\n- Output ONLY the JSON object \u2014 no markdown fences, no explanation.\n- Every key in the schema must appear in the output.\n- If a value is absent from the content, use null.\n- Do not invent data not present in the source.\nOutput ONLY valid JSON \u2014 no markdown fences, no explanations.",
+  "iterations": 5,
+  "train_time": 4995.7,
+  "total_time": 5490.2,
+  "history": [
+    [
+      0,
+      93.0
+    ],
+    [
+      1,
+      97.99999999999999
+    ],
+    [
+      2,
+      97.99999999999999
+    ],
+    [
+      3,
+      97.99999999999999
+    ],
+    [
+      4,
+      97.99999999999999
+    ],
+    [
+      5,
+      97.99999999999999
+    ]
+  ],
+  "prompt_evolution": [
+    {
+      "generation": 0,
+      "island": 0,
+      "score": 93.0,
+      "template_hash": "b7df329cd8901aa3",
+      "template_preview": "You are a structured data extraction agent.  Extract information from the content below into a JSON object matching this"
+    },
+    {
+      "generation": 0,
+      "island": 1,
+      "score": 93.0,
+      "template_hash": "e1541b8661f6127a",
+      "template_preview": "You are a structured data extraction agent.  Extract information from the content below into a JSON object matching this"
+    },
+    {
+      "generation": 1,
+      "score": 98.0,
+      "template_hash": "f96cd0094b6e6d9a",
+      "template_preview": "You are a structured data extraction agent.  Extract information from the content below into a JSON object matching this"
+    },
+    {
+      "generation": 2,
+      "score": 98.0,
+      "template_hash": "f96cd0094b6e6d9a",
+      "template_preview": "You are a structured data extraction agent.  Extract information from the content below into a JSON object matching this"
+    },
+    {
+      "generation": 3,
+      "score": 98.0,
+      "template_hash": "f96cd0094b6e6d9a",
+      "template_preview": "You are a structured data extraction agent.  Extract information from the content below into a JSON object matching this"
+    },
+    {
+      "generation": 4,
+      "score": 98.0,
+      "template_hash": "f96cd0094b6e6d9a",
+      "template_preview": "You are a structured data extraction agent.  Extract information from the content below into a JSON object matching this"
+    },
+    {
+      "generation": 5,
+      "score": 98.0,
+      "template_hash": "f96cd0094b6e6d9a",
+      "template_preview": "You are a structured data extraction agent.  Extract information from the content below into a JSON object matching this"
+    }
+  ],
+  "failure_buckets": {
+    "unparseable": 14,
+    "no_output": 4
+  }
+}

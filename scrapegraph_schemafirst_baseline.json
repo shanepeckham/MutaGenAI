@@ -1,0 +1,35 @@
+{
+  "timestamp": "2026-05-27T17:19:41",
+  "benchmark": "scrapegraph_100k",
+  "approach": "schema_first_handcrafted",
+  "backend": "azure_openai",
+  "model": "gpt-4.1",
+  "prompt_template": "You are a structured data extraction agent.\n\nExtract information from the content below into a JSON object\nmatching this schema:\n\n{output_schema}\n\nTask: {user_prompt}\n\nContent:\n{web_content}\n\nRules:\n- Output ONLY the JSON object \u2014 no markdown fences, no explanation.\n- Every key in the schema must appear in the output.\n- If a value is absent from the content, use null.\n- Do not invent data not present in the source.\n",
+  "wall_time": 343.7567692500015,
+  "results": {
+    "low": {
+      "score": 72.02000000000001,
+      "conformance": 86.0,
+      "failure_buckets": {
+        "unparseable": 8
+      },
+      "n_cases": 50
+    },
+    "mid": {
+      "score": 71.74761904761907,
+      "conformance": 86.0,
+      "failure_buckets": {
+        "unparseable": 8
+      },
+      "n_cases": 50
+    },
+    "high": {
+      "score": 53.97178053830227,
+      "conformance": 64.0,
+      "failure_buckets": {
+        "unparseable": 18
+      },
+      "n_cases": 50
+    }
+  }
+}

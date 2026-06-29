@@ -1,0 +1,272 @@
+{
+  "timestamp": "2026-05-28T07:53:35",
+  "benchmark": "scrapegraph_100k",
+  "approach": "schema_first_static",
+  "dataset": "fixed_schema_70 (eval split)",
+  "schema_family": "NGOJobListing (jobs structural family)",
+  "backend": "ollama",
+  "model": "llama3.2",
+  "prompt_template": "You are a structured data extraction agent.\n\nExtract information from the content below into a JSON object\nmatching this schema:\n\n{output_schema}\n\nTask: {user_prompt}\n\nContent:\n{web_content}\n\nRules:\n- Output ONLY the JSON object \u2014 no markdown fences, no explanation.\n- Every key in the schema must appear in the output.\n- If a value is absent from the content, use null.\n- Do not invent data not present in the source.\n",
+  "temperature": 0.1,
+  "top_p": 0.95,
+  "n_eval_cases": 50,
+  "score": 40.4,
+  "conformance": 98.0,
+  "failure_buckets": {
+    "wrong_params": 48,
+    "unparseable": 1
+  },
+  "wall_time": 746.9,
+  "per_case": [
+    {
+      "case_id": "fixed_eval_0",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_1",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_2",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_3",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_4",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_5",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_6",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_7",
+      "score": 0.0,
+      "bucket": "unparseable"
+    },
+    {
+      "case_id": "fixed_eval_8",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_9",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_10",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_11",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_12",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_13",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_14",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_15",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_16",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_17",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_18",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_19",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_20",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_21",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_22",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_23",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_24",
+      "score": 1.0,
+      "bucket": "pass"
+    },
+    {
+      "case_id": "fixed_eval_25",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_26",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_27",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_28",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_29",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_30",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_31",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_32",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_33",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_34",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_35",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_36",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_37",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_38",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_39",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_40",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_41",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_42",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_43",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_44",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_45",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_46",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_47",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_48",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    },
+    {
+      "case_id": "fixed_eval_49",
+      "score": 0.4,
+      "bucket": "wrong_params"
+    }
+  ]
+}

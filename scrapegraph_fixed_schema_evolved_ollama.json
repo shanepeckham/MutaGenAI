@@ -1,0 +1,101 @@
+{
+  "timestamp": "2026-05-28T12:18:45",
+  "benchmark": "scrapegraph_100k",
+  "approach": "schema_first_evolved_fixed_schema",
+  "dataset": "fixed_schema_70 (20 train + 50 eval)",
+  "schema_family": "NGOJobListing (jobs structural family)",
+  "backend": "ollama",
+  "model": "llama3.2",
+  "seed_prompt": "You are a structured data extraction agent.\n\nExtract information from the content below into a JSON object\nmatching this schema:\n\n{output_schema}\n\nTask: {user_prompt}\n\nContent:\n{web_content}\n\nRules:\n- Output ONLY the JSON object \u2014 no markdown fences, no explanation.\n- Every key in the schema must appear in the output.\n- If a value is absent from the content, use null.\n- Do not invent data not present in the source.\n",
+  "n_train_cases": 20,
+  "n_eval_cases": 50,
+  "train_baseline_score": 43.0,
+  "train_evolved_score": 52.0,
+  "eval_seed_score": 40.0,
+  "eval_seed_conformance": 100.0,
+  "eval_evolved_score": 59.2,
+  "eval_evolved_conformance": 100.0,
+  "eval_delta": 19.2,
+  "best_temperature": 0.337718831682986,
+  "best_top_p": 0.5143369192472411,
+  "best_prompt_template": "You are a structured data extraction agent.\n\nExtract information from the content below into a JSON object\nmatching this schema:\n\n- If a value is absent from the content, use null.\n- Do not invent data not present in the source.\nOutput ONLY valid JSON \u2014 no markdown fences, no explanations.\n\n{web_content}\n\n{user_prompt}\n\n{output_schema}",
+  "iterations": 5,
+  "train_time": 14472.5,
+  "total_time": 15890.5,
+  "history": [
+    [
+      0,
+      43.00000000000001
+    ],
+    [
+      1,
+      44.000000000000014
+    ],
+    [
+      2,
+      49.00000000000001
+    ],
+    [
+      3,
+      49.00000000000001
+    ],
+    [
+      4,
+      49.00000000000001
+    ],
+    [
+      5,
+      52.000000000000014
+    ]
+  ],
+  "prompt_evolution": [
+    {
+      "generation": 0,
+      "island": 0,
+      "score": 43.0,
+      "template_hash": "b7df329cd8901aa3",
+      "template_preview": "You are a structured data extraction agent.  Extract information from the content below into a JSON object matching this"
+    },
+    {
+      "generation": 0,
+      "island": 1,
+      "score": 38.0,
+      "template_hash": "e1541b8661f6127a",
+      "template_preview": "You are a structured data extraction agent.  Extract information from the content below into a JSON object matching this"
+    },
+    {
+      "generation": 1,
+      "score": 44.0,
+      "template_hash": "800d3f806a23bd26",
+      "template_preview": "You are a structured data extraction agent.  Extract information from the content below into a JSON object matching this"
+    },
+    {
+      "generation": 2,
+      "score": 49.0,
+      "template_hash": "6c0ae9ceed1fdc28",
+      "template_preview": "You are a structured data extraction agent.  Extract information from the content below into a JSON object matching this"
+    },
+    {
+      "generation": 3,
+      "score": 49.0,
+      "template_hash": "6c0ae9ceed1fdc28",
+      "template_preview": "You are a structured data extraction agent.  Extract information from the content below into a JSON object matching this"
+    },
+    {
+      "generation": 4,
+      "score": 49.0,
+      "template_hash": "6c0ae9ceed1fdc28",
+      "template_preview": "You are a structured data extraction agent.  Extract information from the content below into a JSON object matching this"
+    },
+    {
+      "generation": 5,
+      "score": 52.0,
+      "template_hash": "e169cebea83b83d8",
+      "template_preview": "You are a structured data extraction agent.  Extract information from the content below into a JSON object matching this"
+    }
+  ],
+  "failure_buckets": {
+    "wrong_params": 455,
+    "unparseable": 29
+  }
+}

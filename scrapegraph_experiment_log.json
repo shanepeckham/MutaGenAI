@@ -1,0 +1,550 @@
+{
+  "timestamp": "2026-05-27T16:48:27",
+  "benchmark": "ScrapeGraphAI-100k",
+  "default_baselines": {
+    "low": 53.79999999999998,
+    "mid": 52.780634920634895,
+    "high": 48.10096050014205
+  },
+  "experiments": [
+    {
+      "tier": "low",
+      "algorithm": "deep",
+      "backend": "ollama",
+      "n_cases": 10,
+      "baseline_score": 49.5,
+      "evolved_score": 80.25,
+      "delta": 30.75,
+      "best_temperature": 0.2294,
+      "best_top_p": 0.91,
+      "iterations": 5,
+      "wall_time": 4578.2,
+      "history": [
+        [
+          0,
+          49.5
+        ],
+        [
+          1,
+          79.5
+        ],
+        [
+          2,
+          79.5
+        ],
+        [
+          3,
+          79.5
+        ],
+        [
+          4,
+          80.25
+        ],
+        [
+          5,
+          80.25
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 20.5,
+          "template_hash": "549a6e4b0c03da4f",
+          "template_preview": "You are a data extraction assistant. Extract structured information from the given web content.  User request: {user_pro"
+        },
+        {
+          "generation": 0,
+          "score": 44.5,
+          "template_hash": "b320c6ba7cd9804a",
+          "template_preview": "You are an expert data extractor. Follow these steps: 1. Read the web content carefully. 2. Identify information matchin"
+        },
+        {
+          "generation": 0,
+          "score": 49.5,
+          "template_hash": "e52766dbeaf35133",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        },
+        {
+          "generation": 0,
+          "score": 32.1,
+          "template_hash": "4a08ebf2613c085e",
+          "template_preview": "You are a meticulous data analyst who extracts structured information from web pages. Your output must be machine-readab"
+        },
+        {
+          "generation": 1,
+          "score": 79.5,
+          "template_hash": "aca92b6f55343eb6",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        },
+        {
+          "generation": 2,
+          "score": 79.5,
+          "template_hash": "aca92b6f55343eb6",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        },
+        {
+          "generation": 3,
+          "score": 79.5,
+          "template_hash": "aca92b6f55343eb6",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        },
+        {
+          "generation": 4,
+          "score": 80.2,
+          "template_hash": "3a211bde1bf4a147",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        },
+        {
+          "generation": 5,
+          "score": 80.2,
+          "template_hash": "3a211bde1bf4a147",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        }
+      ],
+      "best_prompt_template": "You are a precise structured data extractor. Rules:\n- Output ONLY valid JSON \u2014 no markdown, no explanations.\n- Include ALL fields defined in the schema.\n- Use correct types: strings for text, numbers for quantities, arrays for lists.\n- If a field value is not found in the content, use null.\nSchema:\n{output_schema}\n\nContent to extract from:\n{web_content}\n\n{user_prompt}",
+      "schema_conformance": 90.0,
+      "failure_buckets": {
+        "wrong_params": 74,
+        "unparseable": 58,
+        "no_output": 8
+      }
+    },
+    {
+      "tier": "mid",
+      "algorithm": "deep",
+      "backend": "ollama",
+      "n_cases": 10,
+      "baseline_score": 83.03,
+      "evolved_score": 94.1,
+      "delta": 11.07,
+      "best_temperature": 1.0,
+      "best_top_p": 0.7279,
+      "iterations": 5,
+      "wall_time": 3494.9,
+      "history": [
+        [
+          0,
+          83.03333333333333
+        ],
+        [
+          1,
+          83.03333333333333
+        ],
+        [
+          2,
+          92.5
+        ],
+        [
+          3,
+          92.5
+        ],
+        [
+          4,
+          92.5
+        ],
+        [
+          5,
+          94.10000000000001
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 49.5,
+          "template_hash": "1476b6e4377d0145",
+          "template_preview": "You are a data extraction assistant. Extract structured information from the given web content.  User request: {user_pro"
+        },
+        {
+          "generation": 0,
+          "score": 73.6,
+          "template_hash": "9f466d8ea3bb94e1",
+          "template_preview": "You are an expert data extractor. Follow these steps: 1. Read the web content carefully. 2. Identify information matchin"
+        },
+        {
+          "generation": 0,
+          "score": 83.0,
+          "template_hash": "5886d689396d840e",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        },
+        {
+          "generation": 0,
+          "score": 18.7,
+          "template_hash": "c96802a66ecf3bb4",
+          "template_preview": "You are a meticulous data analyst who extracts structured information from web pages. Your output must be machine-readab"
+        },
+        {
+          "generation": 1,
+          "score": 83.0,
+          "template_hash": "5886d689396d840e",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        },
+        {
+          "generation": 2,
+          "score": 92.5,
+          "template_hash": "f362fb5d3d22edcc",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        },
+        {
+          "generation": 3,
+          "score": 92.5,
+          "template_hash": "f362fb5d3d22edcc",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        },
+        {
+          "generation": 4,
+          "score": 92.5,
+          "template_hash": "f362fb5d3d22edcc",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        },
+        {
+          "generation": 5,
+          "score": 94.1,
+          "template_hash": "afc7c49ca4e3980e",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        }
+      ],
+      "best_prompt_template": "You are a precise structured data extractor. Rules:\n- Output ONLY valid JSON \u2014 no markdown, no explanations.\n- Include ALL fields defined in the schema.\n- Use correct types: strings for text, numbers for quantities, arrays for lists.\n- If a field value is not found in the content, use null.\n- Do NOT hallucinate or invent data not present in the source.\n\nUser request: {user_prompt}\n\nSchema:\n\nEnsure every required sub-key in nested objects is present.\nSchema:\n{output_schema}\n\nContent to extract from:\n{web_content}\nPrefer exact quotes from the source over paraphrasing.",
+      "schema_conformance": 100.0,
+      "failure_buckets": {
+        "wrong_params": 24,
+        "unparseable": 43
+      }
+    },
+    {
+      "tier": "high",
+      "algorithm": "deep",
+      "backend": "ollama",
+      "n_cases": 10,
+      "baseline_score": 95.5,
+      "evolved_score": 98.54,
+      "delta": 3.04,
+      "best_temperature": 0.2114,
+      "best_top_p": 0.8959,
+      "iterations": 5,
+      "wall_time": 8046.3,
+      "history": [
+        [
+          0,
+          95.49534821903242
+        ],
+        [
+          1,
+          95.49534821903242
+        ],
+        [
+          2,
+          96.98301435406698
+        ],
+        [
+          3,
+          97.60938330675172
+        ],
+        [
+          4,
+          97.8771664008506
+        ],
+        [
+          5,
+          98.5370148856991
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 39.8,
+          "template_hash": "d7bf2d1d337391ff",
+          "template_preview": "You are a data extraction assistant. Extract structured information from the given web content.  User request: {user_pro"
+        },
+        {
+          "generation": 0,
+          "score": 70.0,
+          "template_hash": "bf227fae103d029e",
+          "template_preview": "You are an expert data extractor. Follow these steps: 1. Read the web content carefully. 2. Identify information matchin"
+        },
+        {
+          "generation": 0,
+          "score": 95.5,
+          "template_hash": "877dc724284d4430",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        },
+        {
+          "generation": 0,
+          "score": 20.5,
+          "template_hash": "15cb8c2144a7332f",
+          "template_preview": "You are a meticulous data analyst who extracts structured information from web pages. Your output must be machine-readab"
+        },
+        {
+          "generation": 1,
+          "score": 95.5,
+          "template_hash": "877dc724284d4430",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        },
+        {
+          "generation": 2,
+          "score": 97.0,
+          "template_hash": "9427a445f7c887a5",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        },
+        {
+          "generation": 3,
+          "score": 97.6,
+          "template_hash": "8cd99cf76ad34df9",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        },
+        {
+          "generation": 4,
+          "score": 97.9,
+          "template_hash": "698ce2d38c96a803",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        },
+        {
+          "generation": 5,
+          "score": 98.5,
+          "template_hash": "40797683365a3236",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        }
+      ],
+      "best_prompt_template": "You are a precise structured data extractor. Rules:\n- Output ONLY valid JSON \u2014 no markdown, no explanations.\n- Include ALL fields defined in the schema.\n- Use correct types: strings for text, numbers for quantities, arrays for lists.\n- If a field value is not found in the content, use null.\n- Do NOT hallucinate or invent data not present in the source.\n\nUser request: {user_prompt}\n\nSchema:\n{output_schema}\nEnsure all string values are properly escaped for JSON.\nContent to extract from:\n{web_content}",
+      "schema_conformance": 100.0,
+      "failure_buckets": {
+        "unparseable": 26,
+        "wrong_params": 40,
+        "no_output": 5
+      }
+    },
+    {
+      "tier": "low",
+      "algorithm": "noeval_proxy",
+      "backend": "ollama",
+      "n_cases": 8,
+      "baseline_score": 26.67,
+      "evolved_score": 33.33,
+      "delta": 6.67,
+      "best_temperature": 0.212,
+      "best_top_p": 0.884,
+      "iterations": 3,
+      "wall_time": 636.9,
+      "history": [
+        [
+          0,
+          26.666666666666664
+        ],
+        [
+          1,
+          33.33333333333333
+        ],
+        [
+          2,
+          33.33333333333333
+        ],
+        [
+          3,
+          33.33333333333333
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 6.7,
+          "template_hash": "43820405da067ddf",
+          "template_preview": "You are a data extraction assistant. Extract structured information from the given web content.  User request: {user_pro"
+        },
+        {
+          "generation": 0,
+          "score": 0.0,
+          "template_hash": "29e66d37b05989ac",
+          "template_preview": "You are an expert data extractor. Follow these steps: 1. Read the web content carefully. 2. Identify information matchin"
+        },
+        {
+          "generation": 0,
+          "score": 26.7,
+          "template_hash": "f73993094b7d8dcf",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        },
+        {
+          "generation": 0,
+          "score": 26.7,
+          "template_hash": "5b821c3ff084d255",
+          "template_preview": "You are a meticulous data analyst who extracts structured information from web pages. Your output must be machine-readab"
+        },
+        {
+          "generation": 1,
+          "score": 33.3,
+          "template_hash": "85c4da395ae72e71",
+          "template_preview": "Extract information ONLY from the provided content. You are a meticulous data analyst who extracts structured informatio"
+        },
+        {
+          "generation": 2,
+          "score": 33.3,
+          "template_hash": "85c4da395ae72e71",
+          "template_preview": "Extract information ONLY from the provided content. You are a meticulous data analyst who extracts structured informatio"
+        },
+        {
+          "generation": 3,
+          "score": 33.3,
+          "template_hash": "85c4da395ae72e71",
+          "template_preview": "Extract information ONLY from the provided content. You are a meticulous data analyst who extracts structured informatio"
+        }
+      ],
+      "best_prompt_template": "Extract information ONLY from the provided content.\nYou are a meticulous data analyst who extracts structured information from web pages. Your output must be machine-readable JSON that exactly follows the provided schema.\n\nTask: {user_prompt}\n\nExpected JSON structure:\n{output_schema}\n\nSource material:\n{web_content}\n\nImportant: Return ONLY the JSON object. Every key from the schema must be present. Values must come from the source material.",
+      "schema_conformance": 35.0,
+      "failure_buckets": {}
+    },
+    {
+      "tier": "mid",
+      "algorithm": "noeval_proxy",
+      "backend": "ollama",
+      "n_cases": 8,
+      "baseline_score": 10.67,
+      "evolved_score": 13.33,
+      "delta": 2.67,
+      "best_temperature": 0.2904,
+      "best_top_p": 0.8358,
+      "iterations": 3,
+      "wall_time": 967.8,
+      "history": [
+        [
+          0,
+          10.666666666666664
+        ],
+        [
+          1,
+          11.999999999999996
+        ],
+        [
+          2,
+          11.999999999999996
+        ],
+        [
+          3,
+          13.333333333333332
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 2.7,
+          "template_hash": "5be9920673c3e857",
+          "template_preview": "You are a data extraction assistant. Extract structured information from the given web content.  User request: {user_pro"
+        },
+        {
+          "generation": 0,
+          "score": 0.0,
+          "template_hash": "35dd0f82052c1c7f",
+          "template_preview": "You are an expert data extractor. Follow these steps: 1. Read the web content carefully. 2. Identify information matchin"
+        },
+        {
+          "generation": 0,
+          "score": 10.7,
+          "template_hash": "d50c761fae627ac4",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        },
+        {
+          "generation": 0,
+          "score": 2.7,
+          "template_hash": "d34821ed6b0b39ec",
+          "template_preview": "You are a meticulous data analyst who extracts structured information from web pages. Your output must be machine-readab"
+        },
+        {
+          "generation": 1,
+          "score": 12.0,
+          "template_hash": "202b227ef33b1e2c",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        },
+        {
+          "generation": 2,
+          "score": 12.0,
+          "template_hash": "202b227ef33b1e2c",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        },
+        {
+          "generation": 3,
+          "score": 13.3,
+          "template_hash": "36dca32292595824",
+          "template_preview": "Extract information ONLY from the provided content. Extract information ONLY from the provided content. You are a meticu"
+        }
+      ],
+      "best_prompt_template": "Extract information ONLY from the provided content.\nExtract information ONLY from the provided content.\nYou are a meticulous data analyst who extracts structured information from web pages. Your output must be machine-readable JSON that exactly follows the provided schema.\n\n\nImportant: Return ONLY the JSON object. Every key from the schema must be present. Values must come from the source material.\n\n{user_prompt}\n\n{output_schema}\n\n{web_content}",
+      "schema_conformance": 73.34,
+      "failure_buckets": {}
+    },
+    {
+      "tier": "high",
+      "algorithm": "noeval_proxy",
+      "backend": "ollama",
+      "n_cases": 8,
+      "baseline_score": 38.67,
+      "evolved_score": 44.0,
+      "delta": 5.33,
+      "best_temperature": 0.9349,
+      "best_top_p": 0.5709,
+      "iterations": 3,
+      "wall_time": 2074.4,
+      "history": [
+        [
+          0,
+          38.66666666666667
+        ],
+        [
+          1,
+          44.0
+        ],
+        [
+          2,
+          44.0
+        ],
+        [
+          3,
+          44.0
+        ]
+      ],
+      "prompt_evolution": [
+        {
+          "generation": 0,
+          "score": 2.7,
+          "template_hash": "4aab844f886418f0",
+          "template_preview": "You are a data extraction assistant. Extract structured information from the given web content.  User request: {user_pro"
+        },
+        {
+          "generation": 0,
+          "score": 0.0,
+          "template_hash": "c5768d11e57e7c42",
+          "template_preview": "You are an expert data extractor. Follow these steps: 1. Read the web content carefully. 2. Identify information matchin"
+        },
+        {
+          "generation": 0,
+          "score": 38.7,
+          "template_hash": "a4e96fd7314468eb",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        },
+        {
+          "generation": 0,
+          "score": 2.7,
+          "template_hash": "197af6b8a349bcc4",
+          "template_preview": "You are a meticulous data analyst who extracts structured information from web pages. Your output must be machine-readab"
+        },
+        {
+          "generation": 1,
+          "score": 44.0,
+          "template_hash": "9f0398035c822844",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        },
+        {
+          "generation": 2,
+          "score": 44.0,
+          "template_hash": "9f0398035c822844",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        },
+        {
+          "generation": 3,
+          "score": 44.0,
+          "template_hash": "9f0398035c822844",
+          "template_preview": "You are a precise structured data extractor. Rules: - Output ONLY valid JSON \u2014 no markdown, no explanations. - Include A"
+        }
+      ],
+      "best_prompt_template": "You are a precise structured data extractor. Rules:\n- Output ONLY valid JSON \u2014 no markdown, no explanations.\n- Include ALL fields defined in the schema.\n- Use correct types: strings for text, numbers for quantities, arrays for lists.\n- If a field value is not found in the content, use null.\n- Do NOT hallucinate or invent data not present in the source.\n\nUser request: {user_prompt}\n\nSchema:\n{output_schema}\n\nContent to extract from:\n{web_content}\nOutput ONLY valid JSON \u2014 no markdown fences, no explanations.",
+      "schema_conformance": 91.56,
+      "failure_buckets": {}
+    }
+  ]
+}
