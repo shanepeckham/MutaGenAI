@@ -81,7 +81,7 @@ mutagenai init --output my_agent.py   # custom output file
 | 6 | **Human evaluation** | always / final pick / fully automated |
 | 7 | **Seed templates** | Your existing prompts or auto-generated |
 | 8 | **LLM backend** | Ollama (local) / OpenAI / Azure OpenAI |
-| 9 | **Configuration** | Standard (fast) / Deep (thorough) / Custom |
+| 9 | **Configuration** | Standard (fast) / Deep (thorough) / Custom, plus max concurrency |
 
 ### Three paths through the wizard
 
@@ -95,6 +95,7 @@ you pick from seven label-free strategies:
 | Strategy | How it works |
 |---|---|
 | LLM-as-Judge | A second LLM call rates each output 0–10 |
+| Pairwise Elo | Compare outputs head-to-head; rank by Elo / Bradley-Terry |
 | Self-Consistency | Same input, multiple runs — agreement = quality |
 | Proxy Metrics | Structural checks: valid JSON, format, length |
 | Tool-Use Success | Actually execute tool calls, score by status |
@@ -377,8 +378,12 @@ blended into the mutation pool alongside adaptive and built-in mutations.
 |---|---|
 | [`mutagenai/prompt_evolver.py`](mutagenai/prompt_evolver.py) | `PromptEvolver` — ground-truth prompt evolution with island-model EA + CMA-ES continuous tuning |
 | [`mutagenai/strategies.py`](mutagenai/strategies.py) | `NoEvalPromptEvolver` + 7 scoring strategies for label-free evolution |
+| [`mutagenai/bandit.py`](mutagenai/bandit.py) | `OperatorBandit` — UCB1 / Thompson operator selection |
+| [`mutagenai/quality_diversity.py`](mutagenai/quality_diversity.py) | Pareto fronts + MAP-Elites archive over evolved prompts |
 | [`mutagenai/wizard.py`](mutagenai/wizard.py) | `mutagenai init` wizard — interactive questionnaire that generates a ready-to-run script |
 | [`mutagenai/seed_loader.py`](mutagenai/seed_loader.py) | Load seed templates from external JSON files |
+| [`mutagenai/leaderboard.py`](mutagenai/leaderboard.py) | Best-known evolved prompts per benchmark, shipped as seed templates |
+| [`mutagenai/live.py`](mutagenai/live.py) | Live streaming dashboard (SSE) — convergence + lineage in real time |
 | [`mutagenai/dashboard.py`](mutagenai/dashboard.py) | Plotting functions for benchmark visualisation (BFCL, xLAM, τ-bench, ToolBench, API-Bank, Browser Agent) |
 | [`docs/algorithm_animation.html`](docs/algorithm_animation.html) | Interactive step-through animation showing how the evolutionary loop works (open in a browser) |
 
@@ -415,6 +420,153 @@ evolver = PromptEvolver(
 result = evolver.run()
 print(result.summary())
 ```
+
+### Faster runs — concurrent evaluation
+
+Each candidate prompt is scored by sending one LLM request per evaluation
+sample. By default MutagenAI dispatches those requests **concurrently**,
+so a candidate scored against 50 samples no longer waits for 50 serial
+round-trips. This is the single biggest lever on wall-clock time against
+remote backends (OpenAI / Azure OpenAI) and concurrent-capable local
+servers.
+
+Control the degree of parallelism with `max_concurrency`:
+
+```python
+config = PromptEvolverConfig(
+    backend=LLMBackend.AZURE_OPENAI,
+    max_concurrency=16,   # up to 16 in-flight requests per candidate
+)
+
+# Fully serial behaviour (e.g. a rate-limited or single-threaded backend):
+config = PromptEvolverConfig(max_concurrency=1)
+```
+
+| `max_concurrency` | Behaviour |
+|---|---|
+| `1` (or less) | Fully serial — one request at a time, identical to the legacy path |
+| `> 1` (default `8`) | Up to N concurrent requests per candidate, bounded by a semaphore |
+
+Notes:
+
+- **Results are deterministic.** Responses are gathered back in input
+  order, so scoring, error-profile bookkeeping, and seeded RNG fall-backs
+  are byte-for-byte identical to the serial path — only the wall-clock
+  time changes.
+- **Concurrency is per candidate**, across that candidate's evaluation
+  samples. This keeps each candidate's error analysis isolated and
+  correct.
+- **Graceful fallback.** When the backend is unreachable, `httpx` is not
+  installed, or the batch is a single request, MutagenAI transparently
+  falls back to serial calls.
+- Tune `max_concurrency` to your backend's rate limits. Start low for
+  local Ollama (it serialises by default) and higher for hosted APIs.
+
+The same knob applies to the label-free path: `NoEvalConfig` accepts
+`max_concurrency`, and the wizard prompts for it on the configuration
+step so generated scripts expose it out of the box.
+
+### Smarter search — semantic crossover and bandit operators
+
+Two optional controls help evolution find good prompts faster. Both
+default to off, so existing runs are unaffected.
+
+**Semantic (LLM) crossover.** Mechanical crossover splices two parents at
+a random line, which can produce incoherent prompts. Semantic crossover
+instead asks the model to *merge the strengths* of two high-scoring
+parents into one coherent prompt, steered by the current generation's
+worst failure buckets:
+
+```python
+config = PromptEvolverConfig(
+    crossover_rate=0.4,       # how often crossover happens at all
+    llm_crossover_rate=0.5,   # of those, how often to use the LLM merge
+)
+```
+
+**Bandit operator selection.** Instead of fixed operator probabilities,
+treat *which operator to apply* as a multi-armed bandit. Each breeding
+event pulls an arm (mutation, crossover, LLM mutation, LLM crossover); the
+child's fitness improvement is the reward. Over the run, the bandit
+concentrates on the operators that actually help:
+
+```python
+from mutagenai import PromptEvolverConfig, OperatorSelection
+
+config = PromptEvolverConfig(
+    operator_selection=OperatorSelection.UCB,   # or THOMPSON
+    bandit_c=1.4,                                # UCB exploration constant
+    llm_mutation_rate=0.3,                       # enables the llm_mutation arm
+    llm_crossover_rate=0.3,                      # enables the llm_crossover arm
+)
+
+result = evolver.run()
+print(result.operator_stats)
+# {'mutation': {'count': 18, 'mean_reward': 0.55, 'share': 0.45}, ...}
+```
+
+`result.operator_stats` reports each operator's pull count, mean reward,
+and selection share — a transparent record of what the bandit learned.
+
+### Quality diversity — Pareto fronts and MAP-Elites
+
+A run returns one winner, but the *frontier* is often more useful: a
+slightly less accurate yet far shorter prompt may be the better deploy.
+Every result exposes two quality-diversity views, derived from the
+candidates already evaluated (no extra LLM calls):
+
+```python
+result = evolver.run()
+
+# Pareto front: non-dominated prompts trading accuracy vs. token length.
+for cand in result.pareto_front():
+    print(cand.score, count_prompt_tokens(cand.template))
+
+# MAP-Elites: best prompt per (token band × style archetype) cell.
+archive = result.map_elites(token_bin_size=50)
+print("cells covered:", archive.coverage)
+for record in archive.to_json():
+    print(record["style"], record["token_band"], record["score"])
+```
+
+Style archetypes (`minimal`, `persona`, `example_driven`, `structured`,
+`verbose`) are detected heuristically, so the archive shows which *kinds*
+of prompts work — not just the single highest scorer. Pass custom
+`Objective`s to `pareto_front()` to trade off other metrics.
+
+### Spend controls — caching and budgets
+
+Evolution makes a lot of LLM calls, so two controls keep token spend in
+check.
+
+**Response caching (on by default).** Identical
+`(prompt, input, temperature, top_p)` evaluations — unchanged children,
+migrated clones, the overlap between a progressive evaluation's shallow
+and deep passes — are served from an in-memory cache instead of re-calling
+the model. `result.cache_hits` reports how many completions were reused.
+Disable with `use_cache=False` if you need a fresh call every time.
+
+**Budget guardrails.** Set a spend ceiling or call cap and evolution stops
+cleanly at the next generation boundary:
+
+```python
+config = PromptEvolverConfig(
+    iterations=50,
+    max_calls=2000,                    # hard cap on LLM calls
+    budget_usd=5.0,                    # stop once estimated spend hits $5
+    cost_per_1k_input_tokens=0.005,    # pricing for cost estimation
+    cost_per_1k_output_tokens=0.015,
+)
+
+result = evolver.run()
+print(result.stop_reason)         # "completed" | "max_calls" | "budget_usd"
+print(result.llm_calls, result.input_tokens, result.output_tokens)
+print(result.estimated_cost_usd)  # None when no pricing is configured
+```
+
+The budget guardrail is enforced only when pricing is configured;
+otherwise `estimated_cost_usd` is reported as `None` (local/free backends).
+Both controls apply to `NoEvalConfig` as well.
 
 ### Baseline comparison
 
@@ -693,6 +845,19 @@ seven alternative signal sources.
 | 5 | **Proxy Metrics** | Structural checks (JSON, format, length) | 0 extra | Format compliance |
 | 6 | **Preference Scoring** | Good/bad output pairs as references | 1 extra | 5–10 example preferences |
 | 7 | **Human Tournament** | Human picks best per generation | 0 extra | Highest quality |
+| 8 | **Pairwise Elo** | Head-to-head "A vs B" comparisons → Elo / Bradley-Terry rating | ≤ K extra | Stable label-free ranking |
+
+> **Why pairwise?** Absolute 0–10 scoring is noisy — the same output can
+> score 6 or 8 depending on the judge's mood. Asking *"is A better than
+> B?"* is far more stable. `PairwiseEloScorer` plays each output against a
+> small pool of anchor outputs, updates Elo ratings online (the streaming
+> form of the Bradley-Terry model), and returns the rating mapped to
+> `(0, 1)` — so it drops into `NoEvalPromptEvolver` like any other scorer:
+>
+> ```python
+> from mutagenai import PairwiseEloScorer
+> scorer = PairwiseEloScorer(task_description=task, comparisons=3)
+> ```
 
 ### Quick start — NoEvalPromptEvolver
 
@@ -1116,6 +1281,90 @@ plot_bfcl_evolution("bfcl_experiment_log.json")
 
 Each benchmark recipe saves a JSON log that feeds directly into its
 corresponding dashboard function.
+
+### Live dashboard — watch evolution in real time
+
+Instead of plotting a log *after* a run, stream progress to a browser
+**as it happens**. The live dashboard shows a convergence curve and a
+lineage graph that grows candidate-by-candidate, over Server-Sent Events
+(SSE) — stdlib only, no extra dependencies.
+
+```python
+from mutagenai import PromptEvolver, run_with_live_dashboard
+
+evolver = PromptEvolver(tools, dataset)
+result, server = run_with_live_dashboard(evolver)  # opens your browser
+# ... watch generations and the lineage tree update live ...
+server.stop()
+```
+
+Under the hood, the evolver accepts an `on_event` callback that receives
+JSON-serialisable progress events (`run_start`, `seed`, `candidate`,
+`generation`, `run_complete`). `LiveDashboardServer.publish` is just one
+such listener — you can attach your own to log, forward, or store events:
+
+```python
+from mutagenai import LiveDashboardServer
+
+server = LiveDashboardServer(port=8080).start()
+evolver = PromptEvolver(tools, dataset, on_event=server.publish)
+evolver.run()
+print("open", server.url)
+```
+
+A browser that connects mid-run is replayed the full backlog, then
+receives live updates.
+
+---
+
+## Leaderboard — start from a strong baseline
+
+Rather than seeding evolution from generic prompts, start from the best
+prompt MutaGenAI has already discovered for a benchmark. Each entry ships
+in [`seed_templates/leaderboard/`](seed_templates/leaderboard/) with its
+score, the model it was evolved on, and the source experiment.
+
+```python
+from mutagenai import list_leaderboard, leaderboard_table, leaderboard_seeds
+
+list_leaderboard()
+# ['agent_routing', 'apibank', 'browser_agent', 'entity_classification',
+#  'gaia', 'toolbench_g1', 'xlam']
+
+for row in leaderboard_table():            # sorted best-first
+    print(f"{row['benchmark']:22} {row['score']:6.1f}  {row['model']}")
+```
+
+Seed a new run from a leaderboard prompt — works with both evolvers:
+
+```python
+from mutagenai import (
+    PromptEvolver, NoEvalPromptEvolver, NoEvalConfig, leaderboard_seeds,
+)
+
+# Ground-truth evolver now accepts custom seed templates:
+evolver = PromptEvolver(
+    tools, dataset, seed_templates=leaderboard_seeds("agent_routing"),
+)
+
+# Or the label-free evolver:
+evolver = NoEvalPromptEvolver(
+    task_description="Route requests to the right agent.",
+    test_inputs=inputs,
+    scorer=scorer,
+    seed_templates=leaderboard_seeds("agent_routing"),
+)
+```
+
+| Benchmark | Score | Model |
+|---|---:|---|
+| `apibank` | 100.0 | Ollama (llama3.2) |
+| `toolbench_g1` | 100.0 | llama3.2 (Ollama) |
+| `xlam` | 95.5 | Ollama (llama3.2) |
+| `entity_classification` | 89.0 | gpt-4.1 (Azure) |
+| `agent_routing` | 84.9 | gpt-4.1 (Azure) |
+| `browser_agent` | 60.5 | gpt-4.1 (Azure) |
+| `gaia` | 15.9 | gpt-4.1 (Azure) |
 
 ---
 

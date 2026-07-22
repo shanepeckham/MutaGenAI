@@ -1,0 +1,12 @@
+{
+  "benchmark": "agent_routing",
+  "task": "Multi-agent routing / orchestration: select and order specialist agents for a user request",
+  "problem_type": "tool_routing",
+  "model": "gpt-4.1 (Azure OpenAI)",
+  "score": 84.89,
+  "metric": "f1",
+  "baseline": 48.6,
+  "source": "evolution_results.json",
+  "notes": "Responsibility-matching archetype; maps request categories to named agents and emits a minimal ordered list.",
+  "prompt": "Each agent has a specific responsibility. Match the user's request to agent responsibilities:\n- Authentication/identity \u2192 authentication_agent\n- Input validation \u2192 request_validation_agent\n- Permission checks \u2192 authorization_agent\n- User data lookup \u2192 user_information_retriever_agent\n- Past transactions \u2192 transaction_history_agent\n- Account balance \u2192 balance_checking_agent\n- Data insights \u2192 data_analysis_agent\n- Risk scoring \u2192 risk_assessment_agent\n- Duplicate checks \u2192 duplicate_detection_agent\n- Fraud flags \u2192 fraud_detection_agent\n- Document checks \u2192 document_verification_agent\n- Regulatory compliance \u2192 compliance_check_agent\n- Cross-source matching \u2192 cross_reference_agent\n- Leave requests \u2192 leave_approval_agent\n- Refunds \u2192 refund_processing_agent\n- Pricing \u2192 pricing_calculation_agent\n- Policy rules \u2192 policy_evaluation_agent\n- Notifications \u2192 notification_agent\n- Email \u2192 email_agent\n- Reports \u2192 report_generation_agent\n- Audit trails \u2192 audit_logging_agent\n- Case management \u2192 case_creation_agent\n- General questions \u2192 informational_queries_agent\n- Troubleshooting \u2192 troubleshooting_agent\n- Recommendations \u2192 recommendation_agent\n- Intent/sentiment \u2192 intent_and_sentiment_extraction_agent\nSelect only the matching agents and list them in logical execution order."
+}

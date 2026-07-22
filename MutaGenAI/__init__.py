@@ -41,15 +41,18 @@ from MutaGenAI.prompt_evolver import (
     PromptCandidate,
     ProblemType,
     SelectionMethod,
+    OperatorSelection,
     Tool,
     EvalSample,
     LLMBackend,
     LLMClient,
     count_prompt_tokens,
+    estimate_cost,
     evolve_prompt_with_cmaes,
     generate_adaptive_mutations,
     get_failure_bucket_mutations,
     get_mutations_for_problem_type,
+    ResponseCache,
     _feasibility_key,
 )
 from MutaGenAI.strategies import (
@@ -68,6 +71,7 @@ from MutaGenAI.strategies import (
     PreferencePair,
     HumanTournament,
     CompositeScorer,
+    PairwiseEloScorer,
     PenaltyScaler,
 )
 from MutaGenAI.seed_loader import (
@@ -79,6 +83,28 @@ from MutaGenAI.seed_loader import (
     penalties_to_proxy_checks,
     register_penalty_condition,
     schema_to_proxy_checks,
+)
+from MutaGenAI.bandit import OperatorBandit
+from MutaGenAI.quality_diversity import (
+    Objective,
+    DEFAULT_OBJECTIVES,
+    style_archetype,
+    pareto_front,
+    MapElitesArchive,
+    build_map_elites,
+)
+from MutaGenAI.leaderboard import (
+    LeaderboardEntry,
+    list_leaderboard,
+    load_leaderboard,
+    leaderboard_seeds,
+    leaderboard_table,
+    best_prompt,
+)
+from MutaGenAI.live import (
+    LiveDashboardServer,
+    run_with_live_dashboard,
+    format_sse,
 )
 from MutaGenAI.wizard import run_wizard
 
@@ -97,6 +123,8 @@ __all__ = [
     "LLMBackend",
     "LLMClient",
     "count_prompt_tokens",
+    "estimate_cost",
+    "ResponseCache",
     "evolve_prompt_with_cmaes",
     "generate_adaptive_mutations",
     "get_failure_bucket_mutations",
@@ -117,6 +145,7 @@ __all__ = [
     "PreferencePair",
     "HumanTournament",
     "CompositeScorer",
+    "PairwiseEloScorer",
     "PenaltyScaler",
     # Seed templates
     "Penalty",
@@ -127,6 +156,27 @@ __all__ = [
     "penalties_to_proxy_checks",
     "register_penalty_condition",
     "schema_to_proxy_checks",
+    # Operator-selection bandit
+    "OperatorSelection",
+    "OperatorBandit",
+    # Quality-diversity analysis
+    "Objective",
+    "DEFAULT_OBJECTIVES",
+    "style_archetype",
+    "pareto_front",
+    "MapElitesArchive",
+    "build_map_elites",
+    # Leaderboard of best-known prompts
+    "LeaderboardEntry",
+    "list_leaderboard",
+    "load_leaderboard",
+    "leaderboard_seeds",
+    "leaderboard_table",
+    "best_prompt",
+    # Live streaming dashboard
+    "LiveDashboardServer",
+    "run_with_live_dashboard",
+    "format_sse",
     # Wizard
     "run_wizard",
 ]

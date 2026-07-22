@@ -10,6 +10,7 @@ from MutaGenAI.strategies import (
     LLMJudge,
     NoEvalConfig,
     NoEvalPromptEvolver,
+    PairwiseEloScorer,
     PreferencePair,
     PreferenceScorer,
     ProxyCheck,
@@ -503,6 +504,72 @@ class TestCompositeScorer:
 
 
 # ---------------------------------------------------------------------------
+# PairwiseEloScorer
+# ---------------------------------------------------------------------------
+
+
+class TestPairwiseEloScorer:
+    def test_parse_comparison(self):
+        assert PairwiseEloScorer.parse_comparison("A") == 1.0
+        assert PairwiseEloScorer.parse_comparison("B") == 0.0
+        assert PairwiseEloScorer.parse_comparison("tie") == 0.5
+        assert PairwiseEloScorer.parse_comparison("  a  ") == 1.0
+        assert PairwiseEloScorer.parse_comparison("B is better") == 0.0
+        assert PairwiseEloScorer.parse_comparison("nonsense") == 0.5
+
+    def test_name(self):
+        assert PairwiseEloScorer().name() == "PairwiseElo"
+
+    def test_first_output_seeds_anchor(self, mock_client):
+        scorer = PairwiseEloScorer()
+        result = scorer.score("p", "in", "first", mock_client([]))
+        assert result == 0.5
+        assert scorer.anchors == ["first"]
+
+    def test_winner_scores_above_loser(self, mock_client):
+        # Judge always says "A" → the candidate (always slot A) wins.
+        client = mock_client(["A"])
+        scorer = PairwiseEloScorer(seed=0)
+        scorer.score("p", "in", "anchor", client)   # seeds anchor
+        winner = scorer.score("p", "in", "winner", client)
+        assert winner > 0.5
+        assert scorer.ratings["winner"] > scorer.ratings["anchor"]
+
+    def test_loser_scores_below(self, mock_client):
+        client = mock_client(["B"])  # always prefers the anchor
+        scorer = PairwiseEloScorer(seed=0)
+        scorer.score("p", "in", "anchor", client)
+        loser = scorer.score("p", "in", "loser", client)
+        assert loser < 0.5
+
+    def test_anchor_pool_bounded(self, mock_client):
+        client = mock_client(["tie"])
+        scorer = PairwiseEloScorer(max_anchors=3, seed=0)
+        for i in range(8):
+            scorer.score("p", "in", f"out{i}", client)
+        assert len(scorer.anchors) <= 3
+
+    def test_deterministic_with_seed(self, mock_client):
+        def run():
+            client = mock_client(["A", "B", "tie"])
+            scorer = PairwiseEloScorer(seed=42, max_anchors=4)
+            outs = []
+            for i in range(6):
+                outs.append(round(scorer.score("p", "in", f"o{i}", client), 5))
+            return outs
+
+        assert run() == run()
+
+    def test_none_response_is_tie(self, mock_client):
+        scorer = PairwiseEloScorer(seed=0)
+        client = mock_client([])  # is_available False → complete returns None
+        scorer.score("p", "in", "a", client)
+        # No anchors compared with a real verdict → still returns a number.
+        val = scorer.score("p", "in", "b", client)
+        assert 0.0 <= val <= 1.0
+
+
+# ---------------------------------------------------------------------------
 # NoEvalConfig
 # ---------------------------------------------------------------------------
 
@@ -515,11 +582,27 @@ class TestNoEvalConfig:
         assert config.num_islands == 2
         assert config.elite_size == 3
         assert config.migration_interval == 3
+        assert config.max_concurrency == 8
+        assert config.use_cache is True
+        assert config.budget_usd is None
+        assert config.max_calls is None
 
     def test_custom_values(self):
         config = NoEvalConfig(iterations=10, population_size=8)
         assert config.iterations == 10
         assert config.population_size == 8
+
+    def test_max_concurrency_propagates_to_client(self):
+        """NoEvalConfig.max_concurrency must reach the internal LLM client."""
+        config = NoEvalConfig(max_concurrency=5)
+        evolver = NoEvalPromptEvolver(
+            task_description="t",
+            test_inputs=["a"],
+            scorer=ProxyMetricsScorer(checks=[]),
+            config=config,
+            verbose=False,
+        )
+        assert evolver._client.config.max_concurrency == 5
 
 
 # ---------------------------------------------------------------------------
@@ -630,6 +713,104 @@ class TestNoEvalPromptEvolver:
         )
         result = evolver.run()
         assert result.iterations_run == 3
+
+    def test_evaluate_uses_complete_many_in_order(self):
+        """_evaluate batches the per-input completions and folds them back
+        in input order, so scores reflect the right (input, output) pairs."""
+        class EchoLenScorer(Scorer):
+            # Score = normalised length of the echoed output, so a wrong
+            # output↔input alignment would change the per-input scores.
+            def score(self, prompt, test_input, output, client):
+                return min(len(output) / 10.0, 1.0)
+
+        captured: dict[str, list] = {}
+
+        class BatchClient:
+            def __init__(self):
+                self.config = type("C", (), {"max_concurrency": 8})()
+
+            def is_available(self):
+                return True
+
+            def complete_many(self, requests):
+                captured["requests"] = requests
+                # Return outputs in order, each derived from its input.
+                return [f"out-{r['user_message']}" for r in requests]
+
+        config = NoEvalConfig(iterations=1, population_size=1, num_islands=1)
+        evolver = NoEvalPromptEvolver(
+            task_description="t",
+            test_inputs=["aa", "bbbb", "cccccc"],
+            scorer=EchoLenScorer(),
+            config=config,
+            seed=1,
+            verbose=False,
+        )
+        evolver._client = BatchClient()
+        candidate = PromptCandidate(template="P")
+        score = evolver._evaluate(candidate)
+        # One request per test input, dispatched together, in order.
+        assert [r["user_message"] for r in captured["requests"]] == [
+            "aa", "bbbb", "cccccc"
+        ]
+        # mean(len("out-aa")=6, len("out-bbbb")=8, len("out-cccccc")=10)/10
+        assert score == pytest.approx((0.6 + 0.8 + 1.0) / 3 * 100.0)
+
+    def test_evaluate_empty_test_inputs(self):
+        evolver = NoEvalPromptEvolver(
+            task_description="t",
+            test_inputs=[],
+            scorer=ProxyMetricsScorer(checks=[]),
+            config=NoEvalConfig(iterations=1, population_size=1),
+            verbose=False,
+        )
+        assert evolver._evaluate(PromptCandidate(template="P")) == 0.0
+
+    def test_result_reports_usage_and_stop_reason(self):
+        class HalfScorer(Scorer):
+            def score(self, *a):
+                return 0.5
+
+        evolver = NoEvalPromptEvolver(
+            task_description="t",
+            test_inputs=["a", "b"],
+            scorer=HalfScorer(),
+            config=NoEvalConfig(iterations=2, population_size=2, num_islands=1),
+            seed=1, verbose=False,
+        )
+        result = evolver.run()
+        assert result.stop_reason == "completed"
+        assert result.iterations_run == 2
+        assert result.cache_hits >= 0
+        assert result.estimated_cost_usd is None
+
+    def test_max_calls_zero_stops_immediately(self):
+        class HalfScorer(Scorer):
+            def score(self, *a):
+                return 0.5
+
+        evolver = NoEvalPromptEvolver(
+            task_description="t",
+            test_inputs=["a"],
+            scorer=HalfScorer(),
+            config=NoEvalConfig(
+                iterations=3, population_size=2, num_islands=1, max_calls=0,
+            ),
+            seed=1, verbose=False,
+        )
+        result = evolver.run()
+        assert result.stop_reason == "max_calls"
+        assert result.iterations_run == 0
+
+    def test_cache_propagates_to_client_config(self):
+        evolver = NoEvalPromptEvolver(
+            task_description="t",
+            test_inputs=["a"],
+            scorer=ProxyMetricsScorer(checks=[]),
+            config=NoEvalConfig(use_cache=False),
+            verbose=False,
+        )
+        assert evolver._cache.enabled is False
 
 
 # ---------------------------------------------------------------------------

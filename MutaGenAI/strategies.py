@@ -64,6 +64,7 @@ from MutaGenAI.prompt_evolver import (
     PromptCandidate,
     PromptEvolverConfig,
     PromptEvolverResult,
+    ResponseCache,
     _SEED_TEMPLATES,
     _crossover_templates,
     _has_entity_descriptions,
@@ -71,6 +72,7 @@ from MutaGenAI.prompt_evolver import (
     _llm_mutate_template,
     _mutate_template,
     _refine_template,
+    estimate_cost,
     generate_adaptive_mutations,
     get_mutations_for_problem_type,
 )
@@ -112,6 +114,13 @@ class NoEvalConfig:
     max_tokens : int or None
         Max tokens to generate per LLM call (``num_predict`` for Ollama).
         ``None`` means no limit (model default).
+    max_concurrency : int
+        Maximum number of in-flight LLM requests when generating outputs
+        for a candidate across the test inputs.  The first completion for
+        every test input is dispatched concurrently (bounded by this
+        value); per-input scoring and bookkeeping then run serially in
+        input order, so results are deterministic.  ``1`` (or less) keeps
+        fully serial behaviour.  Default ``8``.
     refine_after_splice : bool
         If ``True``, run an LLM call after each mutation/crossover to
         remove duplicate lines, fix incoherent phrasing, and tighten
@@ -152,6 +161,7 @@ class NoEvalConfig:
     migration_interval: int = 3
     backend: LLMBackend = LLMBackend.OLLAMA
     max_tokens: Optional[int] = None
+    max_concurrency: int = 8
     refine_after_splice: bool = False
     problem_type: ProblemType = ProblemType.TOOL_ROUTING
     adaptive_mutations: bool = False
@@ -159,6 +169,11 @@ class NoEvalConfig:
     describe_entities: bool = False
     warmup_adaptive: bool = False
     error_decay: float = 0.0
+    use_cache: bool = True
+    budget_usd: Optional[float] = None
+    max_calls: Optional[int] = None
+    cost_per_1k_input_tokens: float = 0.0
+    cost_per_1k_output_tokens: float = 0.0
 
 
 # ---------------------------------------------------------------------------
@@ -1045,6 +1060,182 @@ class CompositeScorer(Scorer):
 
 
 # ---------------------------------------------------------------------------
+# Strategy 8: Pairwise Elo / Bradley-Terry
+# ---------------------------------------------------------------------------
+
+
+class PairwiseEloScorer(Scorer):
+    """Score outputs by pairwise LLM comparison with online Elo ratings.
+
+    Absolute 0–10 judging (see :class:`LLMJudge`) is notoriously noisy: the
+    same output can score 6 or 8 depending on the judge's mood.  *Relative*
+    judging — "is A better than B?" — is far more stable, and is the basis
+    of Elo / Bradley-Terry rating systems.
+
+    This scorer maintains a small pool of **anchor** outputs with Elo
+    ratings.  Each candidate output is played against a few anchors via an
+    LLM "which is better?" judgement; the result updates Elo ratings online
+    (the standard logistic update is the streaming form of the
+    Bradley-Terry model).  The returned fitness is the candidate's rating
+    mapped to ``(0, 1)`` relative to the current anchor pool, so it plugs
+    straight into :class:`NoEvalPromptEvolver` like any other scorer.
+
+    Parameters
+    ----------
+    task_description :
+        Optional task context shown to the comparison judge.
+    k_factor :
+        Elo update step size.  Larger adapts faster but is noisier.
+        Default ``32``.
+    base_rating :
+        Starting Elo for a newly seen output.  Default ``1000``.
+    max_anchors :
+        Maximum size of the anchor pool.  Default ``5``.
+    comparisons :
+        How many anchors each output is compared against.  Default ``3``.
+    seed :
+        Seed for deterministic anchor sampling.  Default ``0``.
+
+    Example
+    -------
+    >>> scorer = PairwiseEloScorer(task_description="Summarise the text.")
+    >>> # used by NoEvalPromptEvolver as the fitness function
+    """
+
+    _COMPARE_TEMPLATE = textwrap.dedent("""\
+        You are comparing two AI assistant responses to the same input.
+
+        ## Task
+        {task}
+
+        ## Input
+        {test_input}
+
+        ## Response A
+        {a}
+
+        ## Response B
+        {b}
+
+        Which response is better for the task?  Reply with ONLY one token:
+        "A" if A is better, "B" if B is better, or "tie" if equal.
+    """)
+
+    def __init__(
+        self,
+        task_description: str = "",
+        k_factor: float = 32.0,
+        base_rating: float = 1000.0,
+        max_anchors: int = 5,
+        comparisons: int = 3,
+        seed: int = 0,
+    ) -> None:
+        self.task_description = task_description
+        self.k_factor = float(k_factor)
+        self.base_rating = float(base_rating)
+        self.max_anchors = int(max_anchors)
+        self.comparisons = int(comparisons)
+        self.anchors: list[str] = []
+        self.ratings: dict[str, float] = {}
+        self._rng = np.random.default_rng(seed)
+
+    def name(self) -> str:
+        return "PairwiseElo"
+
+    @staticmethod
+    def parse_comparison(response: str) -> float:
+        """Map a judge response to ``1.0`` (A wins), ``0.0`` (B), ``0.5`` (tie).
+
+        The judge is asked for a single token, so the first alphabetic word
+        is used.  Unrecognised replies default to a tie (``0.5``).
+        """
+        text = response.strip().lower()
+        if "tie" in text:
+            return 0.5
+        match = re.search(r"[a-z]+", text)
+        token = match.group(0) if match else ""
+        if token == "a":
+            return 1.0
+        if token == "b":
+            return 0.0
+        return 0.5
+
+    def _compare(
+        self, test_input: str, a: str, b: str, client: LLMClient
+    ) -> float:
+        prompt = self._COMPARE_TEMPLATE.format(
+            task=self.task_description or "(unspecified)",
+            test_input=test_input,
+            a=a,
+            b=b,
+        )
+        response = client.complete(
+            system_prompt="You are an impartial comparison judge.",
+            user_message=prompt,
+            temperature=0.0,
+            top_p=1.0,
+        )
+        if response is None:
+            return 0.5
+        return self.parse_comparison(response)
+
+    def _expected(self, rating_a: float, rating_b: float) -> float:
+        return 1.0 / (1.0 + 10.0 ** ((rating_b - rating_a) / 400.0))
+
+    def _update(self, a: str, b: str, outcome: float) -> None:
+        ra, rb = self.ratings[a], self.ratings[b]
+        ea = self._expected(ra, rb)
+        self.ratings[a] = ra + self.k_factor * (outcome - ea)
+        self.ratings[b] = rb + self.k_factor * ((1.0 - outcome) - (1.0 - ea))
+
+    def score(
+        self,
+        prompt: str,
+        test_input: str,
+        output: str,
+        client: LLMClient,
+    ) -> float:
+        self.ratings.setdefault(output, self.base_rating)
+
+        if not self.anchors:
+            # First output seeds the anchor pool; nothing to compare yet.
+            self.anchors.append(output)
+            return 0.5
+
+        opponents = list(self.anchors)
+        if len(opponents) > self.comparisons:
+            idx = self._rng.choice(
+                len(opponents), size=self.comparisons, replace=False
+            )
+            opponents = [opponents[int(i)] for i in idx]
+
+        for opp in opponents:
+            if opp == output:
+                continue
+            self.ratings.setdefault(opp, self.base_rating)
+            outcome = self._compare(test_input, output, opp, client)
+            self._update(output, opp, outcome)
+
+        # Maintain a bounded anchor pool of the strongest outputs seen.
+        if output not in self.anchors:
+            if len(self.anchors) < self.max_anchors:
+                self.anchors.append(output)
+            else:
+                weakest = min(self.anchors, key=lambda o: self.ratings[o])
+                if self.ratings[output] > self.ratings[weakest]:
+                    self.anchors.remove(weakest)
+                    self.anchors.append(output)
+
+        anchor_mean = statistics.mean(
+            self.ratings[a] for a in self.anchors
+        )
+        # Logistic map of rating advantage over the anchor pool → (0, 1).
+        return 1.0 / (
+            1.0 + 10.0 ** ((anchor_mean - self.ratings[output]) / 400.0)
+        )
+
+
+# ---------------------------------------------------------------------------
 # No-Eval Prompt Evolver
 # ---------------------------------------------------------------------------
 
@@ -1108,8 +1299,10 @@ class NoEvalPromptEvolver:
         llm_config = PromptEvolverConfig(
             backend=self.config.backend,
             max_tokens=self.config.max_tokens,
+            max_concurrency=self.config.max_concurrency,
         )
         self._client = LLMClient(llm_config)
+        self._cache = ResponseCache(enabled=self.config.use_cache)
 
         self._seed_templates = seed_templates or self._build_seed_templates()
 
@@ -1210,7 +1403,19 @@ class NoEvalPromptEvolver:
                     f"bootstrapped from seed evaluation"
                 )
 
+        completed_gens = 0
+        stop_reason = "completed"
         for gen in range(1, self.config.iterations + 1):
+            # Budget / call guardrail: stop at the generation boundary.
+            reason = self._budget_stop_reason()
+            if reason is not None:
+                stop_reason = reason
+                logger.info(
+                    "  Stopping early at generation %d — %s reached",
+                    gen, reason,
+                )
+                break
+
             gen_t0 = time.perf_counter()
             logger.info("── Generation %d/%d ──", gen, self.config.iterations)
 
@@ -1286,6 +1491,7 @@ class NoEvalPromptEvolver:
                 best_overall = gen_best
 
             self._history.append((gen, best_overall.score))
+            completed_gens = gen
 
             gen_elapsed = time.perf_counter() - gen_t0
             logger.info(
@@ -1335,8 +1541,14 @@ class NoEvalPromptEvolver:
                 self._all_candidates, key=lambda c: c.score, reverse=True
             ),
             wall_time=wall_time,
-            iterations_run=self.config.iterations,
+            iterations_run=completed_gens,
             llm_backend=self.config.backend.value,
+            llm_calls=self._client.call_count,
+            input_tokens=self._client.total_input_tokens,
+            output_tokens=self._client.total_output_tokens,
+            estimated_cost_usd=self._estimated_cost(),
+            cache_hits=self._cache.hits,
+            stop_reason=stop_reason,
         )
 
     # -- internals -----------------------------------------------------------
@@ -1357,17 +1569,32 @@ class NoEvalPromptEvolver:
         ]
 
     def _evaluate(self, candidate: PromptCandidate) -> float:
-        """Evaluate a candidate using the scorer strategy."""
+        """Evaluate a candidate using the scorer strategy.
+
+        The first LLM completion for every test input is dispatched
+        concurrently via :meth:`LLMClient.complete_many` (bounded by
+        ``config.max_concurrency``).  Outputs are returned in input order,
+        so the per-input scoring, RNG fall-back and error-profile
+        bookkeeping below remain deterministic and identical to the serial
+        path.
+        """
+        if not self.test_inputs:
+            return 0.0
+
+        requests = [
+            {
+                "system_prompt": candidate.template,
+                "user_message": test_input,
+                "temperature": candidate.temperature,
+                "top_p": candidate.top_p,
+            }
+            for test_input in self.test_inputs
+        ]
+        outputs = self._cached_complete(requests)
+
         scores = []
         total_violations = 0
-        for test_input in self.test_inputs:
-            output = self._client.complete(
-                system_prompt=candidate.template,
-                user_message=test_input,
-                temperature=candidate.temperature,
-                top_p=candidate.top_p,
-            )
-
+        for test_input, output in zip(self.test_inputs, outputs):
             if output is None:
                 scores.append(float(self._rng.uniform(0, 0.5)))
                 continue
@@ -1400,6 +1627,55 @@ class NoEvalPromptEvolver:
 
         candidate.penalty_violations = total_violations
         return (statistics.mean(scores) * 100.0) if scores else 0.0
+
+    def _cached_complete(
+        self, requests: list[dict[str, Any]]
+    ) -> list[Optional[str]]:
+        """Complete ``requests`` with response-cache dedup (in input order)."""
+        results: list[Optional[str]] = [None] * len(requests)
+        to_fetch: list[dict[str, Any]] = []
+        fetch_idx: list[int] = []
+        for i, req in enumerate(requests):
+            cached = self._cache.get(req)
+            if cached is not None:
+                results[i] = cached
+            else:
+                to_fetch.append(req)
+                fetch_idx.append(i)
+
+        if to_fetch:
+            complete_many = getattr(self._client, "complete_many", None)
+            if callable(complete_many):
+                fetched = complete_many(to_fetch)
+            else:
+                fetched = [self._client.complete(**req) for req in to_fetch]
+            for idx, resp in zip(fetch_idx, fetched):
+                results[idx] = resp
+                if resp is not None:
+                    self._cache.put(requests[idx], resp)
+        return results
+
+    def _estimated_cost(self) -> Optional[float]:
+        """Current estimated USD spend, or ``None`` when pricing unknown."""
+        return estimate_cost(
+            self._client.total_input_tokens,
+            self._client.total_output_tokens,
+            self.config.cost_per_1k_input_tokens,
+            self.config.cost_per_1k_output_tokens,
+        )
+
+    def _budget_stop_reason(self) -> Optional[str]:
+        """Return a stop reason if a budget/call guardrail is hit, else None."""
+        if (
+            self.config.max_calls is not None
+            and self._client.call_count >= self.config.max_calls
+        ):
+            return "max_calls"
+        if self.config.budget_usd is not None:
+            cost = self._estimated_cost()
+            if cost is not None and cost >= self.config.budget_usd:
+                return "budget_usd"
+        return None
 
     def _breed(
         self, island: list[PromptCandidate], generation: int

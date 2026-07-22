@@ -13,3 +13,4 @@ xlam_experiment_log.json
 toolbench_experiment_log.json
 .apibank_cache/
 .browser_agent_cache/
+.scrapegraph_cache/

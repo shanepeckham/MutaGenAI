@@ -1,6 +1,7 @@
 """Tests for MutaGenAI.prompt_evolver — prompt evolution engine."""
 from __future__ import annotations
 
+import asyncio
 
 import numpy as np
 import pytest
@@ -17,8 +18,10 @@ from MutaGenAI.prompt_evolver import (
     PromptEvolverConfig,
     PromptEvolverResult,
     SelectionMethod,
+    OperatorSelection,
     Tool,
     _crossover_templates,
+    _llm_crossover_templates,
     _mutate_template,
     count_prompt_tokens,
     get_failure_bucket_mutations,
@@ -273,6 +276,181 @@ class TestLLMClient:
         assert result is None
 
 
+# ── Concurrent batch completion tests ────────────────────────────────────
+
+
+class TestCompleteMany:
+    """Tests for LLMClient.complete_many concurrent batch dispatch."""
+
+    def test_default_max_concurrency(self):
+        assert PromptEvolverConfig().max_concurrency == 8
+
+    def test_empty_batch_returns_empty_list(self):
+        client = LLMClient(PromptEvolverConfig())
+        assert client.complete_many([]) == []
+
+    def test_serial_fallback_when_unavailable(self):
+        """Unreachable backend → ordered list of None, length preserved."""
+        cfg = PromptEvolverConfig(
+            backend=LLMBackend.OLLAMA,
+            ollama_url="http://localhost:99999",
+            max_concurrency=8,
+        )
+        client = LLMClient(cfg)
+        reqs = [
+            {"system_prompt": "s", "user_message": f"q{i}"} for i in range(4)
+        ]
+        out = client.complete_many(reqs)
+        assert out == [None, None, None, None]
+
+    def test_singleton_uses_serial_complete(self, monkeypatch):
+        """A one-element batch routes through serial complete()."""
+        cfg = PromptEvolverConfig(
+            backend=LLMBackend.OPENAI, openai_api_key="sk-test"
+        )
+        client = LLMClient(cfg)
+        calls: list[str] = []
+
+        def fake_complete(**kw):
+            calls.append(kw["user_message"])
+            return f"r:{kw['user_message']}"
+
+        monkeypatch.setattr(client, "complete", fake_complete)
+        out = client.complete_many(
+            [{"system_prompt": "s", "user_message": "only"}]
+        )
+        assert out == ["r:only"]
+        assert calls == ["only"]
+
+    def test_max_concurrency_one_forces_serial(self, monkeypatch):
+        """max_concurrency=1 must not use the async path even if available."""
+        cfg = PromptEvolverConfig(
+            backend=LLMBackend.OPENAI,
+            openai_api_key="sk-test",
+            max_concurrency=1,
+        )
+        client = LLMClient(cfg)
+        monkeypatch.setattr(client, "complete", lambda **kw: "SERIAL")
+
+        async def _boom(*a, **k):  # pragma: no cover - must never run
+            raise AssertionError("async path used despite max_concurrency=1")
+
+        monkeypatch.setattr(LLMClient, "_acomplete", _boom)
+        out = client.complete_many(
+            [
+                {"system_prompt": "s", "user_message": "a"},
+                {"system_prompt": "s", "user_message": "b"},
+            ]
+        )
+        assert out == ["SERIAL", "SERIAL"]
+
+    def test_concurrent_preserves_order(self, monkeypatch):
+        """Results align with input order despite varied async latencies."""
+        cfg = PromptEvolverConfig(
+            backend=LLMBackend.OPENAI,
+            openai_api_key="sk-test",
+            max_concurrency=4,
+        )
+        client = LLMClient(cfg)
+
+        async def fake_acomplete(
+            self, aclient, system_prompt, user_message,
+            temperature=0.1, top_p=0.95,
+        ):
+            # Later items sleep less, so completion order != input order.
+            idx = int(user_message[1:])
+            await asyncio.sleep(0.01 * (5 - idx))
+            return f"resp:{user_message}"
+
+        monkeypatch.setattr(LLMClient, "_acomplete", fake_acomplete)
+        reqs = [
+            {"system_prompt": "s", "user_message": f"q{i}"} for i in range(5)
+        ]
+        out = client.complete_many(reqs)
+        assert out == [f"resp:q{i}" for i in range(5)]
+
+    def test_concurrency_is_bounded_by_semaphore(self, monkeypatch):
+        """No more than max_concurrency requests run simultaneously."""
+        cfg = PromptEvolverConfig(
+            backend=LLMBackend.OPENAI,
+            openai_api_key="sk-test",
+            max_concurrency=3,
+        )
+        client = LLMClient(cfg)
+        state = {"current": 0, "peak": 0}
+
+        async def fake_acomplete(self, aclient, system_prompt, user_message,
+                                 temperature=0.1, top_p=0.95):
+            state["current"] += 1
+            state["peak"] = max(state["peak"], state["current"])
+            await asyncio.sleep(0.01)
+            state["current"] -= 1
+            return user_message
+
+        monkeypatch.setattr(LLMClient, "_acomplete", fake_acomplete)
+        reqs = [
+            {"system_prompt": "s", "user_message": f"q{i}"} for i in range(12)
+        ]
+        out = client.complete_many(reqs)
+        assert out == [f"q{i}" for i in range(12)]
+        assert state["peak"] <= 3
+
+    def test_run_async_inside_running_loop(self, monkeypatch):
+        """complete_many works when called from within a running event loop."""
+        cfg = PromptEvolverConfig(
+            backend=LLMBackend.OPENAI,
+            openai_api_key="sk-test",
+            max_concurrency=4,
+        )
+        client = LLMClient(cfg)
+
+        async def fake_acomplete(self, aclient, system_prompt, user_message,
+                                 temperature=0.1, top_p=0.95):
+            return f"resp:{user_message}"
+
+        monkeypatch.setattr(LLMClient, "_acomplete", fake_acomplete)
+        reqs = [
+            {"system_prompt": "s", "user_message": f"q{i}"} for i in range(3)
+        ]
+
+        async def driver():
+            # A loop is running here; _run_async must offload to a thread.
+            return client.complete_many(reqs)
+
+        out = asyncio.run(driver())
+        assert out == [f"resp:q{i}" for i in range(3)]
+
+    def test_async_exception_yields_none(self, monkeypatch):
+        """Per-request async failures degrade to None, matching complete()."""
+        cfg = PromptEvolverConfig(
+            backend=LLMBackend.OPENAI,
+            openai_api_key="sk-test",
+            max_concurrency=4,
+        )
+        client = LLMClient(cfg)
+
+        async def fake_acomplete(self, aclient, system_prompt, user_message,
+                                 temperature=0.1, top_p=0.95):
+            if user_message == "q1":
+                raise RuntimeError("boom")
+            return f"resp:{user_message}"
+
+        # Wrap so the exception is caught by _acomplete's own try/except we
+        # bypass — instead patch the per-backend method to raise.
+        async def fake_aopenai(self, aclient, system_prompt, user_message,
+                               temperature, top_p):
+            if user_message == "q1":
+                raise RuntimeError("boom")
+            return f"resp:{user_message}"
+
+        monkeypatch.setattr(LLMClient, "_aopenai_complete", fake_aopenai)
+        reqs = [
+            {"system_prompt": "s", "user_message": f"q{i}"} for i in range(3)
+        ]
+        out = client.complete_many(reqs)
+        assert out == ["resp:q0", None, "resp:q2"]
+
+
 # ── PromptEvolver integration test (no LLM) ──────────────────────────────
 
 
@@ -365,6 +543,64 @@ class TestPromptEvolver:
         result = evolver.run()
         scores = [c.score for c in result.all_candidates]
         assert scores == sorted(scores, reverse=True)
+
+    def test_concurrency_preserves_determinism(
+        self, sample_tools, sample_dataset
+    ):
+        """Same seed + same dataset → identical results regardless of
+        max_concurrency, because scoring/bookkeeping stays order-serial."""
+        def _run(max_concurrency: int) -> PromptEvolverResult:
+            config = PromptEvolverConfig(
+                iterations=3,
+                population_size=3,
+                num_islands=2,
+                elite_size=2,
+                backend=LLMBackend.OLLAMA,
+                ollama_url="http://localhost:99999",
+                max_concurrency=max_concurrency,
+            )
+            evolver = PromptEvolver(
+                tools=sample_tools,
+                eval_dataset=sample_dataset,
+                config=config,
+                seed=42,
+                verbose=False,
+            )
+            return evolver.run()
+
+        serial = _run(1)
+        concurrent = _run(8)
+        assert serial.best_accuracy == concurrent.best_accuracy
+        assert serial.history == concurrent.history
+        assert [c.score for c in serial.all_candidates] == [
+            c.score for c in concurrent.all_candidates
+        ]
+
+    def test_score_on_samples_client_without_complete_many(
+        self, sample_tools, sample_dataset
+    ):
+        """An injected client double exposing only complete() still works."""
+        config = PromptEvolverConfig(
+            iterations=1, population_size=2, num_islands=1, elite_size=2,
+        )
+        evolver = PromptEvolver(
+            tools=sample_tools,
+            eval_dataset=sample_dataset,
+            config=config,
+            seed=1,
+            verbose=False,
+        )
+
+        class OnlyComplete:
+            def complete(self, **kw):
+                return "get_weather(London)"
+
+        evolver._client = OnlyComplete()
+        candidate = PromptCandidate(template="{tool_schemas}")
+        score = evolver._score_on_samples(
+            candidate, "{tool_schemas}", evolver.eval_dataset
+        )
+        assert 0.0 <= score <= 100.0
 
 
 # ── LLMBackend enum tests ────────────────────────────────────────────────
@@ -1612,3 +1848,299 @@ class TestGenerationMutations:
             ep.record_bucket(bucket)
             mutations = get_failure_bucket_mutations(ep, ProblemType.GENERATION)
             assert len(mutations) > 0, f"No mutations for bucket {bucket}"
+
+
+# ── Semantic (LLM) crossover ─────────────────────────────────────────────
+
+
+class TestLLMCrossover:
+    def test_merges_via_llm(self):
+        from MutaGenAI.prompt_evolver import ProblemType
+
+        class FakeClient:
+            def complete(self, *, system_prompt, user_message, temperature, top_p):
+                return "Merged: route precisely and return JSON."
+
+        out = _llm_crossover_templates(
+            "Prompt A: be precise.",
+            "Prompt B: return JSON.",
+            FakeClient(),
+            ProblemType.TOOL_ROUTING,
+            require_tool_schemas=False,
+        )
+        assert out == "Merged: route precisely and return JSON."
+
+    def test_empty_response_falls_back_to_parent_a(self):
+        from MutaGenAI.prompt_evolver import ProblemType
+
+        class EmptyClient:
+            def complete(self, **kw):
+                return None
+
+        out = _llm_crossover_templates(
+            "Parent A text", "Parent B text", EmptyClient(),
+            ProblemType.CLASSIFICATION, require_tool_schemas=False,
+        )
+        assert out == "Parent A text"
+
+    def test_strips_markdown_fences(self):
+        from MutaGenAI.prompt_evolver import ProblemType
+
+        class FenceClient:
+            def complete(self, **kw):
+                return "```\nclean merged prompt\n```"
+
+        out = _llm_crossover_templates(
+            "A", "B", FenceClient(), ProblemType.TOOL_ROUTING,
+            require_tool_schemas=False,
+        )
+        assert out == "clean merged prompt"
+
+    def test_preserves_tool_schemas_placeholder(self):
+        from MutaGenAI.prompt_evolver import ProblemType
+
+        class NoPlaceholderClient:
+            def complete(self, **kw):
+                return "merged without placeholder"
+
+        out = _llm_crossover_templates(
+            "route using {tool_schemas}", "be precise",
+            NoPlaceholderClient(), ProblemType.TOOL_ROUTING,
+            require_tool_schemas=True,
+        )
+        assert "{tool_schemas}" in out
+
+    def test_bucket_hints_included_in_prompt(self):
+        from MutaGenAI.prompt_evolver import ProblemType
+
+        captured = {}
+
+        class CaptureClient:
+            def complete(self, *, system_prompt, user_message, temperature, top_p):
+                captured["user"] = user_message
+                return "merged"
+
+        _llm_crossover_templates(
+            "A", "B", CaptureClient(), ProblemType.TOOL_ROUTING,
+            bucket_hints=["Avoid over-selecting tools."],
+            require_tool_schemas=False,
+        )
+        assert "Avoid over-selecting tools." in captured["user"]
+
+
+# ── Bandit operator selection (integration) ──────────────────────────────
+
+
+class TestBanditOperatorSelection:
+    def _config(self, **kw):
+        base = dict(
+            iterations=3, population_size=2, num_islands=2, elite_size=2,
+            backend=LLMBackend.OLLAMA, ollama_url="http://localhost:99999",
+        )
+        base.update(kw)
+        return PromptEvolverConfig(**base)
+
+    def test_fixed_mode_has_no_operator_stats(self, sample_tools, sample_dataset):
+        evolver = PromptEvolver(
+            tools=sample_tools, eval_dataset=sample_dataset,
+            config=self._config(), seed=42, verbose=False,
+        )
+        result = evolver.run()
+        assert result.operator_stats is None
+
+    def test_ucb_mode_populates_operator_stats(
+        self, sample_tools, sample_dataset
+    ):
+        evolver = PromptEvolver(
+            tools=sample_tools, eval_dataset=sample_dataset,
+            config=self._config(operator_selection=OperatorSelection.UCB),
+            seed=42, verbose=False,
+        )
+        result = evolver.run()
+        assert result.operator_stats is not None
+        assert "mutation" in result.operator_stats
+        total = sum(v["count"] for v in result.operator_stats.values())
+        assert total > 0
+
+    def test_thompson_mode_runs(self, sample_tools, sample_dataset):
+        evolver = PromptEvolver(
+            tools=sample_tools, eval_dataset=sample_dataset,
+            config=self._config(operator_selection=OperatorSelection.THOMPSON),
+            seed=7, verbose=False,
+        )
+        result = evolver.run()
+        assert result.operator_stats is not None
+
+    def test_bandit_arms_include_llm_operators_when_enabled(
+        self, sample_tools, sample_dataset
+    ):
+        evolver = PromptEvolver(
+            tools=sample_tools, eval_dataset=sample_dataset,
+            config=self._config(
+                operator_selection=OperatorSelection.UCB,
+                llm_mutation_rate=0.3,
+                llm_crossover_rate=0.3,
+            ),
+            seed=1, verbose=False,
+        )
+        assert set(evolver._bandit.arms) == {
+            "mutation", "crossover", "llm_mutation", "llm_crossover"
+        }
+
+    def test_bandit_is_deterministic_across_runs(
+        self, sample_tools, sample_dataset
+    ):
+        def _run():
+            ev = PromptEvolver(
+                tools=sample_tools, eval_dataset=sample_dataset,
+                config=self._config(
+                    operator_selection=OperatorSelection.THOMPSON
+                ),
+                seed=99, verbose=False,
+            )
+            return ev.run()
+
+        r1, r2 = _run(), _run()
+        assert r1.best_score == r2.best_score
+        assert r1.history == r2.history
+        assert r1.operator_stats == r2.operator_stats
+
+    def test_fixed_mode_determinism_unchanged(
+        self, sample_tools, sample_dataset
+    ):
+        """Enabling the bandit must not alter fixed-mode behaviour."""
+        def _run():
+            ev = PromptEvolver(
+                tools=sample_tools, eval_dataset=sample_dataset,
+                config=self._config(), seed=5, verbose=False,
+            )
+            return ev.run()
+
+        r1, r2 = _run(), _run()
+        assert r1.history == r2.history
+        assert [c.score for c in r1.all_candidates] == [
+            c.score for c in r2.all_candidates
+        ]
+
+
+# ── Quality-diversity result methods ─────────────────────────────────────
+
+
+class TestResultQualityDiversity:
+    def _result(self, sample_tools, sample_dataset):
+        config = PromptEvolverConfig(
+            iterations=3, population_size=3, num_islands=2, elite_size=2,
+            backend=LLMBackend.OLLAMA, ollama_url="http://localhost:99999",
+        )
+        evolver = PromptEvolver(
+            tools=sample_tools, eval_dataset=sample_dataset,
+            config=config, seed=42, verbose=False,
+        )
+        return evolver.run()
+
+    def test_pareto_front_method(self, sample_tools, sample_dataset):
+        result = self._result(sample_tools, sample_dataset)
+        front = result.pareto_front()
+        assert isinstance(front, list)
+        assert len(front) >= 1
+        assert all(c in result.all_candidates for c in front)
+
+    def test_map_elites_method(self, sample_tools, sample_dataset):
+        result = self._result(sample_tools, sample_dataset)
+        archive = result.map_elites(token_bin_size=40)
+        assert archive.coverage >= 1
+        assert archive.best() is not None
+        assert all("style" in r for r in archive.to_json())
+
+
+# ── OperatorSelection enum ───────────────────────────────────────────────
+
+
+class TestOperatorSelectionEnum:
+    def test_values(self):
+        assert OperatorSelection.FIXED.value == "fixed"
+        assert OperatorSelection.UCB.value == "ucb"
+        assert OperatorSelection.THOMPSON.value == "thompson"
+
+    def test_default_is_fixed(self):
+        assert PromptEvolverConfig().operator_selection is OperatorSelection.FIXED
+
+
+# ── Custom seed templates + live event emission ──────────────────────────
+
+
+class TestCustomSeedsAndEvents:
+    def _config(self):
+        return PromptEvolverConfig(
+            iterations=2, population_size=2, num_islands=2, elite_size=2,
+            backend=LLMBackend.OLLAMA, ollama_url="http://localhost:99999",
+        )
+
+    def test_custom_seed_templates_used(self, sample_tools, sample_dataset):
+        seeds = ["Seed one prompt.", "Seed two prompt.", "Seed three prompt."]
+        evolver = PromptEvolver(
+            tools=sample_tools, eval_dataset=sample_dataset,
+            config=self._config(), seed=1, verbose=False,
+            seed_templates=seeds,
+        )
+        assert evolver._seed_templates == seeds
+        gen0 = [
+            c for c in evolver.run().all_candidates if c.generation == 0
+        ]
+        templates = {c.template for c in gen0}
+        # Every custom seed appears among the generation-0 candidates.
+        assert set(seeds).issubset(templates)
+
+    def test_default_seeds_when_none(self, sample_tools, sample_dataset):
+        from MutaGenAI.prompt_evolver import _SEED_TEMPLATES
+        evolver = PromptEvolver(
+            tools=sample_tools, eval_dataset=sample_dataset,
+            config=self._config(), seed=1, verbose=False,
+        )
+        assert evolver._seed_templates == list(_SEED_TEMPLATES)
+
+    def test_on_event_emits_lifecycle(self, sample_tools, sample_dataset):
+        events = []
+        evolver = PromptEvolver(
+            tools=sample_tools, eval_dataset=sample_dataset,
+            config=self._config(), seed=1, verbose=False,
+            on_event=events.append,
+        )
+        evolver.run()
+        types = [e["type"] for e in events]
+        assert types[0] == "run_start"
+        assert types[-1] == "run_complete"
+        assert "seed" in types
+        assert "candidate" in types
+        assert types.count("generation") == 2
+
+    def test_candidate_events_are_json_serialisable(
+        self, sample_tools, sample_dataset
+    ):
+        import json
+        events = []
+        evolver = PromptEvolver(
+            tools=sample_tools, eval_dataset=sample_dataset,
+            config=self._config(), seed=1, verbose=False,
+            on_event=events.append,
+        )
+        evolver.run()
+        json.dumps(events)  # must not raise
+        cand = next(e for e in events if e["type"] == "candidate")["candidate"]
+        assert {"hash", "parent_hashes", "operation", "generation",
+                "score", "tokens"}.issubset(cand)
+
+    def test_failing_listener_does_not_break_run(
+        self, sample_tools, sample_dataset
+    ):
+        def boom(_event):
+            raise RuntimeError("listener error")
+
+        evolver = PromptEvolver(
+            tools=sample_tools, eval_dataset=sample_dataset,
+            config=self._config(), seed=1, verbose=False, on_event=boom,
+        )
+        result = evolver.run()  # must complete despite the raising listener
+        assert result.best_prompt
+
+

@@ -1,0 +1,12 @@
+{
+  "benchmark": "entity_classification",
+  "task": "Classify an agentic-AI entity into Agent, Task, Tool, Input, Output, or Human",
+  "problem_type": "classification",
+  "model": "gpt-4.1 (Azure OpenAI)",
+  "score": 89.0,
+  "metric": "accuracy (validation)",
+  "baseline": 48.6,
+  "source": "logs/run9_classification_log.json",
+  "notes": "Minimal, semantics-first classifier that returns a single label with no extra text.",
+  "prompt": "Return exactly one word from: Agent, Task, Tool, Input, Output, Human.\nConsider the semantic meaning of the input, not just keywords.\nChoose the single most specific category that fits.\nReturn exactly one category label \u2014 no extra text."
+}

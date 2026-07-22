@@ -1,0 +1,12 @@
+{
+  "benchmark": "browser_agent",
+  "task": "Browser agent: pick the next concrete UI action toward the user's goal",
+  "problem_type": "tool_routing",
+  "model": "gpt-4.1 (Azure OpenAI)",
+  "score": 60.49,
+  "metric": "accuracy",
+  "baseline": 53.99,
+  "source": "examples/cookbook/browsergym/logs/browsergym_evolution_log.json",
+  "notes": "Prioritises visible click/text_input over scroll/say, forbids inventing uids, and fixes the ACTION output format.",
+  "prompt": "You are a web agent. Carefully analyze the user's goal and all candidate elements.\n\nFor each element, note its uid, tag, text content, and bounding box.\n\nInstructions:\n- Select the action that takes the next concrete step toward the user's goal, prioritizing visible, relevant element interactions (click, text_input) over scroll or say.\n- Only use say() if there are no actionable elements available.\n- Use text_input() only for entering text in text input elements; otherwise, use click() to interact with buttons or selectable elements.\n- Do not guess or invent uids not present in the candidate list.\n- Do not skip necessary steps in multi-step tasks.\n- Do not use scroll() if the target element is visible.\n\nOutput format: ACTION: action_type(key=\"value\")"
+}

@@ -138,6 +138,7 @@ class WizardState:
     iterations: int = 5
     population_size: int = 6
     num_islands: int = 2
+    max_concurrency: int = 8
 
 
 # ── Individual wizard steps ──────────────────────────────────────────────
@@ -560,6 +561,21 @@ def _step_config(state: WizardState) -> None:
         state.iterations = _ask_int("  Generations", default=5)
         state.population_size = _ask_int("  Population size per island", default=4)
         state.num_islands = _ask_int("  Number of islands", default=2)
+
+    _print(
+        "\n  Concurrency — how many LLM requests to send in parallel when\n"
+        "  scoring each candidate. Higher = faster on hosted APIs\n"
+        "  (OpenAI / Azure); use 1 for rate-limited or single-threaded\n"
+        "  local backends." if _HAS_RICH else
+        "\n  Concurrency — parallel LLM requests per candidate "
+        "(1 = serial, higher = faster on hosted APIs)."
+    )
+    default_conc = 4 if state.backend == "ollama" else 8
+    state.max_concurrency = _ask_int(
+        "  Max concurrency", default=default_conc
+    )
+    if state.max_concurrency < 1:
+        state.max_concurrency = 1
 
 
 # ── Seed template helpers ────────────────────────────────────────────────
@@ -1188,6 +1204,7 @@ def _build_main_block(state: WizardState) -> str:
     lines.append(f"        adaptive_mutations=True,")
     lines.append(f"        llm_mutation_rate=0.3,")
     lines.append(f"        refine_after_splice=True,")
+    lines.append(f"        max_concurrency={state.max_concurrency},")
     lines.append(f"{noeval_backend_kwarg}    )")
 
     # Config summary
@@ -1196,6 +1213,7 @@ def _build_main_block(state: WizardState) -> str:
     lines.append(f'    print(f"    Generations:    {{config.iterations}}")')
     lines.append(f'    print(f"    Population:     {{config.population_size}} per island")')
     lines.append(f'    print(f"    Islands:        {{config.num_islands}}")')
+    lines.append(f'    print(f"    Concurrency:    {{config.max_concurrency}}")')
     lines.append(f'    print(f"    Seed templates: {{len(SEED_TEMPLATES)}}")')
     lines.append(f'    print(f"    Test inputs:    {{len(TEST_INPUTS)}}")')
     lines.append(f'    print(f"    Backend:        {{BACKEND.value}}")')
@@ -1206,6 +1224,7 @@ def _build_main_block(state: WizardState) -> str:
     lines.append("    # Build LLM client and scorer")
     lines.append("    from MutaGenAI.prompt_evolver import LLMClient, PromptEvolverConfig")
     lines.append("    _llm_cfg = PromptEvolverConfig(")
+    lines.append(f"        max_concurrency={state.max_concurrency},")
     lines.append(f"{client_backend_kwarg}    )")
     lines.append("    client = LLMClient(_llm_cfg)")
     lines.append("")
@@ -1324,6 +1343,7 @@ def _show_summary(state: WizardState) -> None:
         tbl.add_row("Config",
                      f"{state.config_preset} ({state.iterations} gen, "
                      f"{state.population_size} pop, {state.num_islands} islands)")
+        tbl.add_row("Max concurrency", str(state.max_concurrency))
         _console.print(tbl)
     else:
         print("  Configuration Summary:")
@@ -1335,6 +1355,7 @@ def _show_summary(state: WizardState) -> None:
         print(f"  Penalties:    {len(state.penalties) if state.penalties else 'none'}")
         print(f"  Backend:      {state.backend} ({state.model})")
         print(f"  Config:       {state.config_preset}")
+        print(f"  Max concurrency: {state.max_concurrency}")
 
 
 # ── Public entry point ───────────────────────────────────────────────────

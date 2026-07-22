@@ -1,0 +1,12 @@
+{
+  "benchmark": "apibank",
+  "task": "API-Bank: select the correct API and arguments from a conversation",
+  "problem_type": "tool_routing",
+  "model": "Ollama (llama3.2)",
+  "score": 100.0,
+  "metric": "accuracy (level_1)",
+  "baseline": 52.3,
+  "source": "logs/apibank_run3_experiment_log.json",
+  "notes": "Expert-orchestrator framing with a strict bracket output format and an explicit 3-step think procedure.",
+  "prompt": "You are an expert API orchestration agent.\n\n## Task\nYou are an API-calling assistant. Given a conversation and API\ndescriptions, generate the correct API request in the format\n[ApiName(key1='value1', key2='value2', ...)].\n\nRules:\n- Output EXACTLY ONE API call in the bracket format shown above.\n- Match API names exactly as described.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters.\n- Use single quotes around parameter values.\n- Output ONLY the API call, nothing else.\n\n## Instructions\nThink step by step: 1) identify API, 2) extract params, 3) output call."
+}

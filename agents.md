@@ -42,6 +42,10 @@ MutaGenAI/
 │   ├── __init__.py            # Public API — all exports
 │   ├── prompt_evolver.py      # Core engine: PromptEvolver, island EA, CMA-ES, LLM backends
 │   ├── strategies.py          # 7 no-eval scoring strategies + NoEvalPromptEvolver
+│   ├── bandit.py              # OperatorBandit — UCB1 / Thompson operator selection (standalone)
+│   ├── quality_diversity.py   # Pareto fronts + MAP-Elites archive over evolved prompts
+│   ├── leaderboard.py         # Best-known evolved prompts per benchmark (seed templates)
+│   ├── live.py                # Live SSE dashboard server (stdlib-only)
 │   ├── seed_loader.py         # Load seed templates from JSON files
 │   ├── wizard.py              # Interactive CLI wizard (9-step questionnaire)
 │   └── dashboard.py           # 6 benchmark plot families (Plotly + Matplotlib fallback)
@@ -49,6 +53,7 @@ MutaGenAI/
 ├── logs/                      # Experiment logs from benchmark runs (JSON + CSV)
 ├── operator_prompts/          # LLM operator prompts (assess, generate, judge, roadmap, constitution)
 ├── seed_templates/            # JSON seed template files
+│   └── leaderboard/           # Best-known evolved prompt per benchmark (one JSON each)
 ├── examples/
 │   ├── cookbook/               # 12 runnable recipes (BFCL, xLAM, τ-bench, ToolBench, API-Bank, etc.)
 │   └── experiments/           # Multi-run experiment scripts (apibank, xlam, entity_classification)
@@ -68,17 +73,35 @@ The core evolutionary prompt engine. Contains:
   Implements island-model EA with tournament selection, crossover,
   mutation, and elite preservation. Runs CMA-ES in parallel to tune
   temperature and top-p. Supports optional token optimization via
-  `minimize_tokens` config fields.
+  `minimize_tokens` config fields. Constructor accepts `seed_templates`
+  (custom starting prompts, defaults to the built-in `_SEED_TEMPLATES`)
+  and `on_event` (a callback fed JSON-serialisable progress events for the
+  live dashboard: `run_start`, `seed`, `candidate`, `generation`,
+  `run_complete`).
 - **`PromptEvolverConfig`** — configuration dataclass (iterations,
   population_size, num_islands, mutation_rate, crossover_rate,
   migration_interval, elite_size, standard/deep presets, token
   optimization: minimize_tokens, token_weight, token_efficiency_cap,
-  token_accuracy_band, baseline_prompt_tokens).
+  token_accuracy_band, baseline_prompt_tokens; concurrency:
+  max_concurrency — max in-flight LLM requests when scoring a candidate's
+  samples, default 8, set to 1 for fully serial behaviour; operator
+  search: llm_crossover_rate — semantic LLM crossover probability;
+  operator_selection (OperatorSelection.FIXED/UCB/THOMPSON) + bandit_c —
+  multi-armed bandit operator choice; spend controls: use_cache (response
+  dedup, default True), budget_usd / max_calls stopping criteria,
+  cost_per_1k_input_tokens / cost_per_1k_output_tokens for cost
+  estimation).
 - **`PromptCandidate`** — a single prompt variant with score, hash,
   generation, island_id, lineage (parent_hashes, operation).
 - **`LLMBackend`** / **`LLMClient`** — enum + HTTP client for Ollama,
   OpenAI, and Azure OpenAI. Lazy imports of `httpx` and
-  `azure-identity`.
+  `azure-identity`. Exposes `complete()` (sync, single request) and
+  `complete_many()` (concurrent batch). `complete_many()` dispatches all
+  requests for a candidate's evaluation samples through an
+  `httpx.AsyncClient`, bounded by a semaphore of size
+  `config.max_concurrency`, and returns responses in input order. Falls
+  back to serial `complete()` calls when the backend is unavailable,
+  `httpx` is missing, the batch is a singleton, or `max_concurrency <= 1`.
 - **`Tool`**, **`EvalSample`** — data classes for tool schemas and
   labelled evaluation samples.
 - **`ProblemType`** — enum: tool_calling, classification, generation,
@@ -94,6 +117,15 @@ The core evolutionary prompt engine. Contains:
   `worst_buckets()` for structured failure tracking.
 - **`count_prompt_tokens()`** — utility for counting tokens using
   tiktoken with a character-based fallback.
+- **`ResponseCache`** — in-memory cache of completions keyed by
+  `(system_prompt, user_message, round(temp,4), round(top_p,4))`. Stores
+  only non-`None` responses (transient failures are retried). Both
+  evolvers route batched completions through `_cached_complete`, so
+  re-evaluated elites, migrated clones, and progressive-eval overlap cost
+  no extra tokens. `PromptEvolverResult.cache_hits` reports reuse.
+- **`estimate_cost(input_tokens, output_tokens, price_in, price_out)`** —
+  returns USD spend, or `None` when both prices are 0 (pricing unknown).
+  Powers `result.estimated_cost_usd` and the `budget_usd` guardrail.
 - **`evolve_prompt_with_cmaes()`** — CMA-ES continuous parameter tuning.
 - **`generate_adaptive_mutations()`** — generates domain-specific
   mutations based on error analysis.
@@ -107,7 +139,7 @@ Only hard dependency: `numpy>=1.26`. LLM backends require
 
 ### strategies.py (~1 290 LOC)
 
-Seven label-free scoring strategies for when you have no ground truth:
+Eight label-free scoring strategies for when you have no ground truth:
 
 | Class | What it does |
 |---|---|
@@ -118,11 +150,18 @@ Seven label-free scoring strategies for when you have no ground truth:
 | `ProxyMetricsScorer` / `ProxyCheck` | Structural checks (valid JSON, format, length) |
 | `PreferenceScorer` / `PreferencePair` | Few-shot good/bad output comparison |
 | `HumanTournament` | Interactive human selection per generation |
+| `PairwiseEloScorer` | Head-to-head A/B comparisons → online Elo / Bradley-Terry rating |
 | `CompositeScorer` | Weighted blend of multiple strategies |
 
 **`NoEvalPromptEvolver`** wraps `PromptEvolver` with any `Scorer`
 subclass, routing fitness through the chosen strategy instead of
-ground-truth labels.
+ground-truth labels. `NoEvalConfig` exposes `max_concurrency` (default 8)
+which propagates to the internal `LLMClient`; `_evaluate` batches the
+first completion across all test inputs via `complete_many` (concurrent,
+order-preserving) and then folds scores in serially, so behaviour stays
+deterministic.  It also carries `use_cache` (response dedup) and the
+`budget_usd` / `max_calls` / `cost_per_1k_*` guardrails, mirrored from
+`PromptEvolverConfig`.
 
 ### wizard.py (~1 030 LOC)
 
@@ -138,6 +177,52 @@ Entry point: `MutaGenAI init` (mapped in pyproject.toml to
 Loads seed template JSON files from the `seed_templates/` directory.
 Two public functions: `load_seed_templates(name)` and
 `list_seed_templates()`.
+
+### bandit.py (standalone)
+
+`OperatorBandit` — a multi-armed bandit over operator names (arms). Two
+policies: **UCB1** (deterministic) and **Thompson** sampling (Beta
+posteriors; uses an injected `np.random.Generator`). API: `select(allowed)`
+restricts to applicable arms; `update(arm, reward)` clamps reward to
+`[0, 1]`; `stats()` returns per-arm count/mean_reward/share. **No internal
+MutaGenAI imports** — fully standalone. Consumed by `PromptEvolver` when
+`config.operator_selection` is `UCB`/`THOMPSON`.
+
+### quality_diversity.py
+
+Post-hoc quality-diversity analysis over evolved candidates (no LLM calls).
+`pareto_front(candidates, objectives)` returns the non-dominated set;
+`DEFAULT_OBJECTIVES` maximise score and minimise token length.
+`MapElitesArchive` keeps the best prompt per `(token band, style archetype)`
+cell; `build_map_elites()` is the one-call constructor. `style_archetype()`
+classifies a template into `minimal`/`persona`/`example_driven`/
+`structured`/`verbose`. Imports `PromptCandidate` + `count_prompt_tokens`
+from `prompt_evolver`. `PromptEvolverResult.pareto_front()` /
+`.map_elites()` delegate here via lazy import.
+
+### leaderboard.py
+
+Best-known evolved prompts per benchmark, shipped as seed templates in
+`seed_templates/leaderboard/<benchmark>.json`. `LeaderboardEntry` dataclass
+plus `list_leaderboard()`, `load_leaderboard(benchmark)`,
+`leaderboard_seeds(benchmark)` (defaults to `[entry.prompt]`),
+`best_prompt(benchmark)`, and `leaderboard_table()` (rows sorted by score).
+Each entry records score, metric, baseline, model, and source log. Used to
+warm-start either evolver via the `seed_templates=` argument. Stdlib only.
+
+### live.py
+
+Standard-library SSE server for the live dashboard. `LiveDashboardServer`
+(`ThreadingHTTPServer`) serves the dashboard HTML at `/` and a Server-Sent
+Events stream at `/events` (append `?once=1` for a non-blocking snapshot
+that replays history then closes — used by tests). `publish(event)` fans an
+event out to every connected browser and appends it to a replayable
+history; `snapshot()` returns the history. `run_with_live_dashboard(evolver)`
+wires the server to the evolver's `on_event` callback, optionally opens a
+browser, then runs. `format_sse(event)` builds a `data: …` frame. **No
+third-party deps.** The browser page draws a live convergence curve and a
+lineage graph (x = generation, y = score, edges to parents) with inline SVG
+and `EventSource`.
 
 ### dashboard.py (~1 100 LOC)
 
@@ -187,7 +272,10 @@ Build system: **hatchling**. Python >=3.11.
   `from evosim`.
 - No circular imports. Dependency direction:
   `strategies → prompt_evolver`, `wizard → prompt_evolver + strategies`,
-  `seed_loader → (none)`, `dashboard → (none)`.
+  `quality_diversity → prompt_evolver`, `bandit → (none)`,
+  `leaderboard → (stdlib)`, `live → (stdlib)`,
+  `seed_loader → (none)`, `dashboard → (none)`. `prompt_evolver` lazily
+  imports `bandit` and `quality_diversity` inside methods to avoid cycles.
 - Tests are self-contained — they mock all LLM calls. No network access
   required.
 
@@ -248,10 +336,15 @@ When working on this codebase, follow these rules:
 
 - **Don't add EvoSim imports.** This is a standalone package. Any
   reference to `evosim` is a bug.
-- **Don't add EA engine features** (pareto fronts, map-elites, surrogate
-  models, landscape analysis). Those belong in EvoSim.
+- **Keep general-purpose EA engine features in EvoSim.** The
+  `quality_diversity.py` (Pareto + MAP-Elites) and `bandit.py` modules
+  here are intentionally *prompt-specific*: QD bins by token length and
+  prompt style archetype, and the bandit's arms are prompt operators.
+  Don't grow them into a generic EA framework (surrogate models,
+  landscape analysis, generic genome encodings) — that belongs in EvoSim.
 - **Don't make `dashboard.py` import from other MutaGenAI modules.** It
-  must stay self-contained for independent use.
+  must stay self-contained for independent use.  Likewise keep `bandit.py`
+  free of internal imports.
 - **Don't add hard dependencies beyond numpy.** All other deps must
   remain optional with lazy imports and graceful fallbacks.
 
@@ -283,14 +376,27 @@ from MutaGenAI import PromptEvolver, PromptEvolverConfig, Tool, EvalSample, LLMB
 from MutaGenAI import SelectionMethod, FailureBucket, ProblemType
 from MutaGenAI import get_failure_bucket_mutations
 
+# Operator-selection bandit + quality-diversity analysis
+from MutaGenAI import OperatorSelection, OperatorBandit
+from MutaGenAI import pareto_front, build_map_elites, MapElitesArchive
+from MutaGenAI import Objective, DEFAULT_OBJECTIVES, style_archetype
+
+# Leaderboard of best-known prompts + live streaming dashboard
+from MutaGenAI import list_leaderboard, leaderboard_seeds, leaderboard_table, best_prompt
+from MutaGenAI import LiveDashboardServer, run_with_live_dashboard
+
 # Token optimization
 from MutaGenAI import count_prompt_tokens
+
+# Spend controls: response cache + cost estimation
+from MutaGenAI import ResponseCache, estimate_cost
 
 # No-eval evolution
 from MutaGenAI import NoEvalPromptEvolver, NoEvalConfig
 from MutaGenAI import LLMJudge, SelfConsistencyScorer, ProxyMetricsScorer, CompositeScorer
 from MutaGenAI import ToolSuccessScorer, PreferenceScorer, HumanTournament
 from MutaGenAI import SyntheticEvalGenerator, SyntheticEvalScorer
+from MutaGenAI import PairwiseEloScorer
 
 # Seed templates
 from MutaGenAI import load_seed_templates, list_seed_templates

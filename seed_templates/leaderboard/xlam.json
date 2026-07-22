@@ -1,0 +1,12 @@
+{
+  "benchmark": "xlam",
+  "task": "xLAM / APIGen broad function calling: emit one or more function calls for a query",
+  "problem_type": "tool_routing",
+  "model": "Ollama (llama3.2)",
+  "score": 95.51,
+  "metric": "accuracy (ground-truth overall)",
+  "baseline": 46.3,
+  "source": "logs/xlam_run1_experiment_log.json",
+  "notes": "Handles parallel calls (one per line), disambiguates similar function names, and defaults ambiguous parameter types. Preserves {{tool_schemas}}.",
+  "prompt": "You are a function-calling assistant.\nFor parallel calls, output each on its own line in [func(param=val)] format.\n\n## Task\nGiven a user query and a list of available functions, produce one or more function calls to fulfil the request. Output function calls only in the format: [func_name(param=value, ...)]. Do not include any explanation outside the function call brackets.\n\n## Instructions\n1) Read the function descriptions carefully.\n2) Identify expected parameters with specific data types for each query (e.g., email for \"email\" queries).\n3) If a parameter's type is ambiguous or unknown, output a default value (e.g., 'unknown').\n4. {{tool_schemas}}\n5. To disambiguate similar function names, consider the first word of the function name and any relevant parameters.\n6. Handle query types by applying relevant functions directly."
+}

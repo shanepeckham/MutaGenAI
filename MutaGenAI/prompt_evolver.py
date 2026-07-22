@@ -35,6 +35,8 @@ Typical usage::
 
 from __future__ import annotations
 
+import asyncio
+import concurrent.futures
 import hashlib
 import json
 import logging
@@ -153,6 +155,26 @@ class SelectionMethod(str, Enum):
     SCORE_PROPORTIONAL = "score_proportional"
 
 
+class OperatorSelection(str, Enum):
+    """Strategy for choosing which genetic operator to apply when breeding.
+
+    ``FIXED`` — apply operators at the fixed probabilities configured by
+    ``crossover_rate`` / ``mutation_rate`` / ``llm_mutation_rate`` /
+    ``llm_crossover_rate`` (the classic, default behaviour).
+    ``UCB`` — pick the operator with a multi-armed bandit using the UCB1
+    policy; the reward is the fitness improvement of the resulting child.
+    ``THOMPSON`` — same, but using Thompson sampling over Beta posteriors.
+
+    When a bandit policy is active the per-operator probabilities are
+    ignored; instead the bandit learns, within the run, which operators
+    most improve fitness and concentrates on them.
+    """
+
+    FIXED = "fixed"
+    UCB = "ucb"
+    THOMPSON = "thompson"
+
+
 class FailureBucket(str, Enum):
     """Structured failure categories for targeted mutation guidance.
 
@@ -197,6 +219,16 @@ class PromptEvolverConfig:
         max_tokens:         Max tokens to generate (``num_predict`` for
                             Ollama, ``max_tokens`` for OpenAI/Azure).
                             ``None`` means no limit (model default).
+        max_concurrency:    Maximum number of in-flight LLM requests when
+                            scoring a candidate against the evaluation
+                            dataset.  Sample evaluations within a single
+                            candidate are dispatched concurrently using an
+                            async HTTP client, bounded by this value.  ``1``
+                            (or any value ≤ 1) preserves fully serial
+                            behaviour.  Higher values dramatically reduce
+                            wall-clock time against remote backends
+                            (OpenAI/Azure) and concurrent-capable local
+                            servers.  Default ``8``.
         refine_after_splice: If ``True``, run an LLM call after each
                             mutation/crossover to remove duplicate lines,
                             fix incoherent phrasing, and tighten the
@@ -264,6 +296,44 @@ class PromptEvolverConfig:
                             Controls which mutation snippets and failure-
                             bucket hints are used during evolution.
                             Default ``ProblemType.TOOL_ROUTING``.
+        llm_crossover_rate: Probability, when a crossover is selected, of
+                            using *semantic* crossover — an LLM call that
+                            merges the strengths of two parent prompts —
+                            instead of mechanical line-splicing.  The
+                            merge is steered by the current generation's
+                            worst failure buckets.  ``0.0`` disables it
+                            (mechanical crossover only).  Default ``0.0``.
+        operator_selection: How to choose which genetic operator to apply
+                            when breeding.  ``OperatorSelection.FIXED``
+                            (default) uses the fixed per-operator
+                            probabilities.  ``OperatorSelection.UCB`` or
+                            ``OperatorSelection.THOMPSON`` use a
+                            multi-armed bandit that learns which operators
+                            improve fitness and concentrates on them.
+        bandit_c:           UCB exploration constant used when
+                            ``operator_selection`` is ``UCB``.  Higher
+                            values explore more.  Default ``1.4``.
+        use_cache:          Cache LLM completions keyed by
+                            ``(prompt, input, temperature, top_p)`` so
+                            repeated/duplicate evaluations (unchanged
+                            children, migrated clones, progressive-eval
+                            overlap) cost no extra tokens.  Default
+                            ``True``.
+        budget_usd:         Optional spend ceiling in USD.  When set
+                            *and* pricing is configured (see
+                            ``cost_per_1k_*``), evolution stops at the
+                            next generation boundary once the estimated
+                            cost reaches this value.  ``None`` disables.
+        max_calls:          Optional ceiling on total LLM calls.
+                            Evolution stops at the next generation
+                            boundary once the client's call count reaches
+                            this value.  ``None`` disables.
+        cost_per_1k_input_tokens:  USD price per 1,000 prompt (input)
+                            tokens, used for cost estimation and the
+                            ``budget_usd`` guardrail.  Default ``0.0``
+                            (pricing unknown → cost reported as ``None``).
+        cost_per_1k_output_tokens: USD price per 1,000 completion
+                            (output) tokens.  Default ``0.0``.
     """
 
     iterations: int = 30
@@ -288,6 +358,7 @@ class PromptEvolverConfig:
     timeout: float = 30.0
     max_retries: int = 2
     max_tokens: Optional[int] = None
+    max_concurrency: int = 8
     refine_after_splice: bool = False
     adaptive_mutations: bool = False
     llm_mutation_rate: float = 0.0
@@ -301,6 +372,14 @@ class PromptEvolverConfig:
     eval_promotion_threshold: float = 30.0
     eval_deep_sample_size: Optional[int] = None
     problem_type: ProblemType = ProblemType.TOOL_ROUTING
+    llm_crossover_rate: float = 0.0
+    operator_selection: OperatorSelection = OperatorSelection.FIXED
+    bandit_c: float = 1.4
+    use_cache: bool = True
+    budget_usd: Optional[float] = None
+    max_calls: Optional[int] = None
+    cost_per_1k_input_tokens: float = 0.0
+    cost_per_1k_output_tokens: float = 0.0
 
     def __post_init__(self) -> None:
         # Auto-detect from environment variables
@@ -590,12 +669,228 @@ class LLMClient:
                 return content
         return None
 
+    # ------------------------------------------------------------------
+    # Concurrent batch completion
+    # ------------------------------------------------------------------
+
+    def complete_many(
+        self, requests: list[dict[str, Any]]
+    ) -> list[Optional[str]]:
+        """Complete many chat requests, returning responses in input order.
+
+        Each entry in ``requests`` is a mapping with the same keyword
+        arguments accepted by :meth:`complete` (``system_prompt``,
+        ``user_message`` and optionally ``temperature`` / ``top_p``).
+
+        When ``config.max_concurrency`` > 1 and the backend is reachable,
+        requests are dispatched concurrently via an async HTTP client,
+        bounded by a semaphore.  Results are always returned aligned with
+        the input order, so callers can zip them back against their inputs
+        deterministically.
+
+        Falls back to fully serial :meth:`complete` calls when concurrency
+        is disabled (``max_concurrency`` ≤ 1), the backend is unavailable,
+        ``httpx`` is missing, or the batch is empty/singleton — preserving
+        identical behaviour to the serial path in those cases.
+
+        Returns:
+            A list of response strings (or ``None`` for failed/empty
+            responses) with ``len(result) == len(requests)``.
+        """
+        n = len(requests)
+        if n == 0:
+            return []
+
+        # Serial fast-paths: no benefit (or no ability) to go concurrent.
+        if (
+            self.config.max_concurrency <= 1
+            or n == 1
+            or not self.is_available()
+        ):
+            return [self.complete(**req) for req in requests]
+
+        try:
+            import httpx  # noqa: F401
+        except ImportError:
+            return [self.complete(**req) for req in requests]
+
+        return self._run_async(self._complete_many_async(requests))
+
+    @staticmethod
+    def _run_async(coro: Any) -> Any:
+        """Run an awaitable from sync code, even inside a running loop.
+
+        When no event loop is running (the common case for the synchronous
+        evolution loop) this uses :func:`asyncio.run`.  If a loop is already
+        running on the calling thread, the coroutine is executed on a
+        dedicated worker thread to avoid re-entrancy errors.
+        """
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return asyncio.run(coro)
+        # A loop is already running on this thread — offload to a worker.
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            return pool.submit(asyncio.run, coro).result()
+
+    async def _complete_many_async(
+        self, requests: list[dict[str, Any]]
+    ) -> list[Optional[str]]:
+        """Dispatch ``requests`` concurrently and gather ordered results."""
+        import httpx
+
+        results: list[Optional[str]] = [None] * len(requests)
+        limit = max(1, self.config.max_concurrency)
+        sem = asyncio.Semaphore(limit)
+
+        async with httpx.AsyncClient(timeout=self.config.timeout) as aclient:
+
+            async def _worker(index: int, req: dict[str, Any]) -> None:
+                async with sem:
+                    results[index] = await self._acomplete(aclient, **req)
+
+            await asyncio.gather(
+                *(_worker(i, req) for i, req in enumerate(requests))
+            )
+        return results
+
+    async def _acomplete(
+        self,
+        aclient: Any,
+        system_prompt: str,
+        user_message: str,
+        temperature: float = 0.1,
+        top_p: float = 0.95,
+    ) -> Optional[str]:
+        """Async counterpart of :meth:`complete` for a single request."""
+        try:
+            if self.config.backend == LLMBackend.OLLAMA:
+                return await self._aollama_complete(
+                    aclient, system_prompt, user_message, temperature, top_p
+                )
+            if self.config.backend == LLMBackend.AZURE_OPENAI:
+                return await self._aazure_complete(
+                    aclient, system_prompt, user_message, temperature, top_p
+                )
+            if self.config.backend == LLMBackend.OPENAI:
+                return await self._aopenai_complete(
+                    aclient, system_prompt, user_message, temperature, top_p
+                )
+        except Exception as exc:  # noqa: BLE001 — parity with sync complete()
+            logger.debug("Async LLM call failed: %s", exc)
+        return None
+
+    async def _aollama_complete(
+        self,
+        aclient: Any,
+        system_prompt: str,
+        user_message: str,
+        temperature: float,
+        top_p: float,
+    ) -> Optional[str]:
+        options: dict[str, Any] = {"temperature": temperature, "top_p": top_p}
+        if self.config.max_tokens is not None:
+            options["num_predict"] = self.config.max_tokens
+        resp = await aclient.post(
+            f"{self.config.ollama_url}/api/chat",
+            json={
+                "model": self.config.ollama_model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_message},
+                ],
+                "stream": False,
+                "options": options,
+            },
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            self.call_count += 1
+            self.total_input_tokens += data.get("prompt_eval_count", 0)
+            self.total_output_tokens += data.get("eval_count", 0)
+            content: str = data.get("message", {}).get("content", "")
+            return content
+        return None
+
+    async def _aazure_complete(
+        self,
+        aclient: Any,
+        system_prompt: str,
+        user_message: str,
+        temperature: float,
+        top_p: float,
+    ) -> Optional[str]:
+        base = self._azure_base_url(self.config.azure_endpoint)
+        foundry = self._is_foundry_endpoint(self.config.azure_endpoint)
+        if foundry:
+            url = f"{base}/openai/v1/chat/completions"
+        else:
+            url = (
+                f"{base}"
+                f"/openai/deployments/{self.config.azure_deployment}"
+                f"/chat/completions?api-version={self.config.azure_api_version}"
+            )
+        body: dict[str, Any] = {
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message},
+            ],
+            "temperature": temperature,
+            "top_p": top_p,
+            "max_tokens": self.config.max_tokens or 256,
+        }
+        if foundry:
+            body["model"] = self.config.azure_deployment
+        resp = await aclient.post(
+            url, headers=self._get_azure_headers(), json=body
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            self._record_usage(data)
+            choices = data.get("choices", [])
+            if choices:
+                content: str = choices[0].get("message", {}).get("content", "")
+                return content
+        return None
+
+    async def _aopenai_complete(
+        self,
+        aclient: Any,
+        system_prompt: str,
+        user_message: str,
+        temperature: float,
+        top_p: float,
+    ) -> Optional[str]:
+        resp = await aclient.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {self.config.openai_api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": self.config.openai_model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_message},
+                ],
+                "temperature": temperature,
+                "top_p": top_p,
+                "max_tokens": self.config.max_tokens or 256,
+            },
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            self._record_usage(data)
+            choices = data.get("choices", [])
+            if choices:
+                content: str = choices[0].get("message", {}).get("content", "")
+                return content
+        return None
+
 
 # ---------------------------------------------------------------------------
 # Response parser — extract tool name + params from LLM output
 # ---------------------------------------------------------------------------
-
-
 def parse_tool_response(
     response: str, tool_names: list[str]
 ) -> tuple[Optional[str], dict[str, str]]:
@@ -1495,6 +1790,101 @@ def _crossover_templates(
     return result
 
 
+_LLM_CROSSOVER_SYSTEM_CLASSIFICATION = textwrap.dedent("""\
+    You are a prompt-engineering expert.  You will receive TWO system prompts
+    (Prompt A and Prompt B) that both perform the same classification task,
+    plus an optional list of known weaknesses.
+
+    Produce ONE new system prompt that merges the STRENGTHS of both parents:
+    - Keep the clearest, most effective instructions from each.
+    - Resolve any contradictions in favour of the more precise wording.
+    - Address the listed weaknesses where possible.
+    - Do NOT simply concatenate them — synthesise a coherent prompt.
+
+    Rules:
+    - Keep the prompt short (≤ 15 lines).
+    - Do NOT change the set of valid categories.
+    - Return ONLY the merged prompt — no commentary, no markdown fences.
+""")
+
+_LLM_CROSSOVER_SYSTEM_TOOL_ROUTING = textwrap.dedent("""\
+    You are a prompt-engineering expert.  You will receive TWO system prompts
+    (Prompt A and Prompt B) that both perform the same tool-routing task,
+    plus an optional list of known weaknesses.
+
+    Produce ONE new system prompt that merges the STRENGTHS of both parents:
+    - Keep the clearest, most effective instructions from each.
+    - Resolve any contradictions in favour of the more precise wording.
+    - Address the listed weaknesses where possible.
+    - Do NOT simply concatenate them — synthesise a coherent prompt.
+
+    Rules:
+    - Keep the prompt short (≤ 15 lines).
+    - Preserve the {{tool_schemas}} placeholder if present.
+    - Return ONLY the merged prompt — no commentary, no markdown fences.
+""")
+
+
+def _llm_crossover_templates(
+    parent_a: str,
+    parent_b: str,
+    client: "LLMClient",
+    problem_type: ProblemType,
+    bucket_hints: Optional[list[str]] = None,
+    require_tool_schemas: bool = True,
+) -> str:
+    """Semantic crossover: ask an LLM to merge two parents' strengths.
+
+    Unlike :func:`_crossover_templates`, which splices parent text at a
+    random line, this asks the model to *synthesise* a coherent child that
+    keeps the best of both parents.  The merge is optionally steered by
+    ``bucket_hints`` — short instructions targeting the current
+    generation's worst failure buckets (from
+    :func:`get_failure_bucket_mutations`).
+
+    Returns the merged prompt, or ``parent_a`` unchanged when the LLM is
+    unavailable or returns nothing.
+    """
+    if problem_type is ProblemType.CLASSIFICATION:
+        system = _LLM_CROSSOVER_SYSTEM_CLASSIFICATION
+    else:
+        system = _LLM_CROSSOVER_SYSTEM_TOOL_ROUTING
+
+    user_parts = [
+        f"Prompt A:\n```\n{parent_a}\n```",
+        f"Prompt B:\n```\n{parent_b}\n```",
+    ]
+    if bucket_hints:
+        weaknesses = "\n".join(f"  - {h}" for h in bucket_hints[:4])
+        user_parts.append(f"Known weaknesses to address:\n{weaknesses}")
+    user_message = "\n\n".join(user_parts)
+
+    merged = client.complete(
+        system_prompt=system,
+        user_message=user_message,
+        temperature=0.7,
+        top_p=0.95,
+    )
+
+    if not merged or not merged.strip():
+        return parent_a
+
+    cleaned = merged.strip()
+    if cleaned.startswith("```"):
+        lines = cleaned.splitlines()
+        lines = [ln for ln in lines if not ln.strip().startswith("```")]
+        cleaned = "\n".join(lines).strip()
+
+    if (
+        require_tool_schemas
+        and "{tool_schemas}" in parent_a
+        and "{tool_schemas}" not in cleaned
+    ):
+        cleaned += "\n\nAvailable tools:\n{tool_schemas}"
+
+    return cleaned if cleaned else parent_a
+
+
 _REFINE_SYSTEM_PROMPT = textwrap.dedent("""\
     You are a prompt editor.  You will receive a system prompt that was
     produced by splicing two parent prompts together.
@@ -1563,6 +1953,17 @@ class PromptEvolverResult:
         wall_time:        Total elapsed seconds.
         iterations_run:   Generations completed.
         llm_backend:      Which backend was used.
+        operator_stats:   Per-operator bandit statistics when bandit
+                          operator selection was active, else ``None``.
+        llm_calls:        Total LLM completion calls made.
+        input_tokens:     Total prompt (input) tokens consumed.
+        output_tokens:    Total completion (output) tokens generated.
+        estimated_cost_usd: Estimated USD spend, or ``None`` when pricing
+                          was not configured.
+        cache_hits:       Number of completions served from the response
+                          cache (tokens saved).
+        stop_reason:      Why the run ended — ``"completed"``,
+                          ``"budget_usd"``, or ``"max_calls"``.
     """
 
     best_prompt: str
@@ -1575,6 +1976,13 @@ class PromptEvolverResult:
     wall_time: float
     iterations_run: int
     llm_backend: str
+    operator_stats: Optional[dict[str, dict[str, float]]] = None
+    llm_calls: int = 0
+    input_tokens: int = 0
+    output_tokens: int = 0
+    estimated_cost_usd: Optional[float] = None
+    cache_hits: int = 0
+    stop_reason: str = "completed"
 
     def summary(self) -> str:
         lines = [
@@ -1587,6 +1995,14 @@ class PromptEvolverResult:
             f"  Candidates tried: {len(self.all_candidates)}",
             f"  Wall time:        {self.wall_time:.1f}s",
             f"  LLM backend:      {self.llm_backend}",
+            f"  LLM calls:        {self.llm_calls}",
+            f"  Cache hits:       {self.cache_hits}",
+        ]
+        if self.estimated_cost_usd is not None:
+            lines.append(f"  Estimated cost:   ${self.estimated_cost_usd:.4f}")
+        if self.stop_reason != "completed":
+            lines.append(f"  Stopped early:    {self.stop_reason}")
+        lines += [
             "",
             "Best prompt template:",
             "-" * 50,
@@ -1616,6 +2032,37 @@ class PromptEvolverResult:
             for c in self.all_candidates
         ]
 
+    def pareto_front(self, objectives=None) -> list[PromptCandidate]:
+        """Return the non-dominated prompts (accuracy vs. token length).
+
+        Surfaces the trade-off frontier instead of a single winner.  Pass
+        a custom ``objectives`` sequence (see
+        :class:`MutaGenAI.quality_diversity.Objective`) to trade off other
+        metrics.  Defaults to maximising score and minimising token length.
+        """
+        from MutaGenAI.quality_diversity import (
+            DEFAULT_OBJECTIVES,
+            pareto_front as _pareto_front,
+        )
+
+        return _pareto_front(
+            self.all_candidates, objectives or DEFAULT_OBJECTIVES
+        )
+
+    def map_elites(self, token_bin_size: int = 50):
+        """Return a MAP-Elites archive over all evaluated candidates.
+
+        The archive keeps the best prompt in each ``(token band, style
+        archetype)`` cell, illuminating which *kinds* of prompts work — not
+        just the single best.  See
+        :class:`MutaGenAI.quality_diversity.MapElitesArchive`.
+        """
+        from MutaGenAI.quality_diversity import build_map_elites
+
+        return build_map_elites(
+            self.all_candidates, token_bin_size=token_bin_size
+        )
+
 
 # ---------------------------------------------------------------------------
 # Token counting
@@ -1635,6 +2082,86 @@ def count_prompt_tokens(text: str) -> int:
         return len(enc.encode(text))
     except (ImportError, KeyError):
         return len(text) // 4
+
+
+# ---------------------------------------------------------------------------
+# Response caching and cost estimation
+# ---------------------------------------------------------------------------
+
+
+class ResponseCache:
+    """In-memory cache of LLM completions keyed by request signature.
+
+    During evolution the same ``(prompt, input, temperature, top_p)`` tuple
+    recurs often — an unchanged mutation, a crossover that reproduces a
+    parent verbatim, a migrated clone, or the overlap between a progressive
+    evaluation's shallow and deep passes.  Caching the completion for each
+    signature means those repeats cost no extra tokens.
+
+    Only successful (non-``None``) completions are stored, so a transient
+    backend failure is retried rather than cached.  The key rounds the
+    sampling parameters to 4 decimals so floating-point noise does not
+    fragment the cache.
+    """
+
+    def __init__(self, enabled: bool = True) -> None:
+        self.enabled = enabled
+        self._store: dict[tuple[str, str, float, float], str] = {}
+        self.hits: int = 0
+        self.misses: int = 0
+
+    @staticmethod
+    def _key(
+        system_prompt: str,
+        user_message: str,
+        temperature: float = 0.1,
+        top_p: float = 0.95,
+        **_ignored: Any,
+    ) -> tuple[str, str, float, float]:
+        return (
+            system_prompt,
+            user_message,
+            round(float(temperature), 4),
+            round(float(top_p), 4),
+        )
+
+    def get(self, request: dict[str, Any]) -> Optional[str]:
+        """Return the cached completion for ``request``, or ``None``."""
+        if not self.enabled:
+            return None
+        cached = self._store.get(self._key(**request))
+        if cached is None:
+            self.misses += 1
+        else:
+            self.hits += 1
+        return cached
+
+    def put(self, request: dict[str, Any], response: str) -> None:
+        """Store a successful completion for ``request``."""
+        if self.enabled and response is not None:
+            self._store[self._key(**request)] = response
+
+    def __len__(self) -> int:
+        return len(self._store)
+
+
+def estimate_cost(
+    input_tokens: int,
+    output_tokens: int,
+    cost_per_1k_input_tokens: float,
+    cost_per_1k_output_tokens: float,
+) -> Optional[float]:
+    """Estimate USD spend from token usage and per-1k prices.
+
+    Returns ``None`` when both prices are zero (i.e. pricing is unknown),
+    so callers can distinguish "free/local" from "zero cost".
+    """
+    if cost_per_1k_input_tokens <= 0 and cost_per_1k_output_tokens <= 0:
+        return None
+    return (
+        input_tokens / 1000.0 * cost_per_1k_input_tokens
+        + output_tokens / 1000.0 * cost_per_1k_output_tokens
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -1683,6 +2210,8 @@ class PromptEvolver:
         config: Optional[PromptEvolverConfig] = None,
         seed: int = 42,
         verbose: bool = True,
+        seed_templates: Optional[list[str]] = None,
+        on_event: Optional[Callable[[dict], None]] = None,
     ) -> None:
         self.tools = tools
         self.eval_dataset = eval_dataset
@@ -1694,6 +2223,12 @@ class PromptEvolver:
         self._tool_schemas_str = "\n".join(
             f"  - {t.schema_str()}" for t in tools
         )
+        self._seed_templates = (
+            list(seed_templates) if seed_templates else list(_SEED_TEMPLATES)
+        )
+        #: Optional callback invoked with JSON-serialisable progress events
+        #: (used by the live dashboard).  See :mod:`MutaGenAI.live`.
+        self.on_event = on_event
         self._all_candidates: list[PromptCandidate] = []
         self._history: list[tuple[int, float]] = []
         self._require_tool_schemas = bool(tools)
@@ -1701,6 +2236,146 @@ class PromptEvolver:
         self._failure_examples: list[tuple[str, str, str]] = []
         self._adaptive_pool: list[str] = []
         self._failure_bucket_pool: list[str] = []
+
+        # Bandit operator selection (optional). The bandit uses a dedicated
+        # RNG so enabling it never perturbs the main evolution stream.
+        self._bandit = self._build_bandit(seed)
+        # Maps a freshly bred child's hash -> (selected arm, parent score)
+        # so the reward can be credited after the child is evaluated.
+        self._breed_meta: dict[str, tuple[str, float]] = {}
+
+        # Response cache for dedup memoisation of identical evaluations.
+        self._cache = ResponseCache(enabled=self.config.use_cache)
+
+    def _build_bandit(self, seed: int):
+        """Construct the operator bandit, or ``None`` for fixed selection."""
+        sel = self.config.operator_selection
+        if sel is OperatorSelection.FIXED:
+            return None
+        from MutaGenAI.bandit import OperatorBandit
+
+        arms = ["mutation", "crossover"]
+        if self.config.llm_mutation_rate > 0:
+            arms.append("llm_mutation")
+        if self.config.llm_crossover_rate > 0:
+            arms.append("llm_crossover")
+        # Dedicated RNG (offset seed) so Thompson sampling does not consume
+        # draws from the main evolution stream.
+        bandit_rng = np.random.default_rng(seed + 7919)
+        return OperatorBandit(
+            arms,
+            method=sel.value,
+            c=self.config.bandit_c,
+            rng=bandit_rng,
+        )
+
+    def _available_arms(self, island: list[PromptCandidate]) -> set[str]:
+        """Return the operator arms applicable for the given island now."""
+        arms = {"mutation"}
+        if len(island) > 1:
+            arms.add("crossover")
+            if self.config.llm_crossover_rate > 0:
+                arms.add("llm_crossover")
+        if self.config.llm_mutation_rate > 0 and self._failure_examples:
+            arms.add("llm_mutation")
+        return arms
+
+    def _record_bandit_reward(self, child: PromptCandidate) -> None:
+        """Credit the bandit for a freshly evaluated child (no-op if off).
+
+        Reward is the child's fitness improvement over its primary parent,
+        mapped to ``[0, 1]`` (a +100 jump → 1.0, no change → 0.5, a −100
+        drop → 0.0).
+        """
+        if self._bandit is None:
+            return
+        meta = self._breed_meta.pop(child.hash, None)
+        if meta is None:
+            return
+        arm, baseline = meta
+        reward = float(np.clip(0.5 + (child.score - baseline) / 200.0, 0.0, 1.0))
+        self._bandit.update(arm, reward)
+
+    def _estimated_cost(self) -> Optional[float]:
+        """Current estimated USD spend, or ``None`` when pricing unknown."""
+        return estimate_cost(
+            self._client.total_input_tokens,
+            self._client.total_output_tokens,
+            self.config.cost_per_1k_input_tokens,
+            self.config.cost_per_1k_output_tokens,
+        )
+
+    def _emit(self, event_type: str, **payload: Any) -> None:
+        """Send a progress event to ``on_event`` if a listener is attached.
+
+        Events are best-effort: a failing listener is logged and ignored so
+        it can never crash the evolution loop.
+        """
+        if self.on_event is None:
+            return
+        event = {"type": event_type, **payload}
+        try:
+            self.on_event(event)
+        except Exception as exc:  # noqa: BLE001 — listener must never break run
+            logger.debug("on_event listener failed for %s: %s", event_type, exc)
+
+    @staticmethod
+    def _candidate_event(candidate: PromptCandidate) -> dict[str, Any]:
+        """Build a JSON-serialisable lineage node for a candidate."""
+        return {
+            "hash": candidate.hash,
+            "parent_hashes": list(candidate.parent_hashes),
+            "operation": candidate.operation,
+            "generation": candidate.generation,
+            "island_id": candidate.island_id,
+            "score": round(candidate.score, 2),
+            "tokens": count_prompt_tokens(candidate.template),
+        }
+
+    def _budget_stop_reason(self) -> Optional[str]:
+        """Return a stop reason if a budget/call guardrail is hit, else None."""
+        if (
+            self.config.max_calls is not None
+            and self._client.call_count >= self.config.max_calls
+        ):
+            return "max_calls"
+        if self.config.budget_usd is not None:
+            cost = self._estimated_cost()
+            if cost is not None and cost >= self.config.budget_usd:
+                return "budget_usd"
+        return None
+
+    def _cached_complete(
+        self, requests: list[dict[str, Any]]
+    ) -> list[Optional[str]]:
+        """Complete ``requests`` using the response cache for repeats.
+
+        Cached entries are returned directly; only the cache misses are
+        dispatched to the LLM (concurrently when available).  Results are
+        returned in input order so downstream scoring stays deterministic.
+        """
+        results: list[Optional[str]] = [None] * len(requests)
+        to_fetch: list[dict[str, Any]] = []
+        fetch_idx: list[int] = []
+        for i, req in enumerate(requests):
+            cached = self._cache.get(req)
+            if cached is not None:
+                results[i] = cached
+            else:
+                to_fetch.append(req)
+                fetch_idx.append(i)
+
+        if to_fetch:
+            complete_many = getattr(self._client, "complete_many", None)
+            if callable(complete_many):
+                fetched = complete_many(to_fetch)
+            else:
+                fetched = [self._client.complete(**req) for req in to_fetch]
+            for idx, resp in zip(fetch_idx, fetched):
+                results[idx] = resp
+                if resp is not None:
+                    self._cache.put(requests[idx], resp)
+        return results
 
     def run(self) -> PromptEvolverResult:
         """Run the evolutionary prompt optimisation loop."""
@@ -1715,6 +2390,15 @@ class PromptEvolver:
             self.config.backend.value,
         )
 
+        self._emit(
+            "run_start",
+            iterations=self.config.iterations,
+            population_size=self.config.population_size,
+            num_islands=self.config.num_islands,
+            backend=self.config.backend.value,
+            seed_count=len(self._seed_templates),
+        )
+
         if not self._client.is_available():
             logger.warning(
                 "LLM backend %s not available — running in mock mode "
@@ -1727,8 +2411,8 @@ class PromptEvolver:
             [] for _ in range(self.config.num_islands)
         ]
 
-        logger.info("Seeding %d templates across %d islands", len(_SEED_TEMPLATES), self.config.num_islands)
-        for i, template in enumerate(_SEED_TEMPLATES):
+        logger.info("Seeding %d templates across %d islands", len(self._seed_templates), self.config.num_islands)
+        for i, template in enumerate(self._seed_templates):
             assigned_island = i % self.config.num_islands
             candidate = PromptCandidate(
                 template=template,
@@ -1743,6 +2427,7 @@ class PromptEvolver:
             candidate.score = self._evaluate_candidate(candidate)
             islands[assigned_island].append(candidate)
             self._all_candidates.append(candidate)
+            self._emit("seed", candidate=self._candidate_event(candidate))
             logger.info(
                 "  Seed %d → island %d  score=%.1f%%  template=%.60s...",
                 i, assigned_island, candidate.score,
@@ -1752,7 +2437,21 @@ class PromptEvolver:
         best_overall = max(self._all_candidates, key=lambda c: c.score)
         logger.info("Seed evaluation complete — best seed score=%.1f%%", best_overall.score)
 
+        completed_gens = 0
+        stop_reason = "completed"
         for gen in range(1, self.config.iterations + 1):
+            # Budget / call guardrail: stop at the generation boundary.
+            reason = self._budget_stop_reason()
+            if reason is not None:
+                stop_reason = reason
+                logger.info(
+                    "  Stopping early at generation %d — %s reached "
+                    "(calls=%d, est_cost=%s)",
+                    gen, reason, self._client.call_count,
+                    self._estimated_cost(),
+                )
+                break
+
             gen_t0 = time.perf_counter()
             logger.info("── Generation %d/%d ──", gen, self.config.iterations)
 
@@ -1770,8 +2469,10 @@ class PromptEvolver:
                     child = self._breed(island, gen)
                     child.island_id = island_id
                     child.score = self._evaluate_candidate(child)
+                    self._record_bandit_reward(child)
                     new_candidates.append(child)
                     self._all_candidates.append(child)
+                    self._emit("candidate", candidate=self._candidate_event(child))
                     logger.debug(
                         "  Island %d: child op=%-20s score=%.1f%%",
                         island_id, child.operation, child.score,
@@ -1835,6 +2536,19 @@ class PromptEvolver:
                 best_overall = gen_best
 
             self._history.append((gen, best_overall.score))
+            completed_gens = gen
+
+            self._emit(
+                "generation",
+                generation=gen,
+                best_score=round(best_overall.score, 2),
+                improved=improved,
+                candidates=len(self._all_candidates),
+                history=list(self._history),
+                llm_calls=self._client.call_count,
+                cache_hits=self._cache.hits,
+                estimated_cost_usd=self._estimated_cost(),
+            )
 
             gen_elapsed = time.perf_counter() - gen_t0
             logger.info(
@@ -1873,6 +2587,20 @@ class PromptEvolver:
             self._client.total_output_tokens,
         )
 
+        self._emit(
+            "run_complete",
+            best_score=round(best_overall.score, 2),
+            best_prompt=best_overall.template.replace(
+                "{tool_schemas}", self._tool_schemas_str
+            ),
+            iterations_run=completed_gens,
+            stop_reason=stop_reason,
+            wall_time=round(wall_time, 2),
+            llm_calls=self._client.call_count,
+            cache_hits=self._cache.hits,
+            estimated_cost_usd=self._estimated_cost(),
+        )
+
         return PromptEvolverResult(
             best_prompt=best_overall.template.replace(
                 "{tool_schemas}", self._tool_schemas_str
@@ -1886,8 +2614,15 @@ class PromptEvolver:
                 self._all_candidates, key=lambda c: c.score, reverse=True
             ),
             wall_time=wall_time,
-            iterations_run=self.config.iterations,
+            iterations_run=completed_gens,
             llm_backend=self.config.backend.value,
+            operator_stats=self._bandit.stats() if self._bandit else None,
+            llm_calls=self._client.call_count,
+            input_tokens=self._client.total_input_tokens,
+            output_tokens=self._client.total_output_tokens,
+            estimated_cost_usd=self._estimated_cost(),
+            cache_hits=self._cache.hits,
+            stop_reason=stop_reason,
         )
 
     # -- internal ------------------------------------------------------------
@@ -1896,6 +2631,10 @@ class PromptEvolver:
         self, island: list[PromptCandidate], generation: int
     ) -> PromptCandidate:
         """Create a new candidate from island parents via mutation/crossover."""
+        # Bandit operator selection takes over when enabled.
+        if self._bandit is not None:
+            return self._breed_bandit(island, generation)
+
         # Parent selection (configurable strategy)
         parent_a = self._select_parent(island)
 
@@ -1905,14 +2644,31 @@ class PromptEvolver:
 
         if self._rng.random() < self.config.crossover_rate and len(island) > 1:
             parent_b = self._select_parent(island)
-            child_template = _crossover_templates(
-                parent_a.template,
-                parent_b.template,
-                self._rng,
-                require_tool_schemas=self._require_tool_schemas,
-            )
+            if (
+                self.config.llm_crossover_rate > 0
+                and self._rng.random() < self.config.llm_crossover_rate
+                and self._client.is_available()
+            ):
+                # Semantic crossover: LLM merges the strengths of both
+                # parents, steered by the current worst failure buckets.
+                child_template = _llm_crossover_templates(
+                    parent_a.template,
+                    parent_b.template,
+                    self._client,
+                    self.config.problem_type,
+                    self._failure_bucket_pool,
+                    require_tool_schemas=self._require_tool_schemas,
+                )
+                operation = "llm_crossover"
+            else:
+                child_template = _crossover_templates(
+                    parent_a.template,
+                    parent_b.template,
+                    self._rng,
+                    require_tool_schemas=self._require_tool_schemas,
+                )
+                operation = "crossover"
             parent_hashes = [parent_a.hash, parent_b.hash]
-            operation = "crossover"
         else:
             child_template = parent_a.template
 
@@ -1992,6 +2748,106 @@ class PromptEvolver:
             parent_hashes=parent_hashes,
             operation=operation,
         )
+
+    def _build_mutation_pool(self) -> list[str]:
+        """Assemble the snippet mutation pool (static + adaptive + bucket)."""
+        mutations = list(get_mutations_for_problem_type(self.config.problem_type))
+        if self._adaptive_pool:
+            mutations = mutations + self._adaptive_pool
+        if self._failure_bucket_pool:
+            mutations = mutations + self._failure_bucket_pool
+        return mutations
+
+    def _sample_failures(self) -> list[tuple[str, str, str]]:
+        """Sample up to 6 recent failure examples for LLM-guided operators."""
+        if not self._failure_examples:
+            return []
+        n_fail = min(6, len(self._failure_examples))
+        fail_idx = self._rng.choice(
+            len(self._failure_examples), size=n_fail, replace=False
+        )
+        return [self._failure_examples[int(i)] for i in fail_idx]
+
+    def _breed_bandit(
+        self, island: list[PromptCandidate], generation: int
+    ) -> PromptCandidate:
+        """Breed a child whose operator is chosen by the bandit.
+
+        The bandit selects one arm among the operators applicable to this
+        island; the reward (fitness improvement) is credited later by
+        :meth:`_record_bandit_reward` once the child is evaluated.  The
+        ``describe_entities`` mutation is intentionally not part of the arm
+        set so that reward attribution stays clean, but ``refine_after_splice``
+        post-processing still applies when configured.
+        """
+        assert self._bandit is not None  # guarded by caller
+        parent_a = self._select_parent(island)
+        parent_hashes = [parent_a.hash]
+
+        allowed = self._available_arms(island)
+        arm = self._bandit.select(allowed)
+
+        if arm in ("crossover", "llm_crossover") and len(island) > 1:
+            parent_b = self._select_parent(island)
+            parent_hashes = [parent_a.hash, parent_b.hash]
+            if arm == "llm_crossover":
+                child_template = _llm_crossover_templates(
+                    parent_a.template,
+                    parent_b.template,
+                    self._client,
+                    self.config.problem_type,
+                    self._failure_bucket_pool,
+                    require_tool_schemas=self._require_tool_schemas,
+                )
+            else:
+                child_template = _crossover_templates(
+                    parent_a.template,
+                    parent_b.template,
+                    self._rng,
+                    require_tool_schemas=self._require_tool_schemas,
+                )
+        elif arm == "llm_mutation" and self._failure_examples:
+            child_template = _llm_mutate_template(
+                parent_a.template,
+                self._sample_failures(),
+                self._client,
+                self.config.problem_type,
+                require_tool_schemas=self._require_tool_schemas,
+            )
+        else:
+            arm = "mutation"
+            child_template = _mutate_template(
+                parent_a.template,
+                self._rng,
+                self.config.mutation_rate,
+                require_tool_schemas=self._require_tool_schemas,
+                mutations=self._build_mutation_pool(),
+            )
+
+        if self.config.refine_after_splice:
+            child_template = _refine_template(
+                child_template,
+                self._client,
+                require_tool_schemas=self._require_tool_schemas,
+            )
+
+        temp = parent_a.temperature + float(self._rng.normal(0, 0.1))
+        temp = float(np.clip(temp, *self.config.temperature_range))
+        top_p = parent_a.top_p + float(self._rng.normal(0, 0.05))
+        top_p = float(np.clip(top_p, *self.config.top_p_range))
+
+        child = PromptCandidate(
+            template=child_template,
+            temperature=temp,
+            top_p=top_p,
+            generation=generation,
+            parent_hashes=parent_hashes,
+            operation=arm,
+        )
+        # Record the arm + parent baseline so the reward can be credited
+        # after the child is evaluated.
+        self._breed_meta[child.hash] = (arm, parent_a.score)
+        return child
 
     def _tournament_select(
         self, island: list[PromptCandidate], k: int = 3
@@ -2198,16 +3054,35 @@ class PromptEvolver:
 
         Also records per-category error profiles, failure examples, and
         structured failure buckets for mutation guidance.
-        """
-        total_score = 0.0
-        for sample in samples:
-            response = self._client.complete(
-                system_prompt=system_prompt,
-                user_message=sample.query,
-                temperature=candidate.temperature,
-                top_p=candidate.top_p,
-            )
 
+        LLM completions for every sample are dispatched together via
+        :meth:`LLMClient.complete_many`, which runs them concurrently when
+        ``config.max_concurrency`` > 1.  Responses are returned in input
+        order, so the scoring, RNG-fallback and error-profile bookkeeping
+        below remain fully deterministic and identical to the serial path.
+        """
+        if not samples:
+            return 0.0
+
+        requests = [
+            {
+                "system_prompt": system_prompt,
+                "user_message": sample.query,
+                "temperature": candidate.temperature,
+                "top_p": candidate.top_p,
+            }
+            for sample in samples
+        ]
+
+        # Use the concurrent batch API when available, transparently
+        # serving repeated (prompt, input, params) signatures from the
+        # response cache so re-evaluations cost no extra tokens.  Falls
+        # back to serial single calls for injected client doubles that
+        # only implement ``complete``.
+        responses = self._cached_complete(requests)
+
+        total_score = 0.0
+        for sample, response in zip(samples, responses):
             if response is None:
                 # LLM not available — random score for testing
                 total_score += float(self._rng.uniform(0, 0.5))

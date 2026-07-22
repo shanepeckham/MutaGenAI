@@ -1,0 +1,12 @@
+{
+  "benchmark": "toolbench_g1",
+  "task": "Multi-tool API orchestration (ToolBench G1, single-tool instructions)",
+  "problem_type": "tool_routing",
+  "model": "llama3.2 (Ollama)",
+  "score": 100.0,
+  "metric": "accuracy",
+  "baseline": 91.5,
+  "source": "logs/toolbench_g1_lineage_log.json",
+  "notes": "Precise tool-calling rules with strict JSON-array output. Preserves the {toolbench_apis} placeholder.",
+  "prompt": "You are a precise tool-calling assistant. Rules:\nPay close attention to parameter extraction from the query.\n- ONLY use tools from the list below.\n- Every required parameter MUST be provided.\n- Match tool names and API names EXACTLY as listed.\n- For multi-step tasks, return calls in execution order.\n- Return ONLY a JSON array \u2014 no explanation text.\n\nAvailable tools:\n{toolbench_apis}\n\nJSON array of tool calls:"
+}

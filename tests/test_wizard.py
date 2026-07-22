@@ -256,30 +256,48 @@ class TestWizardSteps:
 
     def test_step_config_standard(self):
         state = WizardState()
-        with patch("MutaGenAI.wizard._ask", return_value="standard"):
+        with (
+            patch("MutaGenAI.wizard._ask", return_value="standard"),
+            patch("MutaGenAI.wizard._ask_int", return_value=8),
+        ):
             _step_config(state)
         assert state.iterations == 5
         assert state.population_size == 6
         assert state.num_islands == 2
+        assert state.max_concurrency == 8
 
     def test_step_config_deep(self):
         state = WizardState()
-        with patch("MutaGenAI.wizard._ask", return_value="deep"):
+        with (
+            patch("MutaGenAI.wizard._ask", return_value="deep"),
+            patch("MutaGenAI.wizard._ask_int", return_value=16),
+        ):
             _step_config(state)
         assert state.iterations == 10
         assert state.population_size == 8
         assert state.num_islands == 3
+        assert state.max_concurrency == 16
 
     def test_step_config_custom(self):
         state = WizardState()
         with (
             patch("MutaGenAI.wizard._ask", return_value="custom"),
-            patch("MutaGenAI.wizard._ask_int", side_effect=[10, 8, 4]),
+            patch("MutaGenAI.wizard._ask_int", side_effect=[10, 8, 4, 12]),
         ):
             _step_config(state)
         assert state.iterations == 10
         assert state.population_size == 8
         assert state.num_islands == 4
+        assert state.max_concurrency == 12
+
+    def test_step_config_concurrency_floored_at_one(self):
+        state = WizardState()
+        with (
+            patch("MutaGenAI.wizard._ask", return_value="standard"),
+            patch("MutaGenAI.wizard._ask_int", return_value=0),
+        ):
+            _step_config(state)
+        assert state.max_concurrency == 1
 
 
 # ---------------------------------------------------------------------------
@@ -306,6 +324,13 @@ class TestScriptGeneration:
         assert "from MutaGenAI" in script
         assert "Route queries to tools" in script
         assert "LLMBackend.OLLAMA" in script
+
+    def test_generate_script_emits_max_concurrency(self):
+        state = self._base_state()
+        state.max_concurrency = 12
+        script = _generate_script(state)
+        # Present in both the NoEvalConfig and the scorer's client config.
+        assert script.count("max_concurrency=12") >= 2
 
     def test_generate_script_openai(self):
         state = self._base_state()
@@ -446,6 +471,7 @@ class TestRunWizard:
 
         with (
             patch("MutaGenAI.wizard._ask", side_effect=lambda *a, **kw: next(step_answers)),
+            patch("MutaGenAI.wizard._ask_int", return_value=8),
             patch("MutaGenAI.wizard._confirm", return_value=False),  # abort
         ):
             result = run_wizard()
@@ -478,7 +504,7 @@ class TestRunWizard:
 
         with (
             patch("MutaGenAI.wizard._ask", side_effect=lambda *a, **kw: next(step_answers, "no")),
-            patch("MutaGenAI.wizard._ask_int", side_effect=[3, 4, 2]),
+            patch("MutaGenAI.wizard._ask_int", side_effect=lambda *a, **kw: 4),
             patch("MutaGenAI.wizard._confirm", side_effect=lambda *a, **kw: next(confirm_calls, True)),
         ):
             result = run_wizard(output=str(output_path))

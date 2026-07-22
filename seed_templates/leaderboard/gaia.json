@@ -1,0 +1,12 @@
+{
+  "benchmark": "gaia",
+  "task": "GAIA multi-step reasoning (level 1): extract facts, reason, state the exact answer",
+  "problem_type": "generation",
+  "model": "gpt-4.1 (Azure OpenAI)",
+  "score": 15.91,
+  "metric": "accuracy (holdout)",
+  "baseline": 13.64,
+  "source": "logs/gaia_evolution_log.json",
+  "notes": "Compact 4-step reasoning scaffold ending in an exact 'Final Answer:' line.",
+  "prompt": "You solve multi-step questions by:\n1. Extracting key facts from the provided context\n2. Identifying relationships between facts\n3. Reasoning step-by-step to a conclusion\n4. Stating the exact answer\n\nThe parameters object must contain string values only.\n\nBe precise. Use the minimum words needed.\nFinal Answer: <answer>"
+}
