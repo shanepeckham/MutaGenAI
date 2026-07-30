@@ -264,6 +264,12 @@ class PromptEvolverConfig:
                             Controls which mutation snippets and failure-
                             bucket hints are used during evolution.
                             Default ``ProblemType.TOOL_ROUTING``.
+        early_stop_score:   Optional score threshold (0–100). When set, the
+                            run stops as soon as the best candidate reaches
+                            it — including immediately after seeding, so
+                            warm-started prompts that already clear the bar
+                            skip evolution entirely. ``None`` (default)
+                            disables early stopping.
     """
 
     iterations: int = 30
@@ -278,6 +284,7 @@ class PromptEvolverConfig:
     backend: LLMBackend = LLMBackend.OLLAMA
     ollama_url: str = "http://localhost:11434"
     ollama_model: str = "llama3.2"
+    ollama_think: Optional[bool] = None
     azure_endpoint: str = ""
     azure_api_key: str = ""
     azure_deployment: str = ""
@@ -301,6 +308,7 @@ class PromptEvolverConfig:
     eval_promotion_threshold: float = 30.0
     eval_deep_sample_size: Optional[int] = None
     problem_type: ProblemType = ProblemType.TOOL_ROUTING
+    early_stop_score: Optional[float] = None
 
     def __post_init__(self) -> None:
         # Auto-detect from environment variables
@@ -447,17 +455,21 @@ class LLMClient:
         options: dict[str, Any] = {"temperature": temperature, "top_p": top_p}
         if self.config.max_tokens is not None:
             options["num_predict"] = self.config.max_tokens
+        body: dict[str, Any] = {
+            "model": self.config.ollama_model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message},
+            ],
+            "stream": False,
+            "options": options,
+        }
+        # Reasoning models (e.g. qwen3): disable/enable the think phase.
+        if self.config.ollama_think is not None:
+            body["think"] = self.config.ollama_think
         resp = httpx.post(
             f"{self.config.ollama_url}/api/chat",
-            json={
-                "model": self.config.ollama_model,
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_message},
-                ],
-                "stream": False,
-                "options": options,
-            },
+            json=body,
             timeout=self.config.timeout,
         )
         if resp.status_code == 200:
@@ -1674,6 +1686,11 @@ class PromptEvolver:
         Random seed for reproducibility.
     verbose :
         Print progress to stderr.
+    seed_templates :
+        Optional list of starting prompt templates (warm start). When
+        provided, the initial population is seeded from these instead of the
+        built-in defaults — e.g. the known-good prompts from a previous model
+        when migrating. ``None`` uses the built-in ``_SEED_TEMPLATES``.
     """
 
     def __init__(
@@ -1683,6 +1700,7 @@ class PromptEvolver:
         config: Optional[PromptEvolverConfig] = None,
         seed: int = 42,
         verbose: bool = True,
+        seed_templates: Optional[list[str]] = None,
     ) -> None:
         self.tools = tools
         self.eval_dataset = eval_dataset
@@ -1690,6 +1708,9 @@ class PromptEvolver:
         self.verbose = verbose
         self._rng = np.random.default_rng(seed)
         self._client = LLMClient(self.config)
+        self._seed_templates = (
+            list(seed_templates) if seed_templates else list(_SEED_TEMPLATES)
+        )
         self._tool_names = [t.name for t in tools]
         self._tool_schemas_str = "\n".join(
             f"  - {t.schema_str()}" for t in tools
@@ -1727,8 +1748,8 @@ class PromptEvolver:
             [] for _ in range(self.config.num_islands)
         ]
 
-        logger.info("Seeding %d templates across %d islands", len(_SEED_TEMPLATES), self.config.num_islands)
-        for i, template in enumerate(_SEED_TEMPLATES):
+        logger.info("Seeding %d templates across %d islands", len(self._seed_templates), self.config.num_islands)
+        for i, template in enumerate(self._seed_templates):
             assigned_island = i % self.config.num_islands
             candidate = PromptCandidate(
                 template=template,
@@ -1752,7 +1773,21 @@ class PromptEvolver:
         best_overall = max(self._all_candidates, key=lambda c: c.score)
         logger.info("Seed evaluation complete — best seed score=%.1f%%", best_overall.score)
 
+        early = self.config.early_stop_score
+        if early is not None and best_overall.score >= early:
+            logger.info(
+                "Seed prompts already meet target %.1f%% (best=%.1f%%); "
+                "skipping evolution.", early, best_overall.score,
+            )
+        gens_run = 0
         for gen in range(1, self.config.iterations + 1):
+            if early is not None and best_overall.score >= early:
+                logger.info(
+                    "Early stop before generation %d: best=%.1f%% >= "
+                    "target %.1f%%", gen, best_overall.score, early,
+                )
+                break
+            gens_run = gen
             gen_t0 = time.perf_counter()
             logger.info("── Generation %d/%d ──", gen, self.config.iterations)
 
@@ -1886,7 +1921,7 @@ class PromptEvolver:
                 self._all_candidates, key=lambda c: c.score, reverse=True
             ),
             wall_time=wall_time,
-            iterations_run=self.config.iterations,
+            iterations_run=gens_run,
             llm_backend=self.config.backend.value,
         )
 
