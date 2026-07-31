@@ -50,6 +50,8 @@ GPUs, no labelled data required.
 - [Agent routing — static vs evolved prompt (GPT-4.1)](#agent-routing--static-vs-evolved-prompt-gpt-41)
 - [Entity classification — static vs evolved prompt](#entity-classification--static-vs-evolved-prompt)
 - [Dashboard and visualisation](#dashboard-and-visualisation)
+- [Red teaming — hardening open-source SLMs](#red-teaming--hardening-open-source-slms)
+- [Model migration — swap models without losing accuracy](#model-migration--swap-models-without-losing-accuracy)
 - [Cookbook recipes](#cookbook-recipes)
 - [Installation](#installation)
 
@@ -1119,6 +1121,177 @@ corresponding dashboard function.
 
 ---
 
+## Red teaming — hardening open-source SLMs
+
+The [`MutaGenAI.redteam`](MutaGenAI/redteam/) subpackage turns the evolutionary
+engine into an **authorized, defensive** red-teaming harness for securing
+open-source small language models (SLMs). It pairs out of the box with
+[Microsoft PyRIT](https://github.com/microsoft/PyRIT) for curated
+harmful-behavior datasets, prompt converters, scorers, and target coverage.
+
+> **Responsible use.** This is for hardening models you own or are explicitly
+> authorized to test. Every run requires an authorized `RedTeamScope` (it fails
+> closed otherwise). Findings are for hardening and responsible disclosure
+> only. This library ships **no** harmful content and never authors attacks —
+> you supply behavior sets and base scaffolds (e.g. from PyRIT/HarmBench).
+
+### Two modes
+
+| Mode | You evolve | Fitness | Deliverable |
+|---|---|---|---|
+| **Harden** | the model's *system prompt* | maximize safe refusals | a hardened system prompt + ASR before/after |
+| **Attack** | a caller-supplied *attack scaffold* (user turn) | maximize jailbreak success | a coverage map of where the fixed target is weak |
+
+The realistic threat model — attacker controls the user turn, defender's system
+prompt is fixed — is handled by `AttackEvolver`, which inverts which turn
+evolves. Hardening is the defensive loop: find weaknesses, evolve a system
+prompt that closes them, then re-measure the attack-success rate (ASR).
+
+### Quick start (harden a local SLM)
+
+```python
+from MutaGenAI.redteam import (
+    RedTeamScope, TargetModel, TargetConfig,
+    RedTeamHarness, RedTeamConfig, RedTeamMode,
+)
+from MutaGenAI.redteam.pyrit_bridge import load_behaviors
+
+# 1) Authorization guardrail (fails closed if not fully set).
+scope = RedTeamScope(
+    operator="you", targets=["ollama:llama3.2"],
+    authorized=True, acknowledged_policy=True,
+)
+
+# 2) Target under test, with its baseline system prompt pinned.
+target = TargetModel(TargetConfig(
+    model="llama3.2",
+    system_prompt="You are a helpful assistant.",
+))
+
+# 3) Your own behavior set (never shipped by this library).
+behaviors = load_behaviors(source="file", path="behaviors.txt")
+
+# 4) Evolve a hardened system prompt; measure ASR before vs. after.
+report = RedTeamHarness(
+    scope, target,
+    RedTeamConfig(mode=RedTeamMode.HARDEN, iterations=10),
+    behaviors=behaviors,
+).run()
+
+print(report.summary())          # ASR before/after + reduction
+# report JSON is written under the git-ignored redteam_runs/ directory
+```
+
+### Pairing with PyRIT
+
+```bash
+pip install 'MutaGenAI[llm,redteam]'   # installs pyrit
+```
+
+```python
+from MutaGenAI.redteam.pyrit_bridge import (
+    load_behaviors, expand_seeds_with_converters, pyrit_available,
+)
+
+# Curated behaviors from a PyRIT dataset (network + PyRIT required)
+behaviors = load_behaviors(source="harmbench", limit=50)
+
+# Diversify your base scaffolds with PyRIT converters for a richer
+# initial population (attack mode).
+seeds = expand_seeds_with_converters(
+    base_scaffolds, ["Base64Converter", "ROT13Converter", "CaesarConverter"],
+)
+```
+
+The bridge also exposes `PyRITScorerAdapter` (use a PyRIT scorer such as
+`SelfAskRefusalScorer` as the fitness signal) and `make_target_from_pyrit`
+(drive any PyRIT `PromptChatTarget` as the target). The bridge is fully lazy —
+nothing imports PyRIT unless you call it, so the rest of the harness runs
+without it.
+
+### Red-team modules
+
+| Module | Responsibility |
+|---|---|
+| [`scope.py`](MutaGenAI/redteam/scope.py) | `RedTeamScope` authorization guardrail (fails closed) |
+| [`refusal.py`](MutaGenAI/redteam/refusal.py) | `RefusalDetector` — pattern-based refusal detection |
+| [`scorer.py`](MutaGenAI/redteam/scorer.py) | `RefusalScorer`, `AttackSuccessScorer`, `SafetyJudge` |
+| [`target.py`](MutaGenAI/redteam/target.py) | `TargetModel` — the model under test, fixed system prompt |
+| [`attack_evolver.py`](MutaGenAI/redteam/attack_evolver.py) | `AttackEvolver` — evolve the user turn (Mode B) |
+| [`pyrit_bridge.py`](MutaGenAI/redteam/pyrit_bridge.py) | Microsoft PyRIT datasets, converters, scorers, targets |
+| [`harness.py`](MutaGenAI/redteam/harness.py) | `RedTeamHarness` — orchestrates both modes + reporting |
+| [`report.py`](MutaGenAI/redteam/report.py) | `RedTeamReport` — ASR metrics, coverage, safe persistence |
+
+Optional MutaGenAI modules (`quality_diversity`, `leaderboard`, `live`) are
+feature-detected: when present, coverage/leaderboard/streaming capabilities
+light up automatically; when absent, the harness degrades gracefully.
+
+---
+
+## Model migration — swap models without losing accuracy
+
+When you replace one model with another, prompts tuned for the old model often
+regress on the new one. The [`MutaGenAI.migration`](MutaGenAI/migration.py)
+module migrates your existing prompts to a new model — preserving accuracy and,
+where there's headroom, optimising past it. You start from your known-good
+seed prompts and some labelled test data.
+
+The approach is deliberately efficient: you are never starting from scratch.
+
+1. **Warm start** — evolution is seeded with the old model's winning prompt
+   (`PromptEvolver(..., seed_templates=[known_prompt])`).
+2. **Three anchors** — measure `A_old` (old model + old prompt, the bar),
+   `A_transfer` (new model + old prompt, the naive swap), and `A_evolved`
+   (new model + evolved prompt), and surface the **regression set** — the
+   samples the old model got right that the new one breaks.
+3. **Early stop** — `PromptEvolverConfig(early_stop_score=A_old)` stops the
+   moment the bar is met (including immediately after seeding), so a clean
+   swap spends no compute.
+4. **Decoding re-tuning** — CMA-ES retunes temperature/top-p, which often
+   recovers most of the transfer loss on its own.
+
+```python
+from MutaGenAI.prompt_evolver import PromptEvolver, PromptEvolverConfig, LLMBackend, ProblemType
+from MutaGenAI.migration import evaluate_prompt, make_client, MigrationReport
+
+old = make_client("llama3.2")
+new = make_client("qwen3:8b", ollama_think=False)   # disable reasoning for clean labels
+
+a_old      = evaluate_prompt(WINNING_PROMPT, tools, samples, old)
+a_transfer = evaluate_prompt(WINNING_PROMPT, tools, samples, new)
+
+result = PromptEvolver(
+    tools, samples,
+    PromptEvolverConfig(backend=LLMBackend.OLLAMA, ollama_model="qwen3:8b",
+                        ollama_think=False, problem_type=ProblemType.CLASSIFICATION,
+                        early_stop_score=a_old.accuracy * 100),  # preserve the bar
+    seed_templates=[WINNING_PROMPT],                              # warm start
+).run()
+
+a_evolved = evaluate_prompt(result.best_prompt, tools, samples, new,
+                            temperature=result.best_temperature, top_p=result.best_top_p)
+print(MigrationReport.build(source_eval=a_old, transfer_eval=a_transfer,
+                            evolved_eval=a_evolved, source_model="llama3.2",
+                            target_model="qwen3:8b").summary())
+```
+
+### Worked example: llama3.2 -> qwen3:8b (entity classification, 60 samples)
+
+Seeded with the experiment's winning prompt
+([`migrate_llama_to_qwen.py`](examples/experiments/entity_classification/migrate_llama_to_qwen.py)):
+
+| Configuration | Accuracy |
+|---|---:|
+| `A_old`      (llama3.2 + old prompt) | 46.7% |
+| `A_transfer` (qwen3:8b + old prompt) | 68.3% |
+| `A_evolved`  (qwen3:8b + evolved prompt) | **81.7%** |
+
+Evolution added **+13.3%** over the naive swap (retuning temp 0.70->0.99,
+top_p 0.95->0.70) and recovered 4 of 6 transfer regressions — all warm-started
+from the existing prompt.
+
+---
+
 ## Cookbook recipes
 
 All prompt evolution recipes live in
@@ -1138,6 +1311,9 @@ All prompt evolution recipes live in
 | 10 | [`prompt_evolution_apibank_no_eval.py`](examples/cookbook/prompt_evolution_apibank_no_eval.py) | API-Bank no-eval vs ground-truth comparison |
 | 11 | [`prompt_evolution_xlam_no_eval.py`](examples/cookbook/prompt_evolution_xlam_no_eval.py) | xLAM no-eval wizard-style worked example |
 | 12 | [`prompt_evolution_entity_classification.py`](examples/cookbook/prompt_evolution_entity_classification.py) | Entity classification — static vs evolved prompt |
+| 13 | [`redteam_harden_slm.py`](examples/cookbook/redteam_harden_slm.py) | Harden an SLM's system prompt; ASR before/after |
+| 14 | [`redteam_attack_pyrit.py`](examples/cookbook/redteam_attack_pyrit.py) | Authorized attack-scaffold evolution paired with PyRIT |
+| 15 | [`migrate_llama_to_qwen.py`](examples/experiments/entity_classification/migrate_llama_to_qwen.py) | Model migration — move a winning prompt from llama3.2 to qwen3:8b |
 
 ---
 
@@ -1167,6 +1343,7 @@ pip install mutagenai              # core engine (numpy only)
 pip install mutagenai[llm]         # + httpx, azure-identity
 pip install mutagenai[viz]         # + matplotlib, plotly
 pip install mutagenai[wizard]      # + rich
+pip install mutagenai[redteam]     # + pyrit (Microsoft PyRIT)
 pip install mutagenai[all]         # everything
 ```
 

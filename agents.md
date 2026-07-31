@@ -154,6 +154,36 @@ Four utility functions: `_has_plotly()`, `_has_matplotlib()`,
 
 No imports from any other MutaGenAI module — fully standalone.
 
+### redteam/ (subpackage)
+
+Authorized, **defensive** red-teaming harness for hardening open-source SLMs,
+paired out of the box with [Microsoft PyRIT](https://github.com/microsoft/PyRIT).
+Reuses the evolutionary engine: fitness becomes "attack success" (attack mode)
+or "safe refusal" (harden mode).
+
+- **`scope.py`** — `RedTeamScope` authorization guardrail; fails closed unless
+  `authorized` + `acknowledged_policy` + in-scope target are all set.
+- **`refusal.py`** — `RefusalDetector`, a pattern-based refusal classifier
+  (defensive; never authors attacks).
+- **`scorer.py`** — `RefusalScorer`/`HardeningScorer`, `AttackSuccessScorer`,
+  and `SafetyJudge` (all implement the `strategies.Scorer` interface).
+- **`target.py`** — `TargetModel`/`TargetConfig` wrap `LLMClient` with a fixed
+  system prompt; `ChatClient` protocol enables test fakes and bridges.
+- **`attack_evolver.py`** — `AttackEvolver(NoEvalPromptEvolver)` overrides
+  `_evaluate` to evolve the *user turn* against a fixed target (Mode B).
+- **`pyrit_bridge.py`** — lazy PyRIT integration: `load_behaviors`,
+  `expand_seeds_with_converters`, `PyRITScorerAdapter`, `PyRITTargetClient`,
+  `make_target_from_pyrit`. Nothing imports PyRIT unless called.
+- **`harness.py`** — `RedTeamHarness` orchestrates harden/attack modes,
+  measures ASR, and feature-detects optional `quality_diversity`/
+  `leaderboard`/`live` modules.
+- **`report.py`** — `RedTeamReport` (ASR, coverage, before/after); writes JSON
+  only under the git-ignored `redteam_runs/` directory.
+
+**Rules:** never author jailbreak payloads or ship harmful content; behaviors
+and base scaffolds are always caller-supplied. All PyRIT imports stay lazy.
+Tests mock the LLM and pass without PyRIT installed.
+
 ## Dependencies
 
 | Group | Packages | When needed |
@@ -162,9 +192,10 @@ No imports from any other MutaGenAI module — fully standalone.
 | LLM | `httpx>=0.27`, `azure-identity>=1.15` | Any LLM backend call |
 | Viz | `matplotlib>=3.8`, `plotly>=5.18` | Dashboard plots |
 | Wizard | `rich>=13.0` | Pretty CLI wizard |
+| Redteam | `pyrit>=0.14` | PyRIT dataset/converter/scorer/target bridge |
 
 Install groups: `pip install MutaGenAI[llm]`, `[viz]`, `[wizard]`,
-`[all]`.
+`[redteam]`, `[all]`.
 
 ## Build and test
 

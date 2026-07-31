@@ -13,3 +13,7 @@ xlam_experiment_log.json
 toolbench_experiment_log.json
 .apibank_cache/
 .browser_agent_cache/
+.scrapegraph_cache/
+# Red-team run artifacts are sensitive: never commit them
+redteam_runs/
+redteam_scope.json
