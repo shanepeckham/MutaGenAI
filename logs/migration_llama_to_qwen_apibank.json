@@ -1,0 +1,23 @@
+{
+  "source_model": "ollama:llama3.2",
+  "target_model": "ollama:qwen3:8b",
+  "level": "level_1",
+  "n_cases": 30,
+  "a_old": 0.7744444444444445,
+  "a_transfer": 0.8966666666666666,
+  "a_evolved": 0.8966666666666666,
+  "delta_vs_old": 0.12222222222222212,
+  "delta_vs_transfer": 0.0,
+  "preserved": true,
+  "transfer_regressions": [
+    "\nGenerate an API request in the format of [ApiName(key1='value1', key2='value2', ...)] based on the previous dialogue context.\nThe current year is 2023.\nInput: \nUser: User's utterence\nAI: AI's response\n\nExpected output:\nAPI-Request: [ApiName(key1='value1', key2='value2', ...)]\n\nAPI descriptions:\n{\"name\": \"ModifyReminder\", \"description\": \"The API for deleting a reminder item includes content and time.\", \"input_parameters\": {\"token\": {\"type\": \"str\", \"description\": \"User's token.\"}, \"content\": {\"type\": \"str\", \"description\": \"The content of the conference.\"}, \"time\": {\"type\": \"str\", \"description\": \"The time for conference. Format: %Y-%m-%d %H:%M:%S\"}}, \"output_parameters\": {\"status\": {\"type\": \"str\", \"description\": \"success or failed\"}}}\n{\"name\": \"GetUserToken\", \"description\": \"Get the user token by username and password.\", \"input_parameters\": {\"username\": {\"type\": \"str\", \"description\": \"The username of the user.\"}, \"password\": {\"type\": \"str\", \"description\": \"The password of the user.\"}}, \"output_parameters\": {\"token\": {\"type\": \"str\", \"description\": \"The token of the user.\"}}}\n\nUser: Can you help me modify a reminder for my conference?\nAI: Sure! What is the new content and time for your reminder?\nUser: The new content is \"Submit proposal\" and the new time is \"2023-03-25 14:00:00\".\nAI: Alright. I need to authenticate you first. Please provide me with your username and password.\nUser: My username is user3 and my password is user3pass.\nGenerate API Request:\n\n\nGenerate API Request:"
+  ],
+  "recovered": [],
+  "remaining_regressions": [
+    "\nGenerate an API request in the format of [ApiName(key1='value1', key2='value2', ...)] based on the previous dialogue context.\nThe current year is 2023.\nInput: \nUser: User's utterence\nAI: AI's response\n\nExpected output:\nAPI-Request: [ApiName(key1='value1', key2='value2', ...)]\n\nAPI descriptions:\n{\"name\": \"ModifyReminder\", \"description\": \"The API for deleting a reminder item includes content and time.\", \"input_parameters\": {\"token\": {\"type\": \"str\", \"description\": \"User's token.\"}, \"content\": {\"type\": \"str\", \"description\": \"The content of the conference.\"}, \"time\": {\"type\": \"str\", \"description\": \"The time for conference. Format: %Y-%m-%d %H:%M:%S\"}}, \"output_parameters\": {\"status\": {\"type\": \"str\", \"description\": \"success or failed\"}}}\n{\"name\": \"GetUserToken\", \"description\": \"Get the user token by username and password.\", \"input_parameters\": {\"username\": {\"type\": \"str\", \"description\": \"The username of the user.\"}, \"password\": {\"type\": \"str\", \"description\": \"The password of the user.\"}}, \"output_parameters\": {\"token\": {\"type\": \"str\", \"description\": \"The token of the user.\"}}}\n\nUser: Can you help me modify a reminder for my conference?\nAI: Sure! What is the new content and time for your reminder?\nUser: The new content is \"Submit proposal\" and the new time is \"2023-03-25 14:00:00\".\nAI: Alright. I need to authenticate you first. Please provide me with your username and password.\nUser: My username is user3 and my password is user3pass.\nGenerate API Request:\n\n\nGenerate API Request:"
+  ],
+  "best_temperature": 0.7739560485559633,
+  "best_top_p": 0.7194392198760262,
+  "iterations_run": 3,
+  "evolved_prompt": "You are an API-calling assistant. Given a conversation and API\ndescriptions, generate the correct API request in the format\n[ApiName(key1='value1', key2='value2', ...)].\n\ndescriptions, generate the correct API request in the format\n\nRules:\n- Output EXACTLY ONE API call in the bracket format shown above.\nConsider the user's full intent before choosing an API.\n- Match API names exactly as described.\n- Extract parameter values from the conversation \u2014 do NOT invent values.\n- Include ALL required parameters.\n- Use single quotes around parameter values.\n- Output ONLY the API call, nothing else.\n\nRespond accurately with the correct API call."
+}
