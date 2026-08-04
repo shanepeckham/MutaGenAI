@@ -219,3 +219,76 @@ class TestMigrationReport:
         text = r.summary()
         assert "Migration: old -> new" in text
         assert "A_evolved" in text
+
+
+# ---------------------------------------------------------------------------
+# Bootstrap confidence intervals
+# ---------------------------------------------------------------------------
+
+
+def _eval_bools(prompt: str, bools: list[bool], temp=0.1, top_p=0.95):
+    results = [_sr(f"q{i}", b) for i, b in enumerate(bools)]
+    acc = sum(r.score for r in results) / len(results)
+    return PromptEvaluation(prompt, acc, results, temp, top_p)
+
+
+class TestBootstrapCI:
+    def test_cis_present_and_bounded(self):
+        old = _eval_bools("old", [True] * 12 + [False] * 8)
+        transfer = _eval_bools("old", [True] * 10 + [False] * 10)
+        evolved = _eval_bools("evolved", [True] * 16 + [False] * 4)
+        r = MigrationReport.build(
+            source_eval=old, transfer_eval=transfer, evolved_eval=evolved,
+            source_model="old", target_model="new",
+        )
+        for ci in (r.a_old_ci, r.a_transfer_ci, r.a_evolved_ci):
+            assert ci is not None
+            lo, hi = ci
+            assert 0.0 <= lo <= hi <= 1.0
+
+    def test_delta_significant_when_clear_improvement(self):
+        old = _eval_bools("old", [False] * 20)      # all wrong
+        transfer = _eval_bools("old", [False] * 20)
+        evolved = _eval_bools("evolved", [True] * 20)  # all right
+        r = MigrationReport.build(
+            source_eval=old, transfer_eval=transfer, evolved_eval=evolved,
+            source_model="old", target_model="new",
+        )
+        assert r.delta_significant is True
+        assert r.delta_vs_old_ci is not None and r.delta_vs_old_ci[0] > 0.0
+
+    def test_delta_not_significant_when_identical(self):
+        flags = [True, False] * 10
+        old = _eval_bools("old", flags)
+        transfer = _eval_bools("old", flags)
+        evolved = _eval_bools("evolved", flags)  # identical to old
+        r = MigrationReport.build(
+            source_eval=old, transfer_eval=transfer, evolved_eval=evolved,
+            source_model="old", target_model="new",
+        )
+        assert r.delta_significant is False
+        lo, hi = r.delta_vs_old_ci
+        assert lo <= 0.0 <= hi  # interval straddles zero
+
+    def test_no_source_means_no_old_or_delta_ci(self):
+        transfer = _eval_bools("old", [True] * 10 + [False] * 10)
+        evolved = _eval_bools("evolved", [True] * 12 + [False] * 8)
+        r = MigrationReport.build(
+            source_eval=None, transfer_eval=transfer, evolved_eval=evolved,
+            source_model="old", target_model="new",
+        )
+        assert r.a_old_ci is None
+        assert r.delta_vs_old_ci is None
+        assert r.delta_significant is None
+        assert r.a_transfer_ci is not None  # target CIs still computed
+
+    def test_summary_shows_ci(self):
+        old = _eval_bools("old", [True] * 15 + [False] * 5)
+        transfer = _eval_bools("old", [True] * 10 + [False] * 10)
+        evolved = _eval_bools("evolved", [True] * 18 + [False] * 2)
+        text = MigrationReport.build(
+            source_eval=old, transfer_eval=transfer, evolved_eval=evolved,
+            source_model="old", target_model="new",
+        ).summary()
+        assert "95% CI" in text
+        assert "Delta 95% CI" in text

@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
-"""Model migration demo: llama3.2:latest -> qwen3:8b on entity classification.
+"""Model migration demo: llama3.2:latest -> qwen3:8b on API-Bank (level 1).
 
-Seeds evolution with the experiment's known winning prompt, measures the
-three-way migration (A_old / A_transfer / A_evolved) with the Phase 1-2
-migration utilities, and reports which samples regressed.
+Seeds evolution with the experiment's llama3.2 winning prompt (run2), measures
+the three-way migration (A_old / A_transfer / A_evolved) with the Phase 1-2
+migration utilities, and reports which cases regressed.
 
-Run:  python examples/experiments/entity_classification/migrate_llama_to_qwen.py
-Needs: Ollama with `llama3.2` and `qwen3:8b` pulled; network for the dataset.
+Framing: API-Bank normally injects the per-case API description + conversation
+into the system prompt via placeholders. Here the winning prompt stays as the
+system prompt (the rules) and each case's description + conversation are sent
+as the user message, with the candidate API names as `tools`. All three
+anchors use this identical framing, so the comparison is internally consistent.
+
+Run:  python examples/experiments/apibank/migrate_llama_to_qwen.py
+Needs: Ollama with `llama3.2` and `qwen3:8b`; API-Bank cache in .apibank_cache/.
 """
 from __future__ import annotations
 
@@ -15,8 +21,6 @@ import os
 import sys
 import time
 from pathlib import Path
-
-import numpy as np
 
 _here = os.path.dirname(os.path.abspath(__file__))
 _root = os.path.join(_here, "..", "..", "..")
@@ -32,17 +36,26 @@ from MutaGenAI.prompt_evolver import (
 )
 from MutaGenAI.migration import MigrationReport, evaluate_prompt, make_client
 
-from examples.experiments.entity_classification import ENTITY_TYPES
+from examples.cookbook.prompt_evolution_apibank import load_apibank_dataset
 
-# The known-good prompt for the previous model (llama3.2), from the experiment.
+# llama3.2 winning prompt for API-Bank level 1 (from apibank_run2 experiment).
 WINNING_PROMPT = """\
-You are an AI assistant.
+You are an API-calling assistant. Given a conversation and API
+descriptions, generate the correct API request in the format
+[ApiName(key1='value1', key2='value2', ...)].
 
-## Task
-You are an agent that classifies inbound text into one of Agent, Task, Tool, Input, Output, Human
+descriptions, generate the correct API request in the format
 
-## Output
-Provide a clear, direct response."""
+Rules:
+- Output EXACTLY ONE API call in the bracket format shown above.
+Consider the user's full intent before choosing an API.
+- Match API names exactly as described.
+- Extract parameter values from the conversation — do NOT invent values.
+- Include ALL required parameters.
+- Use single quotes around parameter values.
+- Output ONLY the API call, nothing else.
+
+Respond accurately with the correct API call."""
 
 SRC_MODEL = "llama3.2"
 TGT_MODEL = os.environ.get("TGT_MODEL", "qwen3:8b")
@@ -60,28 +73,30 @@ EARLY_STOP = os.environ.get("EARLY_STOP", "preserve")
 TEMP, TOP_P = 0.7, 0.95
 
 
-def load_samples(n: int) -> list[EvalSample]:
-    from datasets import load_dataset
-
-    ds = load_dataset("holistic-ai/entity-classification-agentic-ai")
-    rows = [
-        {"content": r["content"], "expected": r["expected_entity"]}
-        for r in ds["validation"]
-    ]
-    rng = np.random.default_rng(42)
-    idx = rng.choice(len(rows), size=min(n, len(rows)), replace=False)
-    return [EvalSample(rows[int(i)]["content"], rows[int(i)]["expected"]) for i in idx]
+def build_eval() -> tuple[list[Tool], list[EvalSample]]:
+    by_level = load_apibank_dataset(max_per_level=N, levels=["level_1"])
+    cases = by_level.get("level_1", [])
+    samples: list[EvalSample] = []
+    names: set[str] = set()
+    for c in cases:
+        api = c.expected_api_name
+        if not api:
+            continue
+        names.add(api)
+        query = f"{c.instruction}\n\n{c.input_text}\n\nGenerate API Request:"
+        samples.append(EvalSample(query, api, c.expected_params))
+    tools = [Tool(n, f"API endpoint {n}") for n in sorted(names)]
+    return tools, samples
 
 
 def main() -> None:
-    tools = [Tool(e, f"The '{e}' entity type") for e in ENTITY_TYPES]
-    samples = load_samples(N)
-    print(f"Loaded {len(samples)} eval samples\n")
+    tools, samples = build_eval()
+    print(f"Loaded {len(samples)} API-Bank level-1 cases "
+          f"({len(tools)} distinct APIs)\n")
 
-    src = make_client(SRC_MODEL, LLMBackend.OLLAMA, max_tokens=10)
-    # Reasoning targets (e.g. qwen3) need the think phase disabled for clean labels.
+    src = make_client(SRC_MODEL, LLMBackend.OLLAMA, max_tokens=64)
     tgt = make_client(
-        TGT_MODEL, LLMBackend.OLLAMA, max_tokens=16, ollama_think=_THINK,
+        TGT_MODEL, LLMBackend.OLLAMA, max_tokens=64, ollama_think=_THINK,
         timeout=120.0,
     )
     if not src.is_available() or not tgt.is_available():
@@ -107,13 +122,13 @@ def main() -> None:
         backend=LLMBackend.OLLAMA,
         ollama_model=TGT_MODEL,
         ollama_think=_THINK,
-        max_tokens=16,
+        max_tokens=64,
         timeout=120.0,
         iterations=ITERATIONS,
         population_size=POPULATION,
         num_islands=ISLANDS,
-        problem_type=ProblemType.CLASSIFICATION,
-        early_stop_score=early,  # preserve the old-model bar, or None to optimize
+        problem_type=ProblemType.TOOL_ROUTING,
+        early_stop_score=early,
     )
     evolver = PromptEvolver(
         tools, samples, config, seed_templates=[WINNING_PROMPT], verbose=True
@@ -142,12 +157,14 @@ def main() -> None:
     print("\nEvolved prompt:\n" + "-" * 56 + f"\n{result.best_prompt}\n" + "-" * 56)
 
     safe_tgt = TGT_MODEL.replace(":", "_").replace("/", "_")
-    out = Path(_root) / "logs" / f"migration_llama_to_{safe_tgt}_entity.json"
+    out = Path(_root) / "logs" / f"migration_llama_to_{safe_tgt}_apibank.json"
     out.write_text(
         json.dumps(
             {
                 "source_model": report.source_model,
                 "target_model": report.target_model,
+                "level": "level_1",
+                "n_cases": len(samples),
                 "a_old": report.a_old,
                 "a_transfer": report.a_transfer,
                 "a_evolved": report.a_evolved,
