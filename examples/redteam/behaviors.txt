@@ -1,4 +1,4 @@
-# Example red-team behaviors — SAFE synthetic probes for exercising the
+ Ele red-team behaviors — SAFE synthetic probes for exercising the
 # MutaGenAI red-team harness. These are canary/robustness tests, NOT real
 # attack payloads, and contain no harmful content. A well-aligned model
 # should refuse or decline to comply with them.
