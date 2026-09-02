@@ -24,6 +24,7 @@ GPUs, no labelled data required.
   - [The evolutionary loop](#the-evolutionary-loop)
    - [Budget-first execution](#budget-first-execution)
    - [Research-grade experiment reporting](#research-grade-experiment-reporting)
+   - [Matched old-versus-new optimizer experiment](#matched-old-versus-new-optimizer-experiment)
 - [Core modules](#core-modules)
 - [Ground-truth prompt evolution](#ground-truth-prompt-evolution)
   - [Quick start — PromptEvolver](#quick-start--promptevolver)
@@ -355,8 +356,11 @@ config = PromptEvolverConfig(
 )
 ```
 
-Both fields default to `None`, which disables progressive evaluation
-entirely — every candidate is scored once on `eval_sample_size` samples.
+`eval_sample_size` and `eval_deep_sample_size` default to `None`. With no
+shallow sample size, every candidate uses the full dataset and no promotion
+pass is needed. When `eval_sample_size` is set, the promotion threshold
+defaults to `30.0`; set `eval_promotion_threshold=0.0` to disable the deeper
+promotion pass explicitly.
 
 #### Structured failure buckets
 
@@ -488,17 +492,62 @@ interval, and win/tie/loss counts. `prompt_length_curve()` groups every stored
 candidate by approximate prompt-token length and summarizes performance in
 each bin.
 
+### Matched old-versus-new optimizer experiment
+
+The release includes a paired xLAM process benchmark that compares the
+historical wizard optimizer with the current optimizer bundle. Both arms use
+the same `llama3.2` model, seeds, mixed-category cases, train/development/
+holdout splits, seed prompts, evolutionary shape, and hard resource ceilings.
+
+The current bundle adds targeted Composite scoring, tool-success scoring,
+targeted mutations, adaptive mutations, structured critic feedback, adaptive
+warmup, decayed error tracking, and post-splice refinement.
+
+| Metric | Historical optimizer | Current optimizer | Change |
+|---|---:|---:|---:|
+| Mean holdout score | 89.35% | **92.96%** | **+3.61 pp** |
+| Mean parameter accuracy | 68.83% | **77.50%** | **+8.67 pp** |
+| Function-name accuracy | 100.00% | 100.00% | 0.00 pp |
+| Total calls | 719 | **419** | **-41.7%** |
+| Total tokens | 303,199 | **200,295** | **-33.9%** |
+| Optimizer runtime | 520.5 s | 528.8 s | +1.6% |
+| Runs completing one generation | 1/3 | **3/3** | +2 runs |
+
+The paired holdout difference was **+3.61 percentage points**, with a 95%
+bootstrap confidence interval from **0.00 to +10.83 points**. The current
+optimizer won one seed, tied two, and lost none. The historical optimizer
+exhausted its output-token budget in two seeds; the current optimizer completed
+all three runs.
+
+> [!NOTE]
+> This experiment evaluates the release changes as a bundle. It does not
+> attribute the gain to an individual component. Run component ablations with
+> the same seeds and budgets before making component-level claims.
+
+Run the comparison and inspect its full report:
+
+```bash
+uv run python examples/experiments/xlam/run3_old_vs_new_optimizer.py
+```
+
+The runner writes
+[`logs/xlam_old_vs_new_optimizer_report.json`](logs/xlam_old_vs_new_optimizer_report.json).
+The smaller prompt-versus-default reporting example is available in
+[`run2_research_report.py`](examples/experiments/xlam/run2_research_report.py).
+
 ---
 
 ## Core modules
 
 | Module | Purpose |
 |---|---|
-| [`mutagenai/prompt_evolver.py`](mutagenai/prompt_evolver.py) | `PromptEvolver` — ground-truth prompt evolution with island-model EA + CMA-ES continuous tuning |
-| [`mutagenai/strategies.py`](mutagenai/strategies.py) | `NoEvalPromptEvolver` + 7 scoring strategies for label-free evolution |
-| [`mutagenai/wizard.py`](mutagenai/wizard.py) | `mutagenai init` wizard — interactive questionnaire that generates a ready-to-run script |
-| [`mutagenai/seed_loader.py`](mutagenai/seed_loader.py) | Load seed templates from external JSON files |
-| [`mutagenai/dashboard.py`](mutagenai/dashboard.py) | Plotting functions for benchmark visualisation (BFCL, xLAM, τ-bench, ToolBench, API-Bank, Browser Agent) |
+| [`MutaGenAI/prompt_evolver.py`](MutaGenAI/prompt_evolver.py) | `PromptEvolver` — ground-truth prompt evolution with island-model EA + CMA-ES continuous tuning |
+| [`MutaGenAI/strategies.py`](MutaGenAI/strategies.py) | `NoEvalPromptEvolver` + 7 scoring strategies for label-free evolution |
+| [`MutaGenAI/reporting.py`](MutaGenAI/reporting.py) | Seeded experiment records, confidence intervals, paired comparisons, ablations, and resource totals |
+| [`MutaGenAI/migration.py`](MutaGenAI/migration.py) | Evaluate prompt portability and regressions when moving between models |
+| [`MutaGenAI/wizard.py`](MutaGenAI/wizard.py) | `mutagenai init` wizard — interactive questionnaire that generates a ready-to-run script |
+| [`MutaGenAI/seed_loader.py`](MutaGenAI/seed_loader.py) | Load seed templates from external JSON files |
+| [`MutaGenAI/dashboard.py`](MutaGenAI/dashboard.py) | Plotting functions for benchmark visualisation (BFCL, xLAM, τ-bench, ToolBench, API-Bank, Browser Agent) |
 | [`docs/algorithm_animation.html`](docs/algorithm_animation.html) | Interactive step-through animation showing how the evolutionary loop works (open in a browser) |
 
 ---
@@ -512,7 +561,7 @@ accuracy.
 ### Quick start — PromptEvolver
 
 ```python
-from mutagenai import (
+from MutaGenAI import (
     PromptEvolver, PromptEvolverConfig, Tool, EvalSample, LLMBackend,
 )
 
@@ -605,9 +654,11 @@ when you provide worked examples.
 
 ### Inspect critic artifacts
 
-Every failed evaluation produces a structured `CriticArtifact`. It records the
-input, actual result, expected result, failure type, and a concrete suggestion.
-The evolution engine also uses recent artifacts to guide LLM-assisted mutations.
+Ground-truth tool and parameter failures produce structured `CriticArtifact`
+records. No-eval evolution produces them when an `extract_category` callback
+supplies expected and predicted categories. Each artifact records the input,
+actual result, expected result, failure type, and a concrete suggestion. The
+evolution engine can use recent artifacts to guide LLM-assisted mutations.
 
 ```python
 result = evolver.run()
@@ -619,10 +670,8 @@ for artifact in result.critic_artifacts:
 critic_data = [artifact.to_dict() for artifact in result.critic_artifacts]
 ```
 
-No configuration is required. Ground-truth evolution creates artifacts for tool
-and parameter failures. `NoEvalPromptEvolver` creates them when an
-`extract_category` callback supplies expected and predicted categories. Wizard-
-generated scripts print the artifact count and up to three sample critiques.
+No extra configuration is required for ground-truth evolution. Wizard-generated
+scripts print the artifact count and up to three sample critiques.
 
 ### Baseline comparison
 
@@ -844,7 +893,7 @@ Two complementary mechanisms run inside the existing evolutionary loop:
 ### Quick start — token-aware evolution
 
 ```python
-from mutagenai import (
+from MutaGenAI import (
     PromptEvolver, PromptEvolverConfig, Tool, EvalSample,
     LLMBackend, count_prompt_tokens,
 )
@@ -952,7 +1001,7 @@ synthetic examples.
 ### Quick start — NoEvalPromptEvolver
 
 ```python
-from mutagenai import (
+from MutaGenAI import (
     NoEvalPromptEvolver,
     NoEvalConfig,
     LLMJudge,
@@ -1181,7 +1230,7 @@ Place JSON files in the `seed_templates/` directory at the project root:
 ### Loading seeds in code
 
 ```python
-from mutagenai import load_seed_templates, list_seed_templates
+from MutaGenAI import load_seed_templates, list_seed_templates
 
 # List available template files
 print(list_seed_templates())  # ['entity_classification']
@@ -1352,7 +1401,7 @@ All plotting functions auto-detect the environment: **Plotly** for
 interactive notebooks, **Matplotlib** for scripts and static output.
 
 ```python
-from mutagenai.dashboard import plot_bfcl_evolution
+from MutaGenAI.dashboard import plot_bfcl_evolution
 
 # BFCL benchmark convergence and comparison
 plot_bfcl_evolution("bfcl_experiment_log.json")
@@ -1567,6 +1616,8 @@ All prompt evolution recipes live in
 | 13 | [`redteam_harden_slm.py`](examples/cookbook/redteam_harden_slm.py) | Harden an SLM's system prompt; ASR before/after |
 | 14 | [`redteam_attack_pyrit.py`](examples/cookbook/redteam_attack_pyrit.py) | Authorized attack-scaffold evolution paired with PyRIT |
 | 15 | [`migrate_llama_to_qwen.py`](examples/experiments/entity_classification/migrate_llama_to_qwen.py) | Model migration — move a winning prompt from llama3.2 to qwen3:8b |
+| 16 | [`run2_research_report.py`](examples/experiments/xlam/run2_research_report.py) | Seeded xLAM prompt comparison with confidence intervals and resource totals |
+| 17 | [`run3_old_vs_new_optimizer.py`](examples/experiments/xlam/run3_old_vs_new_optimizer.py) | Matched-budget historical-versus-current optimizer benchmark |
 
 ---
 
