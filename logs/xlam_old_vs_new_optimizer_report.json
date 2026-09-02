@@ -1,0 +1,387 @@
+{
+  "runs": [
+    {
+      "seed": 17,
+      "variant": "old",
+      "selected_candidate": "selected",
+      "candidates": [
+        {
+          "name": "selected",
+          "prompt": "You are a function-calling assistant. Given a user query and a list of available functions, produce one or more function calls to fulfil the request.  Output ONLY function calls in the format: [func_name(param=value, ...)]\n\n\nBe concise. Output only the function call.",
+          "scores": {
+            "train": 95.33333333333334,
+            "development": 100.0,
+            "holdout": 83.33333333333334
+          }
+        }
+      ],
+      "optimizer_calls": 60,
+      "target_calls": 190,
+      "input_tokens": 100763,
+      "output_tokens": 8180
+    },
+    {
+      "seed": 17,
+      "variant": "new",
+      "selected_candidate": "selected",
+      "candidates": [
+        {
+          "name": "selected",
+          "prompt": "You are a function-calling assistant. Given a user query and a list of available functions, produce one or more function calls to fulfil the request.  Output ONLY function calls in the format: [func_name(param=value, ...)]\n\nBe concise. Output only the function call.",
+          "scores": {
+            "train": 93.66666666666667,
+            "development": 100.0,
+            "holdout": 94.16666666666667
+          }
+        }
+      ],
+      "optimizer_calls": 70,
+      "target_calls": 70,
+      "input_tokens": 59533,
+      "output_tokens": 8261
+    },
+    {
+      "seed": 42,
+      "variant": "old",
+      "selected_candidate": "selected",
+      "candidates": [
+        {
+          "name": "selected",
+          "prompt": "\nYou are a function-calling assistant. Given a user query and a list of available functions, produce one or more function calls to fulfil the request.  Output ONLY function calls in the format: [func_name(param=value, ...)]\nFollow the format exactly. No extra text.",
+          "scores": {
+            "train": 95.0,
+            "development": 100.0,
+            "holdout": 89.44444444444444
+          }
+        }
+      ],
+      "optimizer_calls": 54,
+      "target_calls": 173,
+      "input_tokens": 85109,
+      "output_tokens": 8283
+    },
+    {
+      "seed": 42,
+      "variant": "new",
+      "selected_candidate": "selected",
+      "candidates": [
+        {
+          "name": "selected",
+          "prompt": "You are a function-calling assistant. Given a user query and a list of available functions, produce one or more function calls to fulfil the request.  Output ONLY function calls in the format: [func_name(param=value, ...)]\n\nBe concise. Output only the function call.",
+          "scores": {
+            "train": 96.50000000000001,
+            "development": 100.0,
+            "holdout": 89.44444444444444
+          }
+        }
+      ],
+      "optimizer_calls": 69,
+      "target_calls": 70,
+      "input_tokens": 56227,
+      "output_tokens": 8128
+    },
+    {
+      "seed": 91,
+      "variant": "old",
+      "selected_candidate": "selected",
+      "candidates": [
+        {
+          "name": "selected",
+          "prompt": "You are a function-calling assistant. Given a user query and a list of available functions, produce one or more function calls to fulfil the request.  Output ONLY function calls in the format: [func_name(param=value, ...)]\n\nFollow the format exactly. No extra text.",
+          "scores": {
+            "train": 94.75,
+            "development": 100.0,
+            "holdout": 95.27777777777779
+          }
+        }
+      ],
+      "optimizer_calls": 58,
+      "target_calls": 184,
+      "input_tokens": 92587,
+      "output_tokens": 8277
+    },
+    {
+      "seed": 91,
+      "variant": "new",
+      "selected_candidate": "selected",
+      "candidates": [
+        {
+          "name": "selected",
+          "prompt": "You are a function-calling assistant. Given a user query and a list of available functions, produce one or more function calls to fulfil the request.  Output ONLY function calls in the format: [func_name(param=value, ...)]\n\nFollow the format exactly. No extra text.",
+          "scores": {
+            "train": 91.5,
+            "development": 100.0,
+            "holdout": 95.27777777777779
+          }
+        }
+      ],
+      "optimizer_calls": 70,
+      "target_calls": 70,
+      "input_tokens": 60044,
+      "output_tokens": 8102
+    }
+  ],
+  "variants": [
+    "new",
+    "old"
+  ],
+  "resources": {
+    "optimizer_calls": 381,
+    "target_calls": 757,
+    "input_tokens": 454263,
+    "output_tokens": 49231,
+    "total_calls": 1138,
+    "total_tokens": 503494
+  },
+  "splits": {
+    "train": {
+      "count": 6,
+      "mean": 94.45833333333333,
+      "variance": 2.938194444444458,
+      "confidence_interval": {
+        "lower": 93.1388888888889,
+        "upper": 95.625,
+        "level": 0.95
+      },
+      "values": [
+        95.33333333333334,
+        93.66666666666667,
+        95.0,
+        96.50000000000001,
+        94.75,
+        91.5
+      ]
+    },
+    "development": {
+      "count": 6,
+      "mean": 100.0,
+      "variance": 0.0,
+      "confidence_interval": {
+        "lower": 100.0,
+        "upper": 100.0,
+        "level": 0.95
+      },
+      "values": [
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    "holdout": {
+      "count": 6,
+      "mean": 91.1574074074074,
+      "variance": 22.019032921810705,
+      "confidence_interval": {
+        "lower": 87.36111111111113,
+        "upper": 94.30555555555556,
+        "level": 0.95
+      },
+      "values": [
+        83.33333333333334,
+        94.16666666666667,
+        89.44444444444444,
+        89.44444444444444,
+        95.27777777777779,
+        95.27777777777779
+      ]
+    }
+  },
+  "experiment": {
+    "benchmark": "xlam-function-calling-60k",
+    "model": "llama3.2",
+    "cases_per_seed": 9,
+    "seeds": [
+      17,
+      42,
+      91
+    ],
+    "split": {
+      "train": 0.6,
+      "development": 0.2,
+      "holdout": 0.2
+    },
+    "shared_budget_per_arm_seed": {
+      "max_optimizer_calls": 80,
+      "max_target_calls": 180,
+      "max_output_tokens": 8000,
+      "max_wall_time": 900.0,
+      "max_tokens_per_call": 128
+    }
+  },
+  "configuration_changes": {
+    "old": [
+      "historical_composite",
+      "generic_mutations"
+    ],
+    "new": [
+      "targeted_composite",
+      "tool_success_scorer",
+      "targeted_mutations",
+      "adaptive_mutations",
+      "structured_critic_feedback",
+      "warmup_adaptive",
+      "error_decay_0.5",
+      "refine_after_splice"
+    ]
+  },
+  "run_details": [
+    {
+      "seed": 17,
+      "variant": "old",
+      "optimizer_fitness": 91.21111111111111,
+      "iterations_run": 1,
+      "stop_reason": null,
+      "optimizer_calls": 60,
+      "optimizer_target_calls": 180,
+      "evaluation_target_calls": 10,
+      "wall_time": 179.8829212080018,
+      "critic_artifacts": 0,
+      "name_accuracy": 100.0,
+      "parameter_accuracy": 46.0
+    },
+    {
+      "seed": 17,
+      "variant": "new",
+      "optimizer_fitness": 89.91538461538462,
+      "iterations_run": 1,
+      "stop_reason": null,
+      "optimizer_calls": 70,
+      "optimizer_target_calls": 60,
+      "evaluation_target_calls": 10,
+      "wall_time": 178.22890850000113,
+      "critic_artifacts": 3,
+      "name_accuracy": 100.0,
+      "parameter_accuracy": 72.0
+    },
+    {
+      "seed": 42,
+      "variant": "old",
+      "optimizer_fitness": 89.15471380471381,
+      "iterations_run": 0,
+      "stop_reason": "max_output_tokens",
+      "optimizer_calls": 54,
+      "optimizer_target_calls": 163,
+      "evaluation_target_calls": 10,
+      "wall_time": 172.84892550000222,
+      "critic_artifacts": 0,
+      "name_accuracy": 100.0,
+      "parameter_accuracy": 74.66666666666667
+    },
+    {
+      "seed": 42,
+      "variant": "new",
+      "optimizer_fitness": 92.61538461538463,
+      "iterations_run": 1,
+      "stop_reason": null,
+      "optimizer_calls": 69,
+      "optimizer_target_calls": 60,
+      "evaluation_target_calls": 10,
+      "wall_time": 172.3228513330032,
+      "critic_artifacts": 9,
+      "name_accuracy": 100.0,
+      "parameter_accuracy": 74.66666666666667
+    },
+    {
+      "seed": 91,
+      "variant": "old",
+      "optimizer_fitness": 91.53333333333333,
+      "iterations_run": 0,
+      "stop_reason": "max_output_tokens",
+      "optimizer_calls": 58,
+      "optimizer_target_calls": 174,
+      "evaluation_target_calls": 10,
+      "wall_time": 167.72253008299595,
+      "critic_artifacts": 0,
+      "name_accuracy": 100.0,
+      "parameter_accuracy": 85.83333333333334
+    },
+    {
+      "seed": 91,
+      "variant": "new",
+      "optimizer_fitness": 90.81538461538462,
+      "iterations_run": 1,
+      "stop_reason": null,
+      "optimizer_calls": 70,
+      "optimizer_target_calls": 60,
+      "evaluation_target_calls": 10,
+      "wall_time": 178.26951474999805,
+      "critic_artifacts": 11,
+      "name_accuracy": 100.0,
+      "parameter_accuracy": 85.83333333333334
+    }
+  ],
+  "paired_holdout_comparison": {
+    "left": "new",
+    "right": "old",
+    "split": "holdout",
+    "differences": {
+      "count": 3,
+      "mean": 3.6111111111111094,
+      "variance": 39.12037037037034,
+      "confidence_interval": {
+        "lower": 0.0,
+        "upper": 10.833333333333329,
+        "level": 0.95
+      },
+      "values": [
+        10.833333333333329,
+        0.0,
+        0.0
+      ]
+    },
+    "wins": 1,
+    "ties": 2,
+    "losses": 0
+  },
+  "variant_summaries": {
+    "old": {
+      "holdout": {
+        "count": 3,
+        "mean": 89.35185185185185,
+        "variance": 35.67386831275719,
+        "confidence_interval": {
+          "lower": 83.33333333333334,
+          "upper": 95.27777777777779,
+          "level": 0.95
+        },
+        "values": [
+          83.33333333333334,
+          89.44444444444444,
+          95.27777777777779
+        ]
+      },
+      "resources": {
+        "optimizer_calls": 172,
+        "target_calls": 547,
+        "input_tokens": 278459,
+        "output_tokens": 24740
+      }
+    },
+    "new": {
+      "holdout": {
+        "count": 3,
+        "mean": 92.96296296296298,
+        "variance": 9.593621399176984,
+        "confidence_interval": {
+          "lower": 89.44444444444444,
+          "upper": 95.27777777777779,
+          "level": 0.95
+        },
+        "values": [
+          94.16666666666667,
+          89.44444444444444,
+          95.27777777777779
+        ]
+      },
+      "resources": {
+        "optimizer_calls": 209,
+        "target_calls": 210,
+        "input_tokens": 175804,
+        "output_tokens": 24491
+      }
+    }
+  }
+}

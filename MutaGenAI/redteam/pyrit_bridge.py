@@ -81,9 +81,11 @@ def load_behaviors(
     ----------
     source : str
         ``"file"`` (default) loads from a local ``path`` you provide — the
-        reliable, offline route.  Any other value names a PyRIT dataset
-        fetcher (e.g. ``"harmbench"``), which requires PyRIT and network
-        access.
+        reliable, offline route.  ``"jailbreakbench"`` loads the ungated
+        JailbreakBench JBB-Behaviors harmful split directly from HuggingFace
+        (needs the ``datasets`` package + network, no PyRIT).  Any other value
+        names a PyRIT dataset fetcher (e.g. ``"harmbench"``, ``"adv_bench"``),
+        which requires PyRIT and network access.
     path : str or None
         For ``source="file"``: a ``.json`` list (of strings, or of objects
         with a ``prompt``/``behavior``/``value`` field) or a ``.txt`` file
@@ -95,16 +97,35 @@ def load_behaviors(
     Notes
     -----
     This library ships **no** harmful content.  You supply your own behavior
-    set (e.g. exported from HarmBench or PyRIT) for your authorized
-    assessment.
+    set (e.g. JailbreakBench, HarmBench, AdvBench, or PyRIT) for your
+    authorized assessment.
     """
     if source == "file":
         if not path:
             raise ValueError("source='file' requires a path=... argument.")
         behaviors = _load_behaviors_from_file(path)
+    elif source in _HF_BEHAVIOR_LOADERS:
+        behaviors = _HF_BEHAVIOR_LOADERS[source]()
     else:
         behaviors = _load_behaviors_from_pyrit(source)
     return behaviors[:limit] if limit else behaviors
+
+
+def _load_jailbreakbench() -> list[str]:
+    """Load the JailbreakBench JBB-Behaviors harmful split (ungated, MIT)."""
+    from datasets import load_dataset
+
+    ds = load_dataset("JailbreakBench/JBB-Behaviors", "behaviors", split="harmful")
+    goals: list[str] = []
+    for row in ds:
+        goal = row.get("Goal") or row.get("goal")
+        if goal:
+            goals.append(str(goal))
+    return goals
+
+
+# HuggingFace-native behavior loaders (no PyRIT required).
+_HF_BEHAVIOR_LOADERS = {"jailbreakbench": _load_jailbreakbench}
 
 
 def _load_behaviors_from_file(path: str) -> list[str]:

@@ -1,0 +1,218 @@
+{
+  "runs": [
+    {
+      "seed": 17,
+      "variant": "existing_xlam_setup",
+      "selected_candidate": "default",
+      "candidates": [
+        {
+          "name": "default",
+          "prompt": "    You are a helpful assistant. Based on the user's request, call the appropriate function(s).\n\nAvailable functions:\n{xlam_functions}\n",
+          "scores": {
+            "train": 72.42063492063492,
+            "development": 87.75,
+            "holdout": 27.5
+          }
+        },
+        {
+          "name": "evolved",
+          "prompt": "        You are an expert in composing functions. Given a question and a set of possible functions, make one or more function calls to achieve the purpose. If none of the functions can be used, point it out.\n\nYou should only return the function calls in your response.\nIf you decide to invoke any of the function(s), you MUST put it in the format of [func_name(param_name=param_value, ...)]\nYou SHOULD NOT include any other text in the response.\n\nHere is a list of functions you can invoke:\n{xlam_functions}\n",
+          "scores": {
+            "train": 91.0515873015873,
+            "development": 75.25,
+            "holdout": 100.0
+          }
+        }
+      ],
+      "optimizer_calls": 0,
+      "target_calls": 24,
+      "input_tokens": 5900,
+      "output_tokens": 3213
+    },
+    {
+      "seed": 42,
+      "variant": "existing_xlam_setup",
+      "selected_candidate": "evolved",
+      "candidates": [
+        {
+          "name": "default",
+          "prompt": "    You are a helpful assistant. Based on the user's request, call the appropriate function(s).\n\nAvailable functions:\n{xlam_functions}\n",
+          "scores": {
+            "train": 72.01587301587301,
+            "development": 25.0,
+            "holdout": 41.666666666666664
+          }
+        },
+        {
+          "name": "evolved",
+          "prompt": "        You are an expert in composing functions. Given a question and a set of possible functions, make one or more function calls to achieve the purpose. If none of the functions can be used, point it out.\n\nYou should only return the function calls in your response.\nIf you decide to invoke any of the function(s), you MUST put it in the format of [func_name(param_name=param_value, ...)]\nYou SHOULD NOT include any other text in the response.\n\nHere is a list of functions you can invoke:\n{xlam_functions}\n",
+          "scores": {
+            "train": 92.37301587301587,
+            "development": 95.625,
+            "holdout": 83.33333333333333
+          }
+        }
+      ],
+      "optimizer_calls": 0,
+      "target_calls": 24,
+      "input_tokens": 5900,
+      "output_tokens": 3384
+    },
+    {
+      "seed": 91,
+      "variant": "existing_xlam_setup",
+      "selected_candidate": "evolved",
+      "candidates": [
+        {
+          "name": "default",
+          "prompt": "    You are a helpful assistant. Based on the user's request, call the appropriate function(s).\n\nAvailable functions:\n{xlam_functions}\n",
+          "scores": {
+            "train": 66.3015873015873,
+            "development": 41.25,
+            "holdout": 72.77777777777779
+          }
+        },
+        {
+          "name": "evolved",
+          "prompt": "        You are an expert in composing functions. Given a question and a set of possible functions, make one or more function calls to achieve the purpose. If none of the functions can be used, point it out.\n\nYou should only return the function calls in your response.\nIf you decide to invoke any of the function(s), you MUST put it in the format of [func_name(param_name=param_value, ...)]\nYou SHOULD NOT include any other text in the response.\n\nHere is a list of functions you can invoke:\n{xlam_functions}\n",
+          "scores": {
+            "train": 97.19444444444444,
+            "development": 100.0,
+            "holdout": 69.16666666666667
+          }
+        }
+      ],
+      "optimizer_calls": 0,
+      "target_calls": 24,
+      "input_tokens": 5900,
+      "output_tokens": 3243
+    }
+  ],
+  "variants": [
+    "existing_xlam_setup"
+  ],
+  "resources": {
+    "optimizer_calls": 0,
+    "target_calls": 72,
+    "input_tokens": 17700,
+    "output_tokens": 9840,
+    "total_calls": 72,
+    "total_tokens": 27540
+  },
+  "splits": {
+    "train": {
+      "count": 3,
+      "mean": 87.32936507936508,
+      "variance": 172.5142195767195,
+      "confidence_interval": {
+        "lower": 72.42063492063492,
+        "upper": 97.19444444444444,
+        "level": 0.95
+      },
+      "values": [
+        72.42063492063492,
+        92.37301587301587,
+        97.19444444444444
+      ]
+    },
+    "development": {
+      "count": 3,
+      "mean": 94.45833333333333,
+      "variance": 38.536458333333336,
+      "confidence_interval": {
+        "lower": 87.75,
+        "upper": 100.0,
+        "level": 0.95
+      },
+      "values": [
+        87.75,
+        95.625,
+        100.0
+      ]
+    },
+    "holdout": {
+      "count": 3,
+      "mean": 60.0,
+      "variance": 842.3611111111111,
+      "confidence_interval": {
+        "lower": 27.5,
+        "upper": 83.33333333333333,
+        "level": 0.95
+      },
+      "values": [
+        27.5,
+        83.33333333333333,
+        69.16666666666667
+      ]
+    }
+  },
+  "experiment": {
+    "benchmark": "xlam-function-calling-60k",
+    "model": "llama3.2",
+    "cases_per_seed": 12,
+    "comparison": "evolved_minus_default"
+  },
+  "paired_holdout_comparison": {
+    "left": "evolved",
+    "right": "default",
+    "split": "holdout",
+    "differences": {
+      "count": 3,
+      "mean": 36.85185185185185,
+      "variance": 1465.6121399176957,
+      "confidence_interval": {
+        "lower": -3.6111111111111143,
+        "upper": 72.5,
+        "level": 0.95
+      },
+      "values": [
+        72.5,
+        41.666666666666664,
+        -3.6111111111111143
+      ]
+    },
+    "wins": 2,
+    "ties": 0,
+    "losses": 1
+  },
+  "prompt_length_curve": [
+    {
+      "minimum_tokens": 25,
+      "maximum_tokens": 49,
+      "performance": {
+        "count": 3,
+        "mean": 47.31481481481482,
+        "variance": 536.4454732510291,
+        "confidence_interval": {
+          "lower": 27.5,
+          "upper": 72.77777777777779,
+          "level": 0.95
+        },
+        "values": [
+          27.5,
+          41.666666666666664,
+          72.77777777777779
+        ]
+      }
+    },
+    {
+      "minimum_tokens": 100,
+      "maximum_tokens": 124,
+      "performance": {
+        "count": 3,
+        "mean": 84.16666666666667,
+        "variance": 238.19444444444437,
+        "confidence_interval": {
+          "lower": 69.16666666666667,
+          "upper": 100.0,
+          "level": 0.95
+        },
+        "values": [
+          100.0,
+          83.33333333333333,
+          69.16666666666667
+        ]
+      }
+    }
+  ]
+}

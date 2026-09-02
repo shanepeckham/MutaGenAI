@@ -5,7 +5,12 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from MutaGenAI import CriticArtifact as PublicCriticArtifact
+from MutaGenAI import Demonstration as PublicDemonstration
 from MutaGenAI.prompt_evolver import (
+    BudgetUsage,
+    CriticArtifact,
+    Demonstration,
     EvalSample,
     ErrorProfile,
     FailureBucket,
@@ -72,7 +77,43 @@ class TestTool:
 # ── PromptCandidate tests ─────────────────────────────────────────────────
 
 
+class TestCriticArtifact:
+    def test_critic_artifact_is_public(self):
+        assert PublicCriticArtifact is CriticArtifact
+
+    def test_render_is_readable(self):
+        artifact = CriticArtifact(
+            input="Weather in Rome?",
+            actual="send_email",
+            expected="get_weather",
+            failure_type="wrong_tool",
+            suggestion="Clarify when to use get_weather.",
+        )
+
+        assert artifact.render() == (
+            "Input: Weather in Rome?\n"
+            "Actual: send_email\n"
+            "Expected: get_weather\n"
+            "Failure type: wrong_tool\n"
+            "Suggestion: Clarify when to use get_weather."
+        )
+
+    def test_to_dict_is_json_serialisable(self):
+        artifact = CriticArtifact("hello", "goodbye", "hello")
+
+        assert artifact.to_dict() == {
+            "input": "hello",
+            "actual": "goodbye",
+            "expected": "hello",
+            "failure_type": "mismatch",
+            "suggestion": "",
+        }
+
+
 class TestPromptCandidate:
+    def test_demonstration_is_public(self):
+        assert PublicDemonstration is Demonstration
+
     def test_auto_hash(self):
         c = PromptCandidate(template="hello world")
         assert c.hash
@@ -89,6 +130,26 @@ class TestPromptCandidate:
         assert c.top_p == 0.95
         assert c.score == 0.0
         assert c.generation == 0
+
+    def test_render_prompt_without_demonstrations_is_unchanged(self):
+        candidate = PromptCandidate(template="Classify the request.")
+
+        assert candidate.render_prompt() == "Classify the request."
+
+    def test_render_prompt_appends_structured_demonstrations(self):
+        candidate = PromptCandidate(
+            template="Classify the request.",
+            demonstrations=[
+                Demonstration("Book a flight", "travel"),
+                Demonstration("Reset my password", "support"),
+            ],
+        )
+
+        assert candidate.render_prompt() == (
+            "Classify the request.\n\n## Examples\n\n"
+            "Input: Book a flight\nOutput: travel\n\n"
+            "Input: Reset my password\nOutput: support"
+        )
 
 
 # ── parse_tool_response tests ─────────────────────────────────────────────
@@ -272,11 +333,224 @@ class TestLLMClient:
         result = client.complete("system", "user")
         assert result is None
 
+    @staticmethod
+    def _fake_ollama(client, input_tokens=2, output_tokens=3):
+        def complete(*args):
+            client.call_count += 1
+            client.total_input_tokens += input_tokens
+            client.total_output_tokens += output_tokens
+            return "ok"
+
+        return complete
+
+    @pytest.mark.parametrize(
+        ("call_type", "config_field", "reason"),
+        [
+            ("target", "max_target_calls", "max_target_calls"),
+            ("optimizer", "max_optimizer_calls", "max_optimizer_calls"),
+        ],
+    )
+    def test_enforces_separate_call_budgets(
+        self, call_type, config_field, reason
+    ):
+        cfg = PromptEvolverConfig(**{config_field: 1})
+        client = LLMClient(cfg)
+        client.is_available = lambda: True
+        client._ollama_complete = self._fake_ollama(client)
+
+        assert client.complete("system", "user", call_type=call_type) == "ok"
+        assert client.complete("system", "user", call_type=call_type) is None
+        assert client.budget_stop_reason == reason
+
+    def test_stops_before_input_token_budget_is_crossed(self):
+        client = LLMClient(PromptEvolverConfig(max_input_tokens=0))
+        client.is_available = lambda: True
+
+        assert client.complete("system", "user") is None
+        assert client.target_calls == 0
+        assert client.budget_stop_reason == "max_input_tokens"
+
+    def test_stops_after_output_token_budget_is_consumed(self):
+        client = LLMClient(PromptEvolverConfig(max_output_tokens=3))
+        client.is_available = lambda: True
+        client._ollama_complete = self._fake_ollama(client)
+
+        assert client.complete("system", "user") == "ok"
+        assert client.complete("system", "user") is None
+        assert client.total_output_tokens == 3
+        assert client.budget_stop_reason == "max_output_tokens"
+
 
 # ── PromptEvolver integration test (no LLM) ──────────────────────────────
 
 
 class TestPromptEvolver:
+    def test_run_returns_structured_critic_artifacts(
+        self, sample_tools, sample_dataset
+    ):
+        config = PromptEvolverConfig(
+            iterations=0,
+            num_islands=1,
+            backend=LLMBackend.OLLAMA,
+        )
+        evolver = PromptEvolver(
+            tools=sample_tools,
+            eval_dataset=[sample_dataset[0]],
+            config=config,
+            seed_templates=["Choose a tool.\n{tool_schemas}"],
+            verbose=False,
+        )
+        evolver._client.is_available = lambda: True
+        evolver._client.complete = lambda **kwargs: (
+            '{"tool": "send_email", "parameters": {}}'
+        )
+
+        result = evolver.run()
+
+        assert len(result.critic_artifacts) == 1
+        artifact = result.critic_artifacts[0]
+        assert artifact.input == "Weather in London?"
+        assert artifact.failure_type == "wrong_tool"
+        assert "send_email" in artifact.actual
+        assert "get_weather" in artifact.expected
+        assert "get_weather" in artifact.suggestion
+        assert "Critic artifacts: 1" in result.summary()
+
+    def test_run_evolves_demonstrations(self, sample_tools, sample_dataset):
+        demonstrations = [
+            Demonstration(
+                "Weather in Rome?",
+                '{"tool": "get_weather", "parameters": {"location": "Rome"}}',
+            ),
+            Demonstration(
+                "What is 3+3?",
+                '{"tool": "calculate", "parameters": {"expression": "3+3"}}',
+            ),
+        ]
+        config = PromptEvolverConfig(
+            iterations=1,
+            population_size=2,
+            num_islands=1,
+            elite_size=2,
+            mutation_rate=1.0,
+            backend=LLMBackend.OLLAMA,
+            ollama_url="http://localhost:99999",
+        )
+        evolver = PromptEvolver(
+            tools=sample_tools,
+            eval_dataset=sample_dataset,
+            config=config,
+            seed_templates=["Use a tool.", "Choose carefully."],
+            demonstrations=demonstrations,
+            seed=42,
+            verbose=False,
+        )
+
+        result = evolver.run()
+
+        subsets = {
+            tuple(candidate.demonstrations)
+            for candidate in result.all_candidates
+        }
+        assert len(subsets) > 1
+        assert result.best_demonstrations in [
+            candidate.demonstrations for candidate in result.all_candidates
+        ]
+        if result.best_demonstrations:
+            assert "## Examples" in result.best_prompt
+
+    def test_alternating_generation_optimizes_instructions_then_examples(
+        self, sample_tools, sample_dataset, monkeypatch
+    ):
+        demonstration = Demonstration("Weather in Rome?", "get_weather")
+        config = PromptEvolverConfig(
+            iterations=1,
+            population_size=1,
+            num_islands=1,
+            elite_size=2,
+            alternating_optimization=True,
+        )
+        evolver = PromptEvolver(
+            tools=sample_tools,
+            eval_dataset=sample_dataset,
+            config=config,
+            demonstrations=[demonstration],
+            verbose=False,
+        )
+        incumbent = PromptCandidate(
+            template="original",
+            demonstrations=[demonstration],
+            score=50.0,
+        )
+        instruction = PromptCandidate(
+            template="improved instructions",
+            demonstrations=[demonstration],
+        )
+        combination = PromptCandidate(
+            template="improved instructions",
+            demonstrations=[],
+        )
+        phases = []
+
+        def breed(island, generation, **kwargs):
+            phases.append(("breed", kwargs))
+            return instruction if kwargs.get("evolve_demonstrations") is False else combination
+
+        def evaluate(candidate):
+            phases.append(("evaluate", candidate))
+            return 70.0 if candidate is instruction else 80.0
+
+        def confirm(candidate, parent):
+            phases.append(("confirm", candidate, parent))
+            return True
+
+        monkeypatch.setattr(evolver, "_breed", breed)
+        monkeypatch.setattr(evolver, "_evaluate_candidate", evaluate)
+        monkeypatch.setattr(evolver, "_confirm_improvement", confirm)
+
+        promoted = evolver._evolve_island_alternating([incumbent], 0, 1)
+
+        assert phases == [
+            ("breed", {"evolve_demonstrations": False}),
+            ("evaluate", instruction),
+            ("confirm", instruction, incumbent),
+            ("breed", {"evolve_instructions": False}),
+            ("evaluate", combination),
+            ("confirm", combination, instruction),
+        ]
+        assert promoted[0] is combination
+
+    def test_deep_confirmation_rejects_shallow_improvement(
+        self, sample_tools, sample_dataset, monkeypatch
+    ):
+        config = PromptEvolverConfig(
+            eval_sample_size=1,
+            eval_deep_sample_size=3,
+            alternating_optimization=True,
+        )
+        evolver = PromptEvolver(
+            tools=sample_tools,
+            eval_dataset=sample_dataset,
+            config=config,
+            verbose=False,
+        )
+        candidate = PromptCandidate(template="shallow winner", score=90.0)
+        incumbent = PromptCandidate(template="deep winner", score=50.0)
+        evaluated_samples = []
+
+        def score_on_samples(current, system_prompt, samples):
+            evaluated_samples.append(samples)
+            return 40.0 if current is candidate else 80.0
+
+        monkeypatch.setattr(evolver, "_score_on_samples", score_on_samples)
+
+        confirmed = evolver._confirm_improvement(candidate, incumbent)
+
+        assert confirmed is False
+        assert candidate.score == 40.0
+        assert len(evaluated_samples[0]) == 3
+        assert evaluated_samples[0] is evaluated_samples[1]
+
     def test_run_without_llm(self, sample_tools, sample_dataset):
         """Run the evolver without an LLM — should work with random scores."""
         config = PromptEvolverConfig(
@@ -512,7 +786,14 @@ class TestLLMMutateTemplate:
         client = LLMClient(cfg)
 
         template = "Route to the correct tool.\n\n{tool_schemas}"
-        failures = [("What's the weather?", "send_email", "get_weather")]
+        failures = [
+            CriticArtifact(
+                input="What's the weather?",
+                actual="send_email",
+                expected="get_weather",
+                failure_type="wrong_tool",
+            )
+        ]
         result = _llm_mutate_template(
             template, failures, client, ProblemType.TOOL_ROUTING
         )
@@ -548,6 +829,63 @@ class TestNewConfigFields:
 
 
 class TestPromptEvolverResult:
+    def test_summary_reports_quality_and_budget(self):
+        usage = BudgetUsage(
+            optimizer_calls=9,
+            target_calls=60,
+            input_tokens=20_000,
+            output_tokens=5_000,
+            wall_time=12.0,
+            stop_reason="max_target_calls",
+        )
+        result = PromptEvolverResult(
+            best_prompt="prompt",
+            best_temperature=0.1,
+            best_top_p=0.9,
+            best_accuracy=0.8,
+            best_score=80.0,
+            history=[],
+            all_candidates=[],
+            wall_time=12.0,
+            iterations_run=2,
+            llm_backend="ollama",
+            budget_usage=usage,
+        )
+
+        summary = result.summary()
+        assert "Optimizer calls:  9" in summary
+        assert "Target calls:     60" in summary
+        assert "Total calls:      69" in summary
+        assert "Total tokens:     25000" in summary
+        assert result.stop_reason == "max_target_calls"
+
+    def test_patience_stops_after_stale_generations(
+        self, sample_tools, sample_dataset
+    ):
+        config = PromptEvolverConfig(
+            iterations=5,
+            population_size=1,
+            num_islands=1,
+            elite_size=1,
+            patience=2,
+        )
+        evolver = PromptEvolver(
+            tools=sample_tools,
+            eval_dataset=[sample_dataset[0]],
+            config=config,
+            seed_templates=["Choose a tool.\n{tool_schemas}"],
+            verbose=False,
+        )
+        evolver._client.is_available = lambda: True
+        evolver._client.complete = lambda **kwargs: (
+            '{"tool": "send_email", "parameters": {}}'
+        )
+
+        result = evolver.run()
+
+        assert result.iterations_run == 2
+        assert result.stop_reason == "patience"
+
     def test_lineage_json(self, sample_tools, sample_dataset):
         config = PromptEvolverConfig(
             iterations=2,

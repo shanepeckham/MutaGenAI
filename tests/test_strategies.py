@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import pytest
 
+from MutaGenAI import (
+    SyntheticExampleQuarantine as PublicSyntheticExampleQuarantine,
+)
 from MutaGenAI.strategies import (
     CompositeScorer,
     HumanTournament,
@@ -18,13 +21,14 @@ from MutaGenAI.strategies import (
     SelfConsistencyScorer,
     SyntheticEvalGenerator,
     SyntheticEvalScorer,
+    SyntheticExampleQuarantine,
     ToolResult,
     ToolSuccessScorer,
     _is_valid_json,
     _feasibility_key,
     PenaltyScaler,
 )
-from MutaGenAI.prompt_evolver import PromptCandidate
+from MutaGenAI.prompt_evolver import Demonstration, PromptCandidate
 
 
 # ---------------------------------------------------------------------------
@@ -133,6 +137,135 @@ class TestSyntheticEvalGenerator:
         gen = SyntheticEvalGenerator("Task")
         client = mock_client([])
         assert gen.generate(client) == []
+
+    def test_generate_validated_returns_only_admitted_genes(self, mock_client):
+        generator_client = mock_client([
+            '[{"input": "valid", "expected_output": "answer"}, '
+            '{"bad": "entry"}]'
+        ])
+        judge_client = mock_client([
+            '{"agree": true, "difficulty": "medium", '
+            '"failure_bucket": "format"}'
+        ])
+        generator = SyntheticEvalGenerator("Answer accurately.", num_cases=2)
+
+        report = generator.generate_validated(
+            generator_client, judge_client=judge_client
+        )
+
+        assert report.demonstrations == [Demonstration("valid", "answer")]
+        assert report.accepted[0].difficulty == "medium"
+        assert report.rejected[0].reasons == ("invalid_input",)
+
+    def test_generate_validated_requires_independent_judge(self, mock_client):
+        client = mock_client([])
+        generator = SyntheticEvalGenerator("Task")
+
+        with pytest.raises(ValueError, match="independent"):
+            generator.generate_validated(client, judge_client=client)
+
+
+class TestSyntheticExampleQuarantine:
+    def test_quarantine_is_public(self):
+        assert PublicSyntheticExampleQuarantine is SyntheticExampleQuarantine
+
+    def test_accepts_verified_judged_and_tagged_example(self, mock_client):
+        judge = mock_client([
+            '{"agree": true, "difficulty": "hard", '
+            '"failure_bucket": "multi_step"}'
+        ])
+        quarantine = SyntheticExampleQuarantine(
+            judge,
+            output_validator=lambda output: output.startswith("{"),
+            answer_verifier=lambda example_input, output: True,
+        )
+
+        report = quarantine.validate(
+            [{"input": "Add 2 and 3", "expected_output": '{"answer": 5}'}],
+            "Return JSON answers.",
+        )
+
+        assert report.cases == [{
+            "input": "Add 2 and 3",
+            "expected_output": '{"answer": 5}',
+            "difficulty": "hard",
+            "failure_bucket": "multi_step",
+        }]
+        assert report.demonstrations == [
+            Demonstration("Add 2 and 3", '{"answer": 5}')
+        ]
+        assert report.rejected == []
+
+    @pytest.mark.parametrize(
+        ("case", "reason"),
+        [
+            ({"expected_output": "answer"}, "invalid_input"),
+            ({"input": "question"}, "invalid_expected_output"),
+            ({"input": "question", "expected_output": "answer"},
+             "output_schema_failed"),
+        ],
+    )
+    def test_rejects_schema_failures(self, case, reason, mock_client):
+        quarantine = SyntheticExampleQuarantine(
+            mock_client([]), output_validator=lambda output: False
+        )
+
+        report = quarantine.validate([case], "Task")
+
+        assert report.rejected[0].reasons == (reason,)
+
+    def test_rejects_failed_deterministic_answer_without_judging(
+        self, mock_client
+    ):
+        judge = mock_client([])
+        quarantine = SyntheticExampleQuarantine(
+            judge,
+            answer_verifier=lambda example_input, output: False,
+        )
+
+        report = quarantine.validate(
+            [{"input": "2 + 2", "expected_output": "5"}], "Do math."
+        )
+
+        assert report.rejected[0].reasons == (
+            "deterministic_answer_failed",
+        )
+        assert judge._call_count == 0
+
+    def test_rejects_independent_judge_disagreement(self, mock_client):
+        judge = mock_client([
+            '{"agree": false, "difficulty": "easy", '
+            '"failure_bucket": "accuracy"}'
+        ])
+        quarantine = SyntheticExampleQuarantine(judge)
+
+        report = quarantine.validate(
+            [{"input": "2 + 2", "expected_output": "5"}], "Do math."
+        )
+
+        assert report.rejected[0].reasons == ("judge_disagreed",)
+
+    def test_rejects_duplicates_and_leakage(self, mock_client):
+        quarantine = SyntheticExampleQuarantine(
+            mock_client([]),
+            reference_inputs=["held out question"],
+            leakage_terms=["secret-answer"],
+        )
+        cases = [
+            {"input": "Held out question", "expected_output": "answer"},
+            {"input": "new", "expected_output": "secret-answer"},
+            {"input": "repeat", "expected_output": "first"},
+            {"input": " REPEAT ", "expected_output": "second"},
+        ]
+
+        report = quarantine.validate(cases, "Task")
+
+        assert [item.reasons for item in report.rejected] == [
+            ("reference_leakage",),
+            ("leakage_term",),
+            ("judge_invalid",),
+            ("duplicate_input",),
+        ]
 
 
 class TestSyntheticEvalScorer:
@@ -515,6 +648,7 @@ class TestNoEvalConfig:
         assert config.num_islands == 2
         assert config.elite_size == 3
         assert config.migration_interval == 3
+        assert config.alternating_optimization is False
 
     def test_custom_values(self):
         config = NoEvalConfig(iterations=10, population_size=8)
@@ -528,6 +662,148 @@ class TestNoEvalConfig:
 
 
 class TestNoEvalPromptEvolver:
+    def test_target_budget_returns_when_seed_evaluation_is_interrupted(self):
+        evolver = NoEvalPromptEvolver(
+            task_description="Test",
+            test_inputs=["a", "b"],
+            scorer=ProxyMetricsScorer(checks=[]),
+            config=NoEvalConfig(
+                iterations=3,
+                num_islands=1,
+                max_target_calls=1,
+            ),
+            seed_templates=["Answer."],
+            verbose=False,
+        )
+        evolver._client.is_available = lambda: True
+
+        def complete(*args):
+            evolver._client.call_count += 1
+            evolver._client.total_input_tokens += 2
+            evolver._client.total_output_tokens += 1
+            return "answer"
+
+        evolver._client._ollama_complete = complete
+
+        result = evolver.run()
+
+        assert result.iterations_run == 0
+        assert result.stop_reason == "max_target_calls"
+        assert result.budget_usage.target_calls == 1
+
+    def test_patience_stops_no_eval_run(self):
+        evolver = NoEvalPromptEvolver(
+            task_description="Test",
+            test_inputs=["a"],
+            scorer=ProxyMetricsScorer(checks=[]),
+            config=NoEvalConfig(
+                iterations=5,
+                population_size=1,
+                num_islands=1,
+                elite_size=1,
+                patience=1,
+            ),
+            seed_templates=["Answer."],
+            verbose=False,
+        )
+        evolver._client.complete = lambda **kwargs: "answer"
+
+        result = evolver.run()
+
+        assert result.iterations_run == 1
+        assert result.stop_reason == "patience"
+
+    def test_deep_confirmation_rejects_shallow_improvement(self, monkeypatch):
+        class ConstantScorer(Scorer):
+            def score(self, prompt, test_input, output, client):
+                return 1.0
+
+        evolver = NoEvalPromptEvolver(
+            task_description="Classify requests.",
+            test_inputs=["one", "two", "three"],
+            scorer=ConstantScorer(),
+            config=NoEvalConfig(
+                alternating_optimization=True,
+                eval_sample_size=1,
+                eval_deep_sample_size=3,
+            ),
+            demonstrations=[Demonstration("example", "label")],
+            verbose=False,
+        )
+        candidate = PromptCandidate(template="shallow winner", score=90.0)
+        incumbent = PromptCandidate(template="deep winner", score=50.0)
+        evaluated_inputs = []
+
+        def evaluate(current, inputs=None):
+            evaluated_inputs.append(inputs)
+            return 40.0 if current is candidate else 80.0
+
+        monkeypatch.setattr(evolver, "_evaluate", evaluate)
+
+        confirmed = evolver._confirm_improvement(candidate, incumbent)
+
+        assert confirmed is False
+        assert candidate.score == 40.0
+        assert len(evaluated_inputs[0]) == 3
+        assert evaluated_inputs[0] is evaluated_inputs[1]
+
+    def test_category_extractor_produces_critic_artifact(self):
+        class ZeroScorer(Scorer):
+            def score(self, prompt, test_input, output, client):
+                return 0.0
+
+        def extract_category(text, mode):
+            return "billing" if mode == "expected" else text
+
+        evolver = NoEvalPromptEvolver(
+            task_description="Classify support requests.",
+            test_inputs=["I was charged twice"],
+            scorer=ZeroScorer(),
+            config=NoEvalConfig(iterations=0),
+            seed_templates=["Return one category."],
+            extract_category=extract_category,
+            verbose=False,
+        )
+        evolver._client.is_available = lambda: True
+        evolver._client.complete = lambda **kwargs: "account"
+
+        result = evolver.run()
+
+        assert result.critic_artifacts[0].to_dict() == {
+            "input": "I was charged twice",
+            "actual": "account",
+            "expected": "billing",
+            "failure_type": "wrong_category",
+            "suggestion": "Clarify how to distinguish billing.",
+        }
+
+    def test_demonstrations_are_rendered_for_model_and_scorer(self):
+        seen_prompts = []
+
+        class RecordingScorer(Scorer):
+            def score(self, prompt, test_input, output, client):
+                seen_prompts.append(prompt)
+                return 1.0
+
+        evolver = NoEvalPromptEvolver(
+            task_description="Classify support requests.",
+            test_inputs=["I cannot sign in"],
+            scorer=RecordingScorer(),
+            config=NoEvalConfig(iterations=0),
+            seed_templates=["Return one category."],
+            demonstrations=[Demonstration("Reset password", "account")],
+            verbose=False,
+        )
+        evolver._client.complete = lambda **kwargs: "account"
+
+        result = evolver.run()
+
+        assert seen_prompts == [result.best_prompt]
+        assert "Input: Reset password\nOutput: account" in result.best_prompt
+        assert result.best_demonstrations == [
+            Demonstration("Reset password", "account")
+        ]
+
     def test_run_mock_mode(self):
         """Evolver runs in mock mode when LLM is unavailable."""
 
