@@ -36,6 +36,7 @@ Typical usage::
 from __future__ import annotations
 
 import hashlib
+import inspect
 import json
 import logging
 import math
@@ -45,7 +46,7 @@ import textwrap
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Literal, Optional
 
 import numpy as np
 
@@ -100,6 +101,51 @@ class EvalSample:
     expected_params: dict[str, str] = field(default_factory=dict)
 
 
+@dataclass(frozen=True)
+class Demonstration:
+    """A worked input/output example that can evolve with a prompt."""
+
+    input: str
+    output: str
+
+    def render(self) -> str:
+        """Render the example in a consistent, model-friendly format."""
+        return f"Input: {self.input}\nOutput: {self.output}"
+
+
+@dataclass(frozen=True)
+class CriticArtifact:
+    """A structured explanation of one failed evaluation case."""
+
+    input: str
+    actual: str
+    expected: str
+    failure_type: str = "mismatch"
+    suggestion: str = ""
+
+    def render(self) -> str:
+        """Render the artifact for an LLM critic or prompt rewriter."""
+        lines = [
+            f"Input: {self.input}",
+            f"Actual: {self.actual}",
+            f"Expected: {self.expected}",
+            f"Failure type: {self.failure_type}",
+        ]
+        if self.suggestion:
+            lines.append(f"Suggestion: {self.suggestion}")
+        return "\n".join(lines)
+
+    def to_dict(self) -> dict[str, str]:
+        """Return a JSON-serialisable representation."""
+        return {
+            "input": self.input,
+            "actual": self.actual,
+            "expected": self.expected,
+            "failure_type": self.failure_type,
+            "suggestion": self.suggestion,
+        }
+
+
 _candidate_counter: int = 0
 
 
@@ -118,14 +164,66 @@ class PromptCandidate:
     parent_hashes: list[str] = field(default_factory=list)
     penalty_violations: int = 0
     selection_count: int = 0
+    demonstrations: list[Demonstration] = field(default_factory=list)
+
+    def render_prompt(self) -> str:
+        """Return the template with this candidate's demonstrations appended."""
+        if not self.demonstrations:
+            return self.template
+        examples = "\n\n".join(
+            demonstration.render() for demonstration in self.demonstrations
+        )
+        return f"{self.template}\n\n## Examples\n\n{examples}"
 
     def __post_init__(self) -> None:
         if not self.hash:
             global _candidate_counter  # noqa: PLW0603
             _candidate_counter += 1
             # Include counter to guarantee uniqueness even when templates match
-            blob = f"{self.template}|{self.generation}|{self.island_id}|{_candidate_counter}"
+            blob = (
+                f"{self.template}|{self.demonstrations}|{self.generation}|"
+                f"{self.island_id}|{_candidate_counter}"
+            )
             self.hash = hashlib.sha256(blob.encode()).hexdigest()[:16]
+
+
+def _seed_demonstrations(
+    pool: list[Demonstration], seed_index: int
+) -> list[Demonstration]:
+    """Create varied initial example subsets so selection has choices."""
+    if not pool or seed_index == 0:
+        return list(pool)
+    divisor = len(pool) + 1
+    return [
+        demonstration
+        for index, demonstration in enumerate(pool)
+        if (seed_index - 1 + index) % divisor != 0
+    ]
+
+
+def _crossover_demonstrations(
+    first: list[Demonstration],
+    second: list[Demonstration],
+    rng: np.random.Generator,
+) -> list[Demonstration]:
+    """Mix the unique demonstrations from two parents."""
+    combined = list(dict.fromkeys(first + second))
+    return [item for item in combined if rng.random() < 0.5]
+
+
+def _mutate_demonstrations(
+    current: list[Demonstration],
+    pool: list[Demonstration],
+    rng: np.random.Generator,
+) -> list[Demonstration]:
+    """Toggle one available demonstration in a candidate."""
+    mutated = list(current)
+    selected = pool[int(rng.integers(len(pool)))]
+    if selected in mutated:
+        mutated.remove(selected)
+    else:
+        mutated.append(selected)
+    return mutated
 
 
 class ProblemType(str, Enum):
@@ -270,6 +368,23 @@ class PromptEvolverConfig:
                             warm-started prompts that already clear the bar
                             skip evolution entirely. ``None`` (default)
                             disables early stopping.
+        alternating_optimization: When ``True`` and demonstrations are
+                    provided, optimize instructions first, then
+                    demonstrations for the strongest instruction
+                    candidate. Combined improvements must pass a
+                    deeper confirmation before promotion. Default
+                    ``False`` preserves joint evolution.
+            max_optimizer_calls: Maximum mutation, judging, and other optimizer
+                        LLM calls. ``None`` is unlimited.
+            max_target_calls:   Maximum candidate inference calls. ``None`` is
+                        unlimited.
+            max_input_tokens:   Maximum measured input tokens across all calls.
+            max_output_tokens:  Maximum measured output tokens across all calls.
+            max_wall_time:      Maximum run time in seconds. ``None`` is unlimited.
+            patience:           Stop after this many generations without at least
+                        ``min_improvement`` score gain. ``None`` disables.
+            min_improvement:    Minimum score gain, in percentage points, that
+                        resets patience. Default ``0.0``.
     """
 
     iterations: int = 30
@@ -309,6 +424,14 @@ class PromptEvolverConfig:
     eval_deep_sample_size: Optional[int] = None
     problem_type: ProblemType = ProblemType.TOOL_ROUTING
     early_stop_score: Optional[float] = None
+    alternating_optimization: bool = False
+    max_optimizer_calls: Optional[int] = None
+    max_target_calls: Optional[int] = None
+    max_input_tokens: Optional[int] = None
+    max_output_tokens: Optional[int] = None
+    max_wall_time: Optional[float] = None
+    patience: Optional[int] = None
+    min_improvement: float = 0.0
 
     def __post_init__(self) -> None:
         # Auto-detect from environment variables
@@ -335,6 +458,32 @@ class PromptEvolverConfig:
 # ---------------------------------------------------------------------------
 
 
+@dataclass(frozen=True)
+class BudgetUsage:
+    """Consumed LLM and wall-clock budget for one evolution run."""
+
+    optimizer_calls: int = 0
+    target_calls: int = 0
+    input_tokens: int = 0
+    output_tokens: int = 0
+    wall_time: float = 0.0
+    stop_reason: Optional[str] = None
+    quality_per_1k_tokens: Optional[float] = None
+    quality_per_100_calls: Optional[float] = None
+
+    @property
+    def total_calls(self) -> int:
+        return self.optimizer_calls + self.target_calls
+
+    @property
+    def total_tokens(self) -> int:
+        return self.input_tokens + self.output_tokens
+
+
+class BudgetExhausted(RuntimeError):
+    """Internal signal used to stop optimizers at a budget boundary."""
+
+
 class LLMClient:
     """Unified LLM client supporting Ollama and Azure OpenAI."""
 
@@ -359,8 +508,93 @@ class LLMClient:
         self._azure_token_expires: float = 0.0
         # Usage tracking
         self.call_count: int = 0
+        self.optimizer_calls: int = 0
+        self.target_calls: int = 0
         self.total_input_tokens: int = 0
         self.total_output_tokens: int = 0
+        self.budget_stop_reason: Optional[str] = None
+        self._budget_started_at: Optional[float] = None
+
+    def start_budget(self) -> None:
+        """Start wall-clock budget measurement for an evolution run."""
+        self._budget_started_at = time.perf_counter()
+
+    def budget_usage(
+        self,
+        quality: float,
+        wall_time: float,
+        stop_reason: Optional[str] = None,
+    ) -> BudgetUsage:
+        """Snapshot consumed budget and normalized quality efficiency."""
+        total_tokens = self.total_input_tokens + self.total_output_tokens
+        total_calls = self.optimizer_calls + self.target_calls
+        return BudgetUsage(
+            optimizer_calls=self.optimizer_calls,
+            target_calls=self.target_calls,
+            input_tokens=self.total_input_tokens,
+            output_tokens=self.total_output_tokens,
+            wall_time=wall_time,
+            stop_reason=stop_reason or self.budget_stop_reason,
+            quality_per_1k_tokens=(
+                quality * 1000 / total_tokens if total_tokens else None
+            ),
+            quality_per_100_calls=(
+                quality * 100 / total_calls if total_calls else None
+            ),
+        )
+
+    def _budget_allows(
+        self,
+        call_type: Literal["optimizer", "target"],
+        estimated_input_tokens: int,
+    ) -> bool:
+        """Return whether another call fits within configured limits."""
+        if self.budget_stop_reason is not None:
+            return False
+        cfg = self.config
+        elapsed = (
+            time.perf_counter() - self._budget_started_at
+            if self._budget_started_at is not None
+            else 0.0
+        )
+        checks = [
+            (cfg.max_wall_time, elapsed, "max_wall_time"),
+            (cfg.max_input_tokens, self.total_input_tokens + estimated_input_tokens,
+             "max_input_tokens"),
+        ]
+        for limit, consumed, reason in checks:
+            if limit is not None and consumed > limit:
+                self.budget_stop_reason = reason
+                return False
+        if (
+            cfg.max_output_tokens is not None
+            and self.total_output_tokens >= cfg.max_output_tokens
+        ):
+            self.budget_stop_reason = "max_output_tokens"
+            return False
+        calls = (
+            self.optimizer_calls if call_type == "optimizer" else self.target_calls
+        )
+        limit = (
+            cfg.max_optimizer_calls
+            if call_type == "optimizer"
+            else cfg.max_target_calls
+        )
+        if limit is not None and calls >= limit:
+            self.budget_stop_reason = f"max_{call_type}_calls"
+            return False
+        return True
+
+    def _completion_limit(self) -> Optional[int]:
+        """Return the per-call output cap remaining in the total budget."""
+        limits = []
+        if self.config.max_tokens is not None:
+            limits.append(self.config.max_tokens)
+        if self.config.max_output_tokens is not None:
+            limits.append(
+                max(0, self.config.max_output_tokens - self.total_output_tokens)
+            )
+        return min(limits) if limits else None
 
     def _record_usage(self, response_data: dict[str, Any]) -> None:
         """Accumulate token usage from an OpenAI-compatible response."""
@@ -415,8 +649,12 @@ class LLMClient:
         user_message: str,
         temperature: float = 0.1,
         top_p: float = 0.95,
+        call_type: Literal["optimizer", "target"] = "target",
     ) -> Optional[str]:
         """Send a chat completion request and return the assistant response."""
+        estimated_input = count_prompt_tokens(system_prompt + "\n" + user_message)
+        if not self._budget_allows(call_type, estimated_input):
+            return None
         # Fast-path: skip HTTP call if backend is known unavailable
         if not self.is_available():
             return None
@@ -428,17 +666,25 @@ class LLMClient:
             return None
 
         try:
+            if call_type == "optimizer":
+                self.optimizer_calls += 1
+            else:
+                self.target_calls += 1
+            completion_limit = self._completion_limit()
             if self.config.backend == LLMBackend.OLLAMA:
                 return self._ollama_complete(
-                    httpx, system_prompt, user_message, temperature, top_p
+                    httpx, system_prompt, user_message, temperature, top_p,
+                    completion_limit,
                 )
             elif self.config.backend == LLMBackend.AZURE_OPENAI:
                 return self._azure_complete(
-                    httpx, system_prompt, user_message, temperature, top_p
+                    httpx, system_prompt, user_message, temperature, top_p,
+                    completion_limit,
                 )
             elif self.config.backend == LLMBackend.OPENAI:
                 return self._openai_complete(
-                    httpx, system_prompt, user_message, temperature, top_p
+                    httpx, system_prompt, user_message, temperature, top_p,
+                    completion_limit,
                 )
         except Exception as exc:
             logger.debug("LLM call failed: %s", exc)
@@ -451,10 +697,11 @@ class LLMClient:
         user_message: str,
         temperature: float,
         top_p: float,
+        completion_limit: Optional[int],
     ) -> Optional[str]:
         options: dict[str, Any] = {"temperature": temperature, "top_p": top_p}
-        if self.config.max_tokens is not None:
-            options["num_predict"] = self.config.max_tokens
+        if completion_limit is not None:
+            options["num_predict"] = completion_limit
         body: dict[str, Any] = {
             "model": self.config.ollama_model,
             "messages": [
@@ -525,6 +772,7 @@ class LLMClient:
         user_message: str,
         temperature: float,
         top_p: float,
+        completion_limit: Optional[int],
     ) -> Optional[str]:
         base = self._azure_base_url(self.config.azure_endpoint)
         foundry = self._is_foundry_endpoint(self.config.azure_endpoint)
@@ -545,7 +793,7 @@ class LLMClient:
             ],
             "temperature": temperature,
             "top_p": top_p,
-            "max_tokens": self.config.max_tokens or 256,
+            "max_tokens": completion_limit or 256,
         }
         if foundry:
             body["model"] = self.config.azure_deployment
@@ -574,6 +822,7 @@ class LLMClient:
         user_message: str,
         temperature: float,
         top_p: float,
+        completion_limit: Optional[int],
     ) -> Optional[str]:
         resp = httpx.post(
             "https://api.openai.com/v1/chat/completions",
@@ -589,7 +838,7 @@ class LLMClient:
                 ],
                 "temperature": temperature,
                 "top_p": top_p,
-                "max_tokens": self.config.max_tokens or 256,
+                "max_tokens": completion_limit or 256,
             },
             timeout=self.config.timeout,
         )
@@ -601,6 +850,44 @@ class LLMClient:
                 content: str = choices[0].get("message", {}).get("content", "")
                 return content
         return None
+
+
+def _optimizer_complete(client: Any, **kwargs: Any) -> Optional[str]:
+    """Make an optimizer call while supporting legacy lightweight clients."""
+    parameters = inspect.signature(client.complete).parameters.values()
+    accepts_call_type = any(
+        parameter.name == "call_type"
+        or parameter.kind == inspect.Parameter.VAR_KEYWORD
+        for parameter in parameters
+    )
+    if accepts_call_type:
+        kwargs["call_type"] = "optimizer"
+    return client.complete(**kwargs)
+
+
+def _start_client_budget(client: Any) -> None:
+    """Start accounting when supported by the supplied client."""
+    start_budget = getattr(client, "start_budget", None)
+    if start_budget is not None:
+        start_budget()
+
+
+def _client_stop_reason(client: Any) -> Optional[str]:
+    """Read a native client's stop reason without requiring budget support."""
+    return getattr(client, "budget_stop_reason", None)
+
+
+def _client_budget_usage(
+    client: Any,
+    quality: float,
+    wall_time: float,
+    stop_reason: Optional[str],
+) -> BudgetUsage:
+    """Build usage for native clients and a neutral record for legacy clients."""
+    budget_usage = getattr(client, "budget_usage", None)
+    if budget_usage is not None:
+        return budget_usage(quality, wall_time, stop_reason)
+    return BudgetUsage(wall_time=wall_time, stop_reason=stop_reason)
 
 
 # ---------------------------------------------------------------------------
@@ -719,6 +1006,16 @@ def score_response(
 
     param_score = matches / len(expected_params) if expected_params else 1.0
     return tool_score + 0.4 * param_score
+
+
+def _format_tool_call(
+    tool: Optional[str], parameters: dict[str, Any]
+) -> str:
+    """Format a tool call consistently inside critic artifacts."""
+    return json.dumps(
+        {"tool": tool, "parameters": parameters},
+        sort_keys=True,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -1119,7 +1416,8 @@ def generate_adaptive_mutations(
         - Return ONLY the lines, one per line. No numbering, no bullets.
     """)
 
-    response = client.complete(
+    response = _optimizer_complete(
+        client,
         system_prompt=system_prompt,
         user_message=f"Worst {task_noun}: {category_lines}",
         temperature=0.7,
@@ -1275,7 +1573,8 @@ def _llm_describe_entities(
         f"```\n{template}\n```"
     )
 
-    rewritten = client.complete(
+    rewritten = _optimizer_complete(
+        client,
         system_prompt=_DESCRIBE_ENTITIES_SYSTEM,
         user_message=user_message,
         temperature=0.4,
@@ -1323,7 +1622,8 @@ def _llm_describe_entities(
                 f"Return ONLY the complete rewritten prompt.\n\n"
                 f"```\n{cleaned}\n```"
             )
-            retry_result = client.complete(
+            retry_result = _optimizer_complete(
+                client,
                 system_prompt=_DESCRIBE_ENTITIES_SYSTEM,
                 user_message=retry_message,
                 temperature=0.3,
@@ -1367,7 +1667,7 @@ def _llm_describe_entities(
 
 def _llm_mutate_template(
     template: str,
-    failure_examples: list[tuple[str, str, str]],
+    critic_artifacts: list[CriticArtifact],
     client: "LLMClient",
     problem_type: ProblemType,
     require_tool_schemas: bool = True,
@@ -1378,9 +1678,8 @@ def _llm_mutate_template(
     ----------
     template :
         The current system prompt.
-    failure_examples :
-        List of ``(input_text, predicted, expected)`` triples for
-        misclassified / misrouted samples.
+    critic_artifacts :
+        Structured failed evaluation cases for the prompt rewriter.
     client :
         LLM client to use for the rewrite.
     problem_type :
@@ -1390,30 +1689,26 @@ def _llm_mutate_template(
 
     Returns the rewritten prompt, or the original if the LLM fails.
     """
-    if not failure_examples:
+    if not critic_artifacts:
         return template
 
     if problem_type is ProblemType.CLASSIFICATION:
         system = _LLM_MUTATE_SYSTEM_CLASSIFICATION
-        example_label = "Expected class"
-        pred_label = "Predicted"
     else:
         system = _LLM_MUTATE_SYSTEM_TOOL_ROUTING
-        example_label = "Expected tool"
-        pred_label = "Predicted"
 
-    # Format failure examples (limit to 6 to control token usage)
-    examples_str = "\n".join(
-        f"  Input: {inp[:120]}\n  {pred_label}: {pred}\n  {example_label}: {exp}"
-        for inp, pred, exp in failure_examples[:6]
+    examples_str = "\n\n".join(
+        textwrap.indent(artifact.render(), "  ")
+        for artifact in critic_artifacts[:6]
     )
 
     user_message = (
         f"Current prompt:\n```\n{template}\n```\n\n"
-        f"Failure examples:\n{examples_str}"
+        f"Critic artifacts:\n{examples_str}"
     )
 
-    rewritten = client.complete(
+    rewritten = _optimizer_complete(
+        client,
         system_prompt=system,
         user_message=user_message,
         temperature=0.7,
@@ -1533,7 +1828,8 @@ def _refine_template(
     If the LLM is unreachable or the response is empty, falls back to
     returning the original template unchanged.
     """
-    refined = client.complete(
+    refined = _optimizer_complete(
+        client,
         system_prompt=_REFINE_SYSTEM_PROMPT,
         user_message=template,
         temperature=0.0,
@@ -1544,7 +1840,6 @@ def _refine_template(
 
     cleaned = refined.strip()
 
-    # Preserve the {tool_schemas} placeholder if the original had it
     if (
         require_tool_schemas
         and "{tool_schemas}" in template
@@ -1575,6 +1870,8 @@ class PromptEvolverResult:
         wall_time:        Total elapsed seconds.
         iterations_run:   Generations completed.
         llm_backend:      Which backend was used.
+        best_demonstrations: Structured examples in the winning candidate.
+        critic_artifacts: Structured failures observed during the run.
     """
 
     best_prompt: str
@@ -1587,6 +1884,14 @@ class PromptEvolverResult:
     wall_time: float
     iterations_run: int
     llm_backend: str
+    best_demonstrations: list[Demonstration] = field(default_factory=list)
+    critic_artifacts: list[CriticArtifact] = field(default_factory=list)
+    budget_usage: BudgetUsage = field(default_factory=BudgetUsage)
+
+    @property
+    def stop_reason(self) -> Optional[str]:
+        """Reason execution stopped early, if a limit was reached."""
+        return self.budget_usage.stop_reason
 
     def summary(self) -> str:
         lines = [
@@ -1597,8 +1902,18 @@ class PromptEvolverResult:
             f"  Best temperature: {self.best_temperature:.3f}",
             f"  Best top-p:       {self.best_top_p:.3f}",
             f"  Candidates tried: {len(self.all_candidates)}",
+            f"  Critic artifacts: {len(self.critic_artifacts)}",
             f"  Wall time:        {self.wall_time:.1f}s",
             f"  LLM backend:      {self.llm_backend}",
+            f"  Optimizer calls:  {self.budget_usage.optimizer_calls}",
+            f"  Target calls:     {self.budget_usage.target_calls}",
+            f"  Total calls:      {self.budget_usage.total_calls}",
+            f"  Input tokens:     {self.budget_usage.input_tokens}",
+            f"  Output tokens:    {self.budget_usage.output_tokens}",
+            f"  Total tokens:     {self.budget_usage.total_tokens}",
+            f"  Quality/1K tokens: {self.budget_usage.quality_per_1k_tokens or 0.0:.2f}",
+            f"  Quality/100 calls: {self.budget_usage.quality_per_100_calls or 0.0:.2f}",
+            f"  Stop reason:      {self.stop_reason or 'completed'}",
             "",
             "Best prompt template:",
             "-" * 50,
@@ -1607,12 +1922,7 @@ class PromptEvolverResult:
         return "\n".join(lines)
 
     def lineage_json(self) -> list[dict]:
-        """Return lineage records for all candidates as a list of dicts.
-
-        Each dict contains the candidate's hash, parent_hashes, operation,
-        generation, island_id, score, temperature, top_p, and full template.
-        Suitable for JSON serialisation and the lineage tree visualiser.
-        """
+        """Return lineage records for all candidates as a list of dicts."""
         return [
             {
                 "hash": c.hash,
@@ -1624,6 +1934,10 @@ class PromptEvolverResult:
                 "temperature": round(c.temperature, 4),
                 "top_p": round(c.top_p, 4),
                 "template": c.template,
+                "demonstrations": [
+                    {"input": item.input, "output": item.output}
+                    for item in c.demonstrations
+                ],
             }
             for c in self.all_candidates
         ]
@@ -1691,6 +2005,8 @@ class PromptEvolver:
         provided, the initial population is seeded from these instead of the
         built-in defaults — e.g. the known-good prompts from a previous model
         when migrating. ``None`` uses the built-in ``_SEED_TEMPLATES``.
+    demonstrations :
+        Optional worked examples to evolve alongside the prompt text.
     """
 
     def __init__(
@@ -1701,6 +2017,7 @@ class PromptEvolver:
         seed: int = 42,
         verbose: bool = True,
         seed_templates: Optional[list[str]] = None,
+        demonstrations: Optional[list[Demonstration]] = None,
     ) -> None:
         self.tools = tools
         self.eval_dataset = eval_dataset
@@ -1711,6 +2028,7 @@ class PromptEvolver:
         self._seed_templates = (
             list(seed_templates) if seed_templates else list(_SEED_TEMPLATES)
         )
+        self._demonstration_pool = list(demonstrations or [])
         self._tool_names = [t.name for t in tools]
         self._tool_schemas_str = "\n".join(
             f"  - {t.schema_str()}" for t in tools
@@ -1719,13 +2037,15 @@ class PromptEvolver:
         self._history: list[tuple[int, float]] = []
         self._require_tool_schemas = bool(tools)
         self._error_profile = ErrorProfile()
-        self._failure_examples: list[tuple[str, str, str]] = []
+        self._recent_critiques: list[CriticArtifact] = []
+        self._critic_artifacts: list[CriticArtifact] = []
         self._adaptive_pool: list[str] = []
         self._failure_bucket_pool: list[str] = []
 
     def run(self) -> PromptEvolverResult:
         """Run the evolutionary prompt optimisation loop."""
         t0 = time.perf_counter()
+        _start_client_budget(self._client)
 
         logger.info(
             "Starting evolution: %d generations, population=%d, "
@@ -1753,6 +2073,9 @@ class PromptEvolver:
             assigned_island = i % self.config.num_islands
             candidate = PromptCandidate(
                 template=template,
+                demonstrations=_seed_demonstrations(
+                    self._demonstration_pool, i
+                ),
                 temperature=float(
                     self._rng.uniform(*self.config.temperature_range)
                 ),
@@ -1762,6 +2085,8 @@ class PromptEvolver:
                 operation="seed",
             )
             candidate.score = self._evaluate_candidate(candidate)
+            if _client_stop_reason(self._client) is not None:
+                break
             islands[assigned_island].append(candidate)
             self._all_candidates.append(candidate)
             logger.info(
@@ -1770,6 +2095,10 @@ class PromptEvolver:
                 template.replace('\n', ' '),
             )
 
+        if not self._all_candidates:
+            candidate.score = 0.0
+            islands[candidate.island_id].append(candidate)
+            self._all_candidates.append(candidate)
         best_overall = max(self._all_candidates, key=lambda c: c.score)
         logger.info("Seed evaluation complete — best seed score=%.1f%%", best_overall.score)
 
@@ -1780,24 +2109,39 @@ class PromptEvolver:
                 "skipping evolution.", early, best_overall.score,
             )
         gens_run = 0
+        stale_generations = 0
+        stop_reason: Optional[str] = _client_stop_reason(self._client)
         for gen in range(1, self.config.iterations + 1):
+            if _client_stop_reason(self._client) is not None:
+                stop_reason = _client_stop_reason(self._client)
+                break
             if early is not None and best_overall.score >= early:
                 logger.info(
                     "Early stop before generation %d: best=%.1f%% >= "
                     "target %.1f%%", gen, best_overall.score, early,
                 )
                 break
-            gens_run = gen
             gen_t0 = time.perf_counter()
             logger.info("── Generation %d/%d ──", gen, self.config.iterations)
 
             # Reset error tracking per generation
             self._error_profile = ErrorProfile()
-            self._failure_examples = []
+            self._recent_critiques = []
 
             for island_id in range(self.config.num_islands):
                 island = islands[island_id]
                 if not island:
+                    continue
+
+                if (
+                    self.config.alternating_optimization
+                    and self._demonstration_pool
+                ):
+                    islands[island_id] = self._evolve_island_alternating(
+                        island, island_id, gen
+                    )
+                    if _client_stop_reason(self._client) is not None:
+                        break
                     continue
 
                 new_candidates: list[PromptCandidate] = []
@@ -1805,6 +2149,8 @@ class PromptEvolver:
                     child = self._breed(island, gen)
                     child.island_id = island_id
                     child.score = self._evaluate_candidate(child)
+                    if _client_stop_reason(self._client) is not None:
+                        break
                     new_candidates.append(child)
                     self._all_candidates.append(child)
                     logger.debug(
@@ -1812,6 +2158,8 @@ class PromptEvolver:
                         island_id, child.operation, child.score,
                     )
 
+                if _client_stop_reason(self._client) is not None:
+                    break
                 island_best = max(new_candidates, key=lambda c: c.score)
                 logger.info(
                     "  Island %d: bred %d candidates, best=%.1f%% (op=%s)",
@@ -1823,6 +2171,10 @@ class PromptEvolver:
                 combined = island + new_candidates
                 combined.sort(key=_feasibility_key, reverse=True)
                 islands[island_id] = combined[: self.config.elite_size]
+
+            if _client_stop_reason(self._client) is not None:
+                stop_reason = _client_stop_reason(self._client)
+                break
 
             # Migration: share best across islands every 5 generations
             if gen % 5 == 0:
@@ -1866,10 +2218,17 @@ class PromptEvolver:
             improved = (
                 _feasibility_key(gen_best) > _feasibility_key(best_overall)
             )
+            score_gain = gen_best.score - best_overall.score
             if improved:
                 best_overall = gen_best
 
+            if improved and score_gain >= self.config.min_improvement:
+                stale_generations = 0
+            else:
+                stale_generations += 1
+
             self._history.append((gen, best_overall.score))
+            gens_run = gen
 
             gen_elapsed = time.perf_counter() - gen_t0
             logger.info(
@@ -1895,6 +2254,14 @@ class PromptEvolver:
                     f"top_p={best_overall.top_p:.3f}"
                 )
 
+            if (
+                self.config.patience is not None
+                and stale_generations >= self.config.patience
+            ):
+                stop_reason = "patience"
+                break
+
+        best_overall = max(self._all_candidates, key=_feasibility_key)
         wall_time = time.perf_counter() - t0
 
         logger.info(
@@ -1909,7 +2276,7 @@ class PromptEvolver:
         )
 
         return PromptEvolverResult(
-            best_prompt=best_overall.template.replace(
+            best_prompt=best_overall.render_prompt().replace(
                 "{tool_schemas}", self._tool_schemas_str
             ),
             best_temperature=best_overall.temperature,
@@ -1923,12 +2290,130 @@ class PromptEvolver:
             wall_time=wall_time,
             iterations_run=gens_run,
             llm_backend=self.config.backend.value,
+            best_demonstrations=list(best_overall.demonstrations),
+            critic_artifacts=list(self._critic_artifacts),
+            budget_usage=_client_budget_usage(
+                self._client, best_overall.score, wall_time, stop_reason
+            ),
         )
 
     # -- internal ------------------------------------------------------------
 
+    def _evolve_island_alternating(
+        self,
+        island: list[PromptCandidate],
+        island_id: int,
+        generation: int,
+    ) -> list[PromptCandidate]:
+        """Optimize instructions, then demonstrations, with confirmation."""
+        incumbent = max(island, key=_feasibility_key)
+        instruction_candidates: list[PromptCandidate] = []
+
+        for _ in range(self.config.population_size):
+            child = self._breed(
+                island,
+                generation,
+                evolve_demonstrations=False,
+            )
+            child.island_id = island_id
+            child.operation = f"instruction_{child.operation}"
+            child.score = self._evaluate_candidate(child)
+            instruction_candidates.append(child)
+            self._all_candidates.append(child)
+
+        strongest_instruction = max(
+            [incumbent, *instruction_candidates], key=_feasibility_key
+        )
+        if (
+            strongest_instruction is not incumbent
+            and not self._confirm_improvement(
+                strongest_instruction, incumbent
+            )
+        ):
+            strongest_instruction = incumbent
+
+        confirmed_combinations: list[PromptCandidate] = []
+        for _ in range(self.config.population_size):
+            child = self._breed(
+                [strongest_instruction],
+                generation,
+                evolve_instructions=False,
+            )
+            if child.demonstrations == strongest_instruction.demonstrations:
+                child.demonstrations = _mutate_demonstrations(
+                    child.demonstrations,
+                    self._demonstration_pool,
+                    self._rng,
+                )
+            child.island_id = island_id
+            child.operation = "demonstration_mutation"
+            child.score = self._evaluate_candidate(child)
+            self._all_candidates.append(child)
+
+            if self._confirm_improvement(child, strongest_instruction):
+                confirmed_combinations.append(child)
+
+        promoted = [incumbent]
+        if strongest_instruction is not incumbent:
+            promoted.append(strongest_instruction)
+        promoted.extend(confirmed_combinations)
+        promoted.extend(candidate for candidate in island if candidate is not incumbent)
+        promoted.sort(key=_feasibility_key, reverse=True)
+        return promoted[: self.config.elite_size]
+
+    def _confirmation_samples(self) -> list[EvalSample]:
+        """Return one deeper sample used for paired promotion checks."""
+        shallow_size = self.config.eval_sample_size
+        if shallow_size is None:
+            shallow_size = max(1, (len(self.eval_dataset) + 1) // 2)
+        deep_size = self.config.eval_deep_sample_size or min(
+            len(self.eval_dataset), max(shallow_size + 1, shallow_size * 2)
+        )
+        if deep_size >= len(self.eval_dataset):
+            return self.eval_dataset
+        indices = self._rng.choice(
+            len(self.eval_dataset), size=deep_size, replace=False
+        )
+        return [self.eval_dataset[int(index)] for index in indices]
+
+    def _confirm_improvement(
+        self,
+        candidate: PromptCandidate,
+        incumbent: PromptCandidate,
+    ) -> bool:
+        """Confirm a candidate beats its incumbent on the same deep sample."""
+        samples = self._confirmation_samples()
+        candidate_prompt = candidate.render_prompt().replace(
+            "{tool_schemas}", self._tool_schemas_str
+        )
+        incumbent_prompt = incumbent.render_prompt().replace(
+            "{tool_schemas}", self._tool_schemas_str
+        )
+        candidate.score = self._apply_token_efficiency(
+            self._score_on_samples(candidate, candidate_prompt, samples),
+            candidate,
+        )
+        incumbent_score = self._apply_token_efficiency(
+            self._score_on_samples(incumbent, incumbent_prompt, samples),
+            incumbent,
+        )
+        candidate_key = (
+            1 if candidate.penalty_violations == 0 else 0,
+            candidate.score,
+        )
+        incumbent_key = (
+            1 if incumbent.penalty_violations == 0 else 0,
+            incumbent_score,
+        )
+        return candidate_key > incumbent_key
+
     def _breed(
-        self, island: list[PromptCandidate], generation: int
+        self,
+        island: list[PromptCandidate],
+        generation: int,
+        *,
+        evolve_instructions: bool = True,
+        evolve_demonstrations: bool = True,
     ) -> PromptCandidate:
         """Create a new candidate from island parents via mutation/crossover."""
         # Parent selection (configurable strategy)
@@ -1938,7 +2423,11 @@ class PromptEvolver:
         parent_hashes = [parent_a.hash]
         operation = "mutation"
 
-        if self._rng.random() < self.config.crossover_rate and len(island) > 1:
+        if (
+            evolve_instructions
+            and self._rng.random() < self.config.crossover_rate
+            and len(island) > 1
+        ):
             parent_b = self._select_parent(island)
             child_template = _crossover_templates(
                 parent_a.template,
@@ -1948,8 +2437,28 @@ class PromptEvolver:
             )
             parent_hashes = [parent_a.hash, parent_b.hash]
             operation = "crossover"
+            child_demonstrations = list(parent_a.demonstrations)
+            if evolve_demonstrations:
+                child_demonstrations = _crossover_demonstrations(
+                    parent_a.demonstrations,
+                    parent_b.demonstrations,
+                    self._rng,
+                )
         else:
             child_template = parent_a.template
+            child_demonstrations = list(parent_a.demonstrations)
+
+        if (
+            evolve_demonstrations
+            and
+            self._demonstration_pool
+            and self._rng.random() < self.config.mutation_rate
+        ):
+            child_demonstrations = _mutate_demonstrations(
+                child_demonstrations,
+                self._demonstration_pool,
+                self._rng,
+            )
 
         # Build mutation pool (static + adaptive + failure-bucket)
         mutations = list(get_mutations_for_problem_type(self.config.problem_type))
@@ -1960,24 +2469,31 @@ class PromptEvolver:
 
         # LLM-assisted mutation path: rewrite using failure cases
         if (
+            evolve_instructions
+            and
             self.config.llm_mutation_rate > 0
             and self._rng.random() < self.config.llm_mutation_rate
-            and self._failure_examples
+            and self._recent_critiques
         ):
-            n_fail = min(6, len(self._failure_examples))
+            n_fail = min(6, len(self._recent_critiques))
             fail_idx = self._rng.choice(
-                len(self._failure_examples), size=n_fail, replace=False
+                len(self._recent_critiques), size=n_fail, replace=False
             )
-            sampled_failures = [self._failure_examples[int(i)] for i in fail_idx]
+            sampled_critiques = [
+                self._recent_critiques[int(i)] for i in fail_idx
+            ]
             child_template = _llm_mutate_template(
                 child_template,
-                sampled_failures,
+                sampled_critiques,
                 self._client,
                 self.config.problem_type,
                 require_tool_schemas=self._require_tool_schemas,
             )
             operation = "llm_mutation"
-        elif self._rng.random() < self.config.mutation_rate:
+        elif (
+            evolve_instructions
+            and self._rng.random() < self.config.mutation_rate
+        ):
             # Mutate template
             child_template = _mutate_template(
                 child_template,
@@ -1989,6 +2505,8 @@ class PromptEvolver:
 
         # Describe-entities mutation: randomly expand bare entity names
         if (
+            evolve_instructions
+            and
             self.config.describe_entities
             and self._client.is_available()
             and self._rng.random() < self.config.mutation_rate * 0.15
@@ -2004,7 +2522,7 @@ class PromptEvolver:
             logger.debug("Breed: applied describe_entities mutation")
 
         # Optional LLM-based clarity refinement
-        if self.config.refine_after_splice:
+        if evolve_instructions and self.config.refine_after_splice:
             child_template = _refine_template(
                 child_template,
                 self._client,
@@ -2012,15 +2530,17 @@ class PromptEvolver:
             )
 
         # Mutate continuous params with DE-style perturbation
-        temp = parent_a.temperature + float(self._rng.normal(0, 0.1))
-        temp = float(
-            np.clip(temp, *self.config.temperature_range)
-        )
-        top_p = parent_a.top_p + float(self._rng.normal(0, 0.05))
-        top_p = float(np.clip(top_p, *self.config.top_p_range))
+        temp = parent_a.temperature
+        top_p = parent_a.top_p
+        if evolve_instructions:
+            temp += float(self._rng.normal(0, 0.1))
+            temp = float(np.clip(temp, *self.config.temperature_range))
+            top_p += float(self._rng.normal(0, 0.05))
+            top_p = float(np.clip(top_p, *self.config.top_p_range))
 
         return PromptCandidate(
             template=child_template,
+            demonstrations=child_demonstrations,
             temperature=temp,
             top_p=top_p,
             generation=generation,
@@ -2051,7 +2571,7 @@ class PromptEvolver:
             def _token_aware_key(c: PromptCandidate) -> tuple:
                 feasible = 1 if c.penalty_violations == 0 else 0
                 bucket = int(c.score // band)
-                tokens = count_prompt_tokens(c.template)
+                tokens = count_prompt_tokens(c.render_prompt())
                 return (feasible, bucket, -tokens)
 
             return max(contestants, key=_token_aware_key)
@@ -2120,6 +2640,7 @@ class PromptEvolver:
             dest = (src + 1) % n
             migrant = PromptCandidate(
                 template=best.template,
+                demonstrations=list(best.demonstrations),
                 temperature=best.temperature,
                 top_p=best.top_p,
                 generation=best.generation,
@@ -2149,7 +2670,7 @@ class PromptEvolver:
                 and cfg.baseline_prompt_tokens > 0):
             return raw_score
 
-        prompt_tokens = count_prompt_tokens(candidate.template)
+        prompt_tokens = count_prompt_tokens(candidate.render_prompt())
         efficiency = cfg.baseline_prompt_tokens / max(prompt_tokens, 1)
         efficiency_bonus = (
             min(efficiency, cfg.token_efficiency_cap)
@@ -2175,18 +2696,23 @@ class PromptEvolver:
         expected tools).  This avoids wasting API calls on homogeneous
         datasets where a deeper pass adds no signal.
         """
-        system_prompt = candidate.template.replace(
+        system_prompt = candidate.render_prompt().replace(
             "{tool_schemas}", self._tool_schemas_str
         )
 
         # Optionally subsample the evaluation set (shallow pass)
+        sample_size = self.config.eval_sample_size
         if (
-            self.config.eval_sample_size
-            and self.config.eval_sample_size < len(self.eval_dataset)
+            sample_size is None
+            and self.config.alternating_optimization
+            and self._demonstration_pool
+            and len(self.eval_dataset) > 1
         ):
+            sample_size = max(1, (len(self.eval_dataset) + 1) // 2)
+        if sample_size and sample_size < len(self.eval_dataset):
             indices = self._rng.choice(
                 len(self.eval_dataset),
-                size=self.config.eval_sample_size,
+                size=sample_size,
                 replace=False,
             )
             samples = [self.eval_dataset[int(i)] for i in indices]
@@ -2201,11 +2727,13 @@ class PromptEvolver:
         # Dynamic: auto-compute deep size when not explicitly set
         if deep_size is None and cfg.eval_promotion_threshold > 0:
             distinct_tools = len({s.expected_tool for s in self.eval_dataset})
-            shallow = cfg.eval_sample_size or len(self.eval_dataset)
+            shallow = sample_size or len(self.eval_dataset)
             if distinct_tools >= 3 and len(self.eval_dataset) > shallow:
                 deep_size = min(len(self.eval_dataset), shallow * 2)
 
         if (
+            not cfg.alternating_optimization
+            and
             cfg.eval_promotion_threshold > 0
             and deep_size is not None
             and raw_score >= cfg.eval_promotion_threshold
@@ -2247,6 +2775,17 @@ class PromptEvolver:
                 # LLM not available — random score for testing
                 total_score += float(self._rng.uniform(0, 0.5))
                 self._error_profile.record_bucket(FailureBucket.NO_OUTPUT)
+                self._record_critic(
+                    CriticArtifact(
+                        input=sample.query,
+                        actual="No output",
+                        expected=_format_tool_call(
+                            sample.expected_tool, sample.expected_params
+                        ),
+                        failure_type=FailureBucket.NO_OUTPUT.value,
+                        suggestion="Ensure the prompt requires a tool-call response.",
+                    )
+                )
                 continue
 
             predicted_tool, predicted_params = parse_tool_response(
@@ -2264,24 +2803,53 @@ class PromptEvolver:
             expected_tool = sample.expected_tool
             correct = sample_score >= 0.5
             self._error_profile.record(expected_tool, correct)
-            if not correct:
-                self._failure_examples.append(
-                    (sample.query, predicted_tool or response[:80], expected_tool)
-                )
 
             # Classify failure into structured bucket
             if sample_score < 1.0 - 0.001:
                 if predicted_tool is None:
-                    self._error_profile.record_bucket(FailureBucket.UNPARSEABLE)
+                    bucket = FailureBucket.UNPARSEABLE
+                    actual = response[:200]
+                    suggestion = "Require one valid tool-call JSON object."
                 elif predicted_tool != sample.expected_tool:
-                    self._error_profile.record_bucket(FailureBucket.WRONG_TOOL)
+                    bucket = FailureBucket.WRONG_TOOL
+                    actual = _format_tool_call(predicted_tool, predicted_params)
+                    suggestion = f"Clarify when to choose {sample.expected_tool}."
                 elif sample.expected_params and sample_score <= 0.6 + 0.001:
-                    self._error_profile.record_bucket(FailureBucket.WRONG_PARAMS)
+                    bucket = FailureBucket.WRONG_PARAMS
+                    actual = _format_tool_call(predicted_tool, predicted_params)
+                    suggestion = (
+                        f"Clarify the required parameters for {sample.expected_tool}."
+                    )
                 elif sample.expected_params:
-                    self._error_profile.record_bucket(FailureBucket.PARTIAL_MATCH)
+                    bucket = FailureBucket.PARTIAL_MATCH
+                    actual = _format_tool_call(predicted_tool, predicted_params)
+                    suggestion = (
+                        f"Clarify exact parameter values for {sample.expected_tool}."
+                    )
+                else:
+                    bucket = FailureBucket.PARTIAL_MATCH
+                    actual = _format_tool_call(predicted_tool, predicted_params)
+                    suggestion = f"Clarify the expected output for {sample.expected_tool}."
+                self._error_profile.record_bucket(bucket)
+                self._record_critic(
+                    CriticArtifact(
+                        input=sample.query,
+                        actual=actual,
+                        expected=_format_tool_call(
+                            sample.expected_tool, sample.expected_params
+                        ),
+                        failure_type=bucket.value,
+                        suggestion=suggestion,
+                    )
+                )
 
         accuracy = total_score / len(samples) if samples else 0.0
         return accuracy * 100.0
+
+    def _record_critic(self, artifact: CriticArtifact) -> None:
+        """Store an artifact for mutation context and final inspection."""
+        self._recent_critiques.append(artifact)
+        self._critic_artifacts.append(artifact)
 
 
 # ---------------------------------------------------------------------------
@@ -2311,6 +2879,7 @@ def evolve_prompt_with_cmaes(
 
     cfg = config or PromptEvolverConfig()
     client = LLMClient(cfg)
+    client.start_budget()
     tool_names = [t.name for t in tools]
     tool_schemas_str = "\n".join(f"  - {t.schema_str()}" for t in tools)
     rng = np.random.default_rng(seed)
@@ -2329,6 +2898,8 @@ def evolve_prompt_with_cmaes(
                 response = client.complete(
                     system_prompt, sample.query, temperature, top_p
                 )
+                if client.budget_stop_reason is not None:
+                    raise BudgetExhausted(client.budget_stop_reason)
                 if response is None:
                     total_score += float(rng.uniform(0, 0.5))
                     continue
@@ -2364,7 +2935,10 @@ def evolve_prompt_with_cmaes(
 
     t0 = time.perf_counter()
     cmaes = CMAES(problem, seed=seed)
-    result = cmaes.run(max_generations=max_generations)
+    try:
+        cmaes.run(max_generations=max_generations)
+    except BudgetExhausted:
+        logger.info("CMA-ES stopped: %s", client.budget_stop_reason)
     wall_time = time.perf_counter() - t0
 
     return PromptEvolverResult(
@@ -2376,6 +2950,11 @@ def evolve_prompt_with_cmaes(
         history=[],
         all_candidates=[],
         wall_time=wall_time,
-        iterations_run=max_generations,
+        iterations_run=(0 if client.budget_stop_reason else max_generations),
         llm_backend=cfg.backend.value,
+        budget_usage=client.budget_usage(
+            best_found["score"] * 100,
+            wall_time,
+            client.budget_stop_reason,
+        ),
     )

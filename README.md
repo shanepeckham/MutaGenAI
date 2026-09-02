@@ -1,4 +1,7 @@
-# MutagenAI
+---
+title: MutaGenAI
+description: Evolve and evaluate LLM system prompts using evolutionary search
+---
 
 Evolve LLM system prompts using evolutionary search — no fine-tuning, no
 GPUs, no labelled data required.
@@ -19,9 +22,14 @@ GPUs, no labelled data required.
 - [How prompt evolution works](#how-prompt-evolution-works)
   - [The approach](#the-approach)
   - [The evolutionary loop](#the-evolutionary-loop)
+   - [Budget-first execution](#budget-first-execution)
+   - [Research-grade experiment reporting](#research-grade-experiment-reporting)
 - [Core modules](#core-modules)
 - [Ground-truth prompt evolution](#ground-truth-prompt-evolution)
   - [Quick start — PromptEvolver](#quick-start--promptevolver)
+   - [Evolve worked examples](#evolve-worked-examples)
+   - [Alternate instructions and examples](#alternate-instructions-and-examples)
+   - [Inspect critic artifacts](#inspect-critic-artifacts)
   - [Baseline comparison](#baseline-comparison)
   - [Ollama vs Azure OpenAI](#ollama-vs-azure-openai)
   - [Agentic workload scenarios](#agentic-workload-scenarios)
@@ -36,6 +44,7 @@ GPUs, no labelled data required.
   - [Key takeaways from benchmarks](#key-takeaways-from-benchmarks)
 - [No-eval prompt evolution — 7 strategies](#no-eval-prompt-evolution--7-strategies)
   - [The seven strategies](#the-seven-strategies)
+   - [Validate synthetic examples](#validate-synthetic-examples)
   - [Quick start — NoEvalPromptEvolver](#quick-start--noevalpromptevolver)
   - [Which strategy should I pick?](#which-strategy-should-i-pick)
 - [xLAM no-eval worked example](#xlam-no-eval-worked-example)
@@ -371,6 +380,114 @@ config = PromptEvolverConfig(
 Failure bucket mutations are generated automatically each generation and
 blended into the mutation pool alongside adaptive and built-in mutations.
 
+### Budget-first execution
+
+Set hard limits on optimizer calls, target-model calls, tokens, elapsed time,
+and stale generations. When a limit is reached, evolution returns the best
+fully evaluated candidate completed so far.
+
+This example creates an envelope comparable to PromptWizard's reported 69
+calls and approximately 25K tokens:
+
+```python
+config = PromptEvolverConfig(
+   max_optimizer_calls=24,
+   max_target_calls=45,
+   max_input_tokens=20_000,
+   max_output_tokens=5_000,
+   max_wall_time=1_800,
+   patience=2,
+   min_improvement=0.1,
+)
+```
+
+The same fields are available on `NoEvalConfig`. Calls that mutate, refine,
+generate, compare, or judge count as optimizer calls. Candidate inference and
+self-consistency samples count as target calls.
+
+```python
+result = evolver.run()
+print(result.best_score)
+print(result.budget_usage.total_calls)
+print(result.budget_usage.total_tokens)
+print(result.budget_usage.quality_per_1k_tokens)
+print(result.stop_reason)  # None, max_target_calls, patience, and so on
+```
+
+Input limits are checked before dispatch using a local token estimate. Output
+limits are passed to the provider as the remaining completion allowance. A
+provider may report a slightly different token count, so the response that
+crosses a measured limit can finish; no later call is dispatched.
+
+### Research-grade experiment reporting
+
+Use `ExperimentReport` to aggregate independent seeded runs without coupling
+the analysis to a particular benchmark. Each run records explicit train,
+development, and holdout scores alongside optimizer calls, target calls, and
+token totals.
+
+Create one stable dataset split before running any experiment. Optimize on
+train, select prompts using development scores, and evaluate the selected
+prompt on holdout only after selection.
+
+```python
+from MutaGenAI import (
+   CandidateEvaluation,
+   ExperimentReport,
+   ExperimentRun,
+   split_dataset,
+)
+
+splits = split_dataset(dataset, seed=2026)
+
+def run_one_seed(seed: int) -> ExperimentRun:
+   result = evolve_on_train(splits.train, seed=seed)
+   split_scores = {
+      "train": evaluate(result.best_prompt, splits.train),
+      "development": evaluate(result.best_prompt, splits.development),
+      "holdout": evaluate(result.best_prompt, splits.holdout),
+   }
+   usage = result.budget_usage
+   return ExperimentRun(
+      seed=seed,
+      variant="full",
+      selected_candidate="evolved",
+      candidates=(
+         CandidateEvaluation("evolved", result.best_prompt, split_scores),
+      ),
+      optimizer_calls=usage.optimizer_calls,
+      target_calls=usage.target_calls,
+      input_tokens=usage.input_tokens,
+      output_tokens=usage.output_tokens,
+   )
+
+report = ExperimentReport.run_seeded([11, 22, 33, 44, 55], run_one_seed)
+holdout = report.summarize(split="holdout")
+print(holdout.mean, holdout.variance, holdout.confidence_interval)
+print(report.resource_totals())
+```
+
+Confidence intervals use deterministic percentile bootstrapping over seeded
+run means. Variance is sample variance, so each seed should represent an
+independent run.
+
+For component ablations, repeat the same seeds under named variants and merge
+the run records. Comparisons use only shared seeds:
+
+```python
+report = ExperimentReport(full_runs + without_critic_runs + without_crossover_runs)
+ablations = report.ablations("full", split="holdout")
+paired = report.compare_candidates("evolved", "baseline", split="holdout")
+curve = report.prompt_length_curve(split="holdout", bin_width=25)
+
+payload = report.to_dict()  # JSON-serializable runs, splits, and call/token totals
+```
+
+`PairedComparison` reports the mean paired difference, variance, confidence
+interval, and win/tie/loss counts. `prompt_length_curve()` groups every stored
+candidate by approximate prompt-token length and summarizes performance in
+each bin.
+
 ---
 
 ## Core modules
@@ -417,6 +534,95 @@ evolver = PromptEvolver(
 result = evolver.run()
 print(result.summary())
 ```
+
+### Evolve worked examples
+
+Pass a pool of `Demonstration` objects when examples may help the model. MutaGenAI
+evolves which examples are included alongside the prompt text, so unhelpful examples
+can be removed and useful examples can survive or recombine.
+
+```python
+from MutaGenAI import Demonstration, PromptEvolver
+
+examples = [
+   Demonstration(
+      input="Weather in Rome?",
+      output='{"tool": "get_weather", "parameters": {"location": "Rome"}}',
+   ),
+   Demonstration(
+      input="Email Sam about lunch",
+      output='{"tool": "send_email", "parameters": {"to": "Sam"}}',
+   ),
+]
+
+evolver = PromptEvolver(
+   tools=tools,
+   eval_dataset=dataset,
+   demonstrations=examples,
+)
+result = evolver.run()
+
+print(result.best_prompt)          # Ready to use, including winning examples
+print(result.best_demonstrations)  # Structured winning subset
+```
+
+The same `demonstrations=` argument works with `NoEvalPromptEvolver`. Omitting it
+preserves prompt-only evolution. The wizard can also collect worked examples and
+write them into its generated script.
+
+### Alternate instructions and examples
+
+Enable alternating optimization when you want instruction changes and example
+changes evaluated separately:
+
+```python
+config = PromptEvolverConfig(
+   alternating_optimization=True,
+   eval_sample_size=20,       # Optional shallow search sample
+   eval_deep_sample_size=50,  # Optional promotion sample
+)
+
+evolver = PromptEvolver(
+   tools=tools,
+   eval_dataset=dataset,
+   demonstrations=examples,
+   config=config,
+)
+result = evolver.run()
+```
+
+Within each generation, MutaGenAI:
+
+1. Evolves instructions while keeping examples fixed.
+2. Evolves examples for the strongest confirmed instructions.
+3. Re-evaluates each combined candidate.
+4. Promotes it only when it beats its parent on the same deeper sample.
+
+The sample sizes are optional. By default, search uses half of the available
+cases and confirmation uses all cases. `NoEvalConfig` supports the same three
+settings. Wizard-generated scripts enable alternating optimization automatically
+when you provide worked examples.
+
+### Inspect critic artifacts
+
+Every failed evaluation produces a structured `CriticArtifact`. It records the
+input, actual result, expected result, failure type, and a concrete suggestion.
+The evolution engine also uses recent artifacts to guide LLM-assisted mutations.
+
+```python
+result = evolver.run()
+
+for artifact in result.critic_artifacts:
+   print(artifact.failure_type, artifact.suggestion)
+
+# JSON-friendly dictionaries for reports or later analysis
+critic_data = [artifact.to_dict() for artifact in result.critic_artifacts]
+```
+
+No configuration is required. Ground-truth evolution creates artifacts for tool
+and parameter failures. `NoEvalPromptEvolver` creates them when an
+`extract_category` callback supplies expected and predicted categories. Wizard-
+generated scripts print the artifact count and up to three sample critiques.
 
 ### Baseline comparison
 
@@ -695,6 +901,53 @@ seven alternative signal sources.
 | 5 | **Proxy Metrics** | Structural checks (JSON, format, length) | 0 extra | Format compliance |
 | 6 | **Preference Scoring** | Good/bad output pairs as references | 1 extra | 5–10 example preferences |
 | 7 | **Human Tournament** | Human picks best per generation | 0 extra | Highest quality |
+
+### Validate synthetic examples
+
+Use `generate_validated()` when synthetic examples may become demonstrations or
+evaluation cases. It keeps generated examples in quarantine until they pass
+schema checks, deterministic verification when available, an independent judge,
+duplicate and leakage checks, and difficulty/failure-bucket tagging.
+
+```python
+import json
+
+from MutaGenAI import SyntheticEvalGenerator
+
+
+def verify_if_deterministic(example_input, expected_output):
+   if example_input == "2 + 2":
+      return expected_output == "4"
+   return None  # No deterministic verifier is available for this case
+
+
+generator = SyntheticEvalGenerator(task_description=task, num_cases=20)
+report = generator.generate_validated(
+   generator_client,
+   judge_client=independent_judge_client,
+   output_validator=lambda output: bool(json.loads(output)),
+   answer_verifier=verify_if_deterministic,
+   reference_inputs=holdout_inputs,
+   leakage_terms=["private benchmark marker"],
+)
+
+print(f"Accepted: {len(report.accepted)}")
+for rejected in report.rejected:
+   print(rejected.reasons)
+
+# Only accepted examples can enter the gene pool.
+evolver = NoEvalPromptEvolver(
+   task_description=task,
+   test_inputs=[case["input"] for case in report.cases],
+   scorer=SyntheticEvalScorer(report.cases),
+   demonstrations=report.demonstrations,
+)
+```
+
+Each accepted case includes `difficulty` and `failure_bucket`. The judge client
+must be a separate client instance from the generator. The wizard does not need
+another setting because it collects user-authored examples rather than generating
+synthetic examples.
 
 ### Quick start — NoEvalPromptEvolver
 

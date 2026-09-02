@@ -54,6 +54,10 @@ class TargetConfig:
         Generation cap for target responses.
     timeout : float
         Per-request timeout in seconds.
+    ollama_think : bool or None
+        For Ollama reasoning models (e.g. qwen3): ``False`` disables the
+        think phase so the target returns a direct answer to evaluate;
+        ``None`` (default) leaves the flag unset.
     """
 
     backend: LLMBackend = LLMBackend.OLLAMA
@@ -64,6 +68,7 @@ class TargetConfig:
     top_p: float = 0.95
     max_tokens: Optional[int] = 512
     timeout: float = 60.0
+    ollama_think: Optional[bool] = None
 
     def to_llm_config(self) -> PromptEvolverConfig:
         """Build the underlying :class:`PromptEvolverConfig`."""
@@ -73,6 +78,7 @@ class TargetConfig:
             ollama_model=self.model,
             max_tokens=self.max_tokens,
             timeout=self.timeout,
+            ollama_think=self.ollama_think,
         )
 
 
@@ -144,5 +150,6 @@ class TargetModel:
             top_p=self.config.top_p,
             max_tokens=self.config.max_tokens,
             timeout=self.config.timeout,
+            ollama_think=self.config.ollama_think,
         )
         return TargetModel(new_cfg, client=self._client)

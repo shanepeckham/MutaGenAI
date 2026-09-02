@@ -129,6 +129,9 @@ class WizardState:
     has_seed_templates: bool = False
     seed_templates: list[str] = field(default_factory=list)
 
+    # Worked examples that evolution can add or remove
+    demonstrations: list[dict[str, str]] = field(default_factory=list)
+
     # Backend
     backend: str = "ollama"  # ollama / openai / azure_openai
     model: str = "llama3.2"
@@ -494,6 +497,27 @@ def _step_seeds(state: WizardState) -> None:
         _print("  The script will generate seeds from your task description.")
 
 
+def _step_demonstrations(state: WizardState) -> None:
+    _print("\n[bold yellow]Step 8b of 10 — Worked Examples[/bold yellow]" if _HAS_RICH
+           else "\nStep 8b of 10 — Worked Examples")
+    _print("Worked input/output examples can evolve with the prompt.\n"
+           "Evolution will test which examples help and which add noise.\n")
+
+    if not _confirm("  Do you have worked examples to evolve?", default=False):
+        return
+
+    _print("  Enter each input and its ideal output. Type 'done' as an input to finish.\n")
+    while True:
+        example_input = _ask("  Example input (or 'done')")
+        if example_input.lower() == "done":
+            break
+        example_output = _ask("  Ideal output")
+        state.demonstrations.append(
+            {"input": example_input, "output": example_output}
+        )
+    _print(f"  Collected {len(state.demonstrations)} worked examples.")
+
+
 def _step_backend(state: WizardState) -> None:
     _print("\n[bold yellow]Step 9 of 10 — LLM Backend[/bold yellow]" if _HAS_RICH
            else "\nStep 9 of 10 — LLM Backend")
@@ -826,6 +850,7 @@ def _generate_script(state: WizardState) -> str:
     # ── Imports ──────────────────────────────────────────
     imports = [
         "from MutaGenAI.prompt_evolver import (",
+        "    Demonstration,",
         "    LLMBackend,",
         "    LLMClient,",
         "    PromptCandidate,",
@@ -917,6 +942,15 @@ def _generate_script(state: WizardState) -> str:
             seeds_code += f'    "{tpl_escaped}",\n'
     seeds_code += "]\n"
     sections.append(seeds_code)
+
+    demonstrations_code = "DEMONSTRATIONS = [\n"
+    for demonstration in state.demonstrations:
+        demonstrations_code += (
+            "    Demonstration("
+            f"{demonstration['input']!r}, {demonstration['output']!r}),\n"
+        )
+    demonstrations_code += "]\n"
+    sections.append(demonstrations_code)
 
     # ── Test inputs ──────────────────────────────────────
     if state.test_input_file:
@@ -1188,6 +1222,16 @@ def _build_main_block(state: WizardState) -> str:
     lines.append(f"        adaptive_mutations=True,")
     lines.append(f"        llm_mutation_rate=0.3,")
     lines.append(f"        refine_after_splice=True,")
+    lines.append(f"        max_optimizer_calls=24,")
+    lines.append(f"        max_target_calls=45,")
+    lines.append(f"        max_input_tokens=20_000,")
+    lines.append(f"        max_output_tokens=5_000,")
+    lines.append(f"        max_wall_time=1_800,")
+    lines.append(f"        patience=2,")
+    lines.append(f"        min_improvement=0.1,")
+    lines.append(
+        f"        alternating_optimization={bool(state.demonstrations)},"
+    )
     lines.append(f"{noeval_backend_kwarg}    )")
 
     # Config summary
@@ -1197,6 +1241,7 @@ def _build_main_block(state: WizardState) -> str:
     lines.append(f'    print(f"    Population:     {{config.population_size}} per island")')
     lines.append(f'    print(f"    Islands:        {{config.num_islands}}")')
     lines.append(f'    print(f"    Seed templates: {{len(SEED_TEMPLATES)}}")')
+    lines.append(f'    print(f"    Worked examples: {{len(DEMONSTRATIONS)}}")')
     lines.append(f'    print(f"    Test inputs:    {{len(TEST_INPUTS)}}")')
     lines.append(f'    print(f"    Backend:        {{BACKEND.value}}")')
     lines.append(f'    print(f"    Model:          {{MODEL}}")')
@@ -1227,6 +1272,7 @@ def _build_main_block(state: WizardState) -> str:
     lines.append("        scorer=scorer,")
     lines.append("        config=config,")
     lines.append("        seed_templates=SEED_TEMPLATES,")
+    lines.append("        demonstrations=DEMONSTRATIONS,")
     lines.append("        custom_mutations=DOMAIN_MUTATIONS,")
     lines.append("    )")
     lines.append("    print()")
@@ -1249,13 +1295,22 @@ def _build_main_block(state: WizardState) -> str:
     lines.append('    print(f"  Top-p:             {result.best_top_p:.3f}")')
     lines.append('    print(f"  Wall time:         {elapsed:.1f}s")')
     lines.append('    print(f"  Total candidates:  {len(result.all_candidates)}")')
+    lines.append('    print(f"  Critic artifacts:  {len(result.critic_artifacts)}")')
     lines.append('    print(f"  Generations run:   {result.iterations_run}")')
+    lines.append('    print(f"  Optimizer calls:   {result.budget_usage.optimizer_calls}")')
+    lines.append('    print(f"  Target calls:      {result.budget_usage.target_calls}")')
+    lines.append('    print(f"  Total tokens:      {result.budget_usage.total_tokens}")')
+    lines.append('    print(f"  Stop reason:       {result.stop_reason or \'completed\'}")')
     lines.append("    print()")
     lines.append('    print("  Best prompt:")')
     lines.append('    print("  " + "─" * 58)')
     lines.append("    for line in result.best_prompt.split(\"\\n\"):")
     lines.append("        print(f\"    {line}\")")
     lines.append('    print("  " + "─" * 58)')
+    lines.append("    if result.critic_artifacts:")
+    lines.append('        print("  Sample critiques:")')
+    lines.append("        for artifact in result.critic_artifacts[:3]:")
+    lines.append('            print(textwrap.indent(artifact.render(), "    "))')
 
     # Human final selection
     if state.human_eval == "final":
@@ -1280,6 +1335,15 @@ def _build_main_block(state: WizardState) -> str:
     lines.append('        "best_top_p": result.best_top_p,')
     lines.append('        "wall_time": elapsed,')
     lines.append('        "iterations": result.iterations_run,')
+    lines.append('        "budget_usage": {')
+    lines.append('            "optimizer_calls": result.budget_usage.optimizer_calls,')
+    lines.append('            "target_calls": result.budget_usage.target_calls,')
+    lines.append('            "input_tokens": result.budget_usage.input_tokens,')
+    lines.append('            "output_tokens": result.budget_usage.output_tokens,')
+    lines.append('            "stop_reason": result.stop_reason,')
+    lines.append('            "quality_per_1k_tokens": result.budget_usage.quality_per_1k_tokens,')
+    lines.append('            "quality_per_100_calls": result.budget_usage.quality_per_100_calls,')
+    lines.append('        },')
     lines.append("    }, indent=2))")
     lines.append('    print(f"\\n  Results saved to {out_path}")')
 
@@ -1317,6 +1381,7 @@ def _show_summary(state: WizardState) -> None:
         tbl.add_row("Seed templates",
                      f"{len(state.seed_templates)} custom" if state.seed_templates
                      else "auto-generated")
+        tbl.add_row("Worked examples", str(len(state.demonstrations)))
         tbl.add_row("Penalties",
                      f"{len(state.penalties)} custom" if state.penalties
                      else "none")
@@ -1365,6 +1430,7 @@ def run_wizard(output: str = "evolve_prompt.py") -> str:
     _step_mutations(state)
     _step_human_eval(state)
     _step_seeds(state)
+    _step_demonstrations(state)
     _step_backend(state)
     _step_config(state)
 

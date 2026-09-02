@@ -33,6 +33,9 @@ from __future__ import annotations
 __version__ = "0.1.0"
 
 from MutaGenAI.prompt_evolver import (
+    BudgetUsage,
+    CriticArtifact,
+    Demonstration,
     ErrorProfile,
     FailureBucket,
     PromptEvolver,
@@ -59,6 +62,10 @@ from MutaGenAI.strategies import (
     LLMJudge,
     SyntheticEvalGenerator,
     SyntheticEvalScorer,
+    SyntheticExampleQuarantine,
+    SyntheticQuarantineReport,
+    ValidatedSyntheticExample,
+    RejectedSyntheticExample,
     ToolSuccessScorer,
     ToolResult,
     SelfConsistencyScorer,
@@ -80,10 +87,26 @@ from MutaGenAI.seed_loader import (
     register_penalty_condition,
     schema_to_proxy_checks,
 )
+from MutaGenAI.reporting import (
+    CandidateEvaluation,
+    ConfidenceInterval,
+    DatasetSplits,
+    ExperimentReport,
+    ExperimentRun,
+    MetricSummary,
+    PairedComparison,
+    PromptLengthPoint,
+    ResourceTotals,
+    split_dataset,
+    summarize_metric,
+)
 from MutaGenAI.wizard import run_wizard
 
 __all__ = [
     # Core engine
+    "BudgetUsage",
+    "CriticArtifact",
+    "Demonstration",
     "ErrorProfile",
     "FailureBucket",
     "PromptEvolver",
@@ -101,6 +124,18 @@ __all__ = [
     "generate_adaptive_mutations",
     "get_failure_bucket_mutations",
     "get_mutations_for_problem_type",
+    # Research reporting
+    "CandidateEvaluation",
+    "ConfidenceInterval",
+    "DatasetSplits",
+    "ExperimentReport",
+    "ExperimentRun",
+    "MetricSummary",
+    "PairedComparison",
+    "PromptLengthPoint",
+    "ResourceTotals",
+    "split_dataset",
+    "summarize_metric",
     # No-eval strategies
     "NoEvalPromptEvolver",
     "NoEvalConfig",
@@ -108,6 +143,10 @@ __all__ = [
     "LLMJudge",
     "SyntheticEvalGenerator",
     "SyntheticEvalScorer",
+    "SyntheticExampleQuarantine",
+    "SyntheticQuarantineReport",
+    "ValidatedSyntheticExample",
+    "RejectedSyntheticExample",
     "ToolSuccessScorer",
     "ToolResult",
     "SelfConsistencyScorer",

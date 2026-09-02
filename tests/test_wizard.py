@@ -22,6 +22,7 @@ from MutaGenAI.wizard import (
     _show_summary,
     _step_backend,
     _step_config,
+    _step_demonstrations,
     _step_ground_truth,
     _step_human_eval,
     _step_mutations,
@@ -232,6 +233,24 @@ class TestWizardSteps:
             _step_seeds(state)
         assert len(state.seed_templates) == 2
 
+    def test_step_demonstrations_no(self):
+        state = WizardState()
+        with patch("MutaGenAI.wizard._confirm", return_value=False):
+            _step_demonstrations(state)
+        assert state.demonstrations == []
+
+    def test_step_demonstrations_yes(self):
+        state = WizardState()
+        calls = iter(["Reset my password", "account_support", "done"])
+        with (
+            patch("MutaGenAI.wizard._confirm", return_value=True),
+            patch("MutaGenAI.wizard._ask", side_effect=lambda *a, **kw: next(calls)),
+        ):
+            _step_demonstrations(state)
+        assert state.demonstrations == [
+            {"input": "Reset my password", "output": "account_support"}
+        ]
+
     def test_step_backend_ollama(self):
         state = WizardState()
         calls = iter(["ollama", "llama3.2"])
@@ -306,6 +325,8 @@ class TestScriptGeneration:
         assert "from MutaGenAI" in script
         assert "Route queries to tools" in script
         assert "LLMBackend.OLLAMA" in script
+        assert "result.critic_artifacts" in script
+        assert "Sample critiques:" in script
 
     def test_generate_script_openai(self):
         state = self._base_state()
@@ -327,6 +348,17 @@ class TestScriptGeneration:
         script = _generate_script(state)
         assert "Template A" in script
         assert "Template B" in script
+
+    def test_generate_with_demonstrations(self):
+        state = self._base_state()
+        state.demonstrations = [
+            {"input": "Reset my password", "output": "account_support"}
+        ]
+
+        script = _generate_script(state)
+
+        assert "Demonstration('Reset my password', 'account_support')" in script
+        assert "demonstrations=DEMONSTRATIONS" in script
 
     def test_generate_with_ground_truth_file(self):
         state = self._base_state()
@@ -405,6 +437,12 @@ class TestScriptGeneration:
         block = _build_main_block(state)
         assert "NoEvalConfig" in block
         assert "evolution_results.json" in block
+        assert "max_optimizer_calls=24" in block
+        assert "max_target_calls=45" in block
+        assert "max_input_tokens=20_000" in block
+        assert "max_output_tokens=5_000" in block
+        assert "quality_per_1k_tokens" in block
+        assert "result.stop_reason" in block
 
 
 # ---------------------------------------------------------------------------
@@ -474,6 +512,7 @@ class TestRunWizard:
             False,  # no fitness penalties
             False,  # no domain mutations
             False,  # no seed templates
+            False,  # no worked examples
         ])
 
         with (
@@ -672,6 +711,21 @@ class TestMainBlockImprovements:
         state = self._base_state()
         block = _build_main_block(state)
         assert "custom_mutations=DOMAIN_MUTATIONS" in block
+
+    def test_alternating_optimization_enabled_for_worked_examples(self):
+        state = self._base_state()
+        state.demonstrations = [{"input": "hello", "output": "greeting"}]
+
+        block = _build_main_block(state)
+
+        assert "alternating_optimization=True" in block
+
+    def test_alternating_optimization_disabled_without_worked_examples(self):
+        state = self._base_state()
+
+        block = _build_main_block(state)
+
+        assert "alternating_optimization=False" in block
 
 
 # ---------------------------------------------------------------------------

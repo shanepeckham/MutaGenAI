@@ -126,6 +126,10 @@ class RedTeamHarness:
     mutator_client : ChatClient or None
         Model used for LLM-assisted mutation and judging (attack mode).
         Defaults to the target's own client.
+    judge_client : ChatClient or None
+        Model the safety judge runs on (harden mode). Use a stronger model
+        than a weak target for reliable compliance scoring. Defaults to the
+        target's own client.
     """
 
     def __init__(
@@ -139,6 +143,7 @@ class RedTeamHarness:
         detector: Optional[RefusalDetector] = None,
         judge: Optional[SafetyJudge] = None,
         mutator_client: Optional[ChatClient] = None,
+        judge_client: Optional[ChatClient] = None,
     ) -> None:
         scope.require(target.name)
         if not behaviors:
@@ -154,6 +159,8 @@ class RedTeamHarness:
             SafetyJudge() if config.use_safety_judge else None
         )
         self.mutator_client = mutator_client or target.client
+        # The judge may run on a stronger model than the (possibly weak) target.
+        self.judge_client = judge_client or target.client
 
     # -- public API --------------------------------------------------------
 
@@ -295,7 +302,7 @@ class RedTeamHarness:
             refused = self.detector.is_refusal(output)
             if self.judge is not None and not refused:
                 complied = self.judge.judge_compliance(
-                    behavior, output or "", target.client
+                    behavior, output or "", self.judge_client
                 )
             else:
                 complied = 0.0 if refused else 1.0
